@@ -16,17 +16,20 @@ def load_ground_truth() -> dict:
 
 
 def evaluate_case(result: DiagnosisResult, ground_truth: dict) -> dict:
+    actual_cause_code = ground_truth.get("actual_cause_code")
     expected_codes = set(ground_truth.get("expected_hypothesis_codes", []))
     predicted_codes = {h.cause_code for h in result.hypotheses}
-    recalled = sorted(expected_codes & predicted_codes)
+    hypothesis_recall_hit = (
+        actual_cause_code is not None and actual_cause_code in predicted_codes
+    )
+    recalled = [actual_cause_code] if hypothesis_recall_hit else []
 
     return {
         "case_id": result.case_id,
-        "final_diagnosis_correct": result.final_cause_code
-        == ground_truth.get("actual_cause_code"),
+        "final_diagnosis_correct": result.final_cause_code == actual_cause_code,
         "predicted_final_cause_code": result.final_cause_code,
-        "actual_cause_code": ground_truth.get("actual_cause_code"),
-        "hypothesis_recall_hit": len(recalled) > 0,
+        "actual_cause_code": actual_cause_code,
+        "hypothesis_recall_hit": hypothesis_recall_hit,
         "recalled_hypothesis_codes": recalled,
         "predicted_hypothesis_codes": sorted(predicted_codes),
         "expected_hypothesis_codes": sorted(expected_codes),
