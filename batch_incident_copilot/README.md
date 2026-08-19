@@ -68,6 +68,15 @@ python evaluation/evaluator.py --result results/v1_tool_use/file_case_001.json -
 
 V1 Tool은 로컬 mock JSON만 조회합니다. 실제 파일 시스템/DB는 사용하지 않습니다.
 
+## Streamlit UI
+
+```bash
+cd batch_incident_copilot
+streamlit run streamlit_app.py
+```
+
+브라우저에서 로그 파일을 업로드하거나 텍스트를 붙여넣은 뒤 V0 또는 V1을 선택하고 [분석 시작]을 누르면 됩니다. CLI는 그대로 사용할 수 있습니다.
+
 ## 테스트
 
 ```bash
