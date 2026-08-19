@@ -4,7 +4,7 @@ from app.baseline import diagnose, extract_json_object
 from app.llm_client import chat_complete
 from app.schemas import ToolSelection, ToolResult, V1DiagnosisResult
 from app.tools.evidence import filter_evidence, supporting_tool_results
-from app.tools.registry import TOOL_SPECS, execute_tool
+from app.tools.registry import get_tool_specs, execute_tool
 from config import settings
 
 MAX_TOOL_CALLS = 2
@@ -43,7 +43,7 @@ def _tool_select_user_prompt(
         f"initial_hypotheses: {json.dumps([h.model_dump() for h in initial.hypotheses], ensure_ascii=False)}\n"
         f"already_called_tools: {json.dumps(already_called, ensure_ascii=False)}\n"
         f"previous_tool_results: {json.dumps([r.model_dump() for r in tool_results], ensure_ascii=False)}\n"
-        f"available_tools: {json.dumps(TOOL_SPECS, ensure_ascii=False)}\n\n"
+        f"available_tools: {json.dumps(get_tool_specs(), ensure_ascii=False)}\n\n"
         "--- LOG START ---\n"
         f"{log_text}\n"
         "--- LOG END ---\n"
