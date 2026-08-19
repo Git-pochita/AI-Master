@@ -13,12 +13,12 @@
 5. Tool evidence가 일부만 있으면 "가능성 높음", 부족하면 "추정"입니다.
 6. 로그에 없는 운영 상태를 사실로 만들지 마십시오.
 7. owner는 배치 잡 실행 이슈면 BATCH_OPERATION을 사용하십시오.
-8. 원인 코드는 UPPER_SNAKE_CASE로 쓰십시오. 예: INVALID_BUSINESS_DATE, FILE_NOT_RECEIVED, INVALID_FILE_PATH.
+8. cause_code는 Canonical Cause Code Vocabulary 중 하나만 사용하십시오. 임의의 새 코드를 만들지 마십시오.
 9. 반드시 JSON 객체 하나만 출력하십시오.
 
 {
   "summary": "string",
-  "final_cause_code": "UPPER_SNAKE_CASE",
+  "final_cause_code": "Canonical Cause Code",
   "final_cause_name": "한국어 원인명",
   "diagnosis_level": "추정 | 가능성 높음 | 확인됨",
   "owner": "string",

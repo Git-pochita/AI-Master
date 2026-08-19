@@ -20,8 +20,8 @@ from main import run_diagnosis
 
 def _hypothesis() -> Hypothesis:
     return Hypothesis(
-        cause_code="INPUT_FILE_NOT_FOUND",
-        cause_name="입력 파일 없음",
+        cause_code="FILE_NOT_RECEIVED",
+        cause_name="파일 미수신",
         evidence=["FileNotFoundError"],
     )
 
@@ -93,8 +93,8 @@ def test_v0_execution_path_kept(monkeypatch):
         summary="V0 유지",
         extracted_info={},
         hypotheses=[_hypothesis()],
-        final_cause_code="INPUT_FILE_NOT_FOUND",
-        final_cause_name="입력 파일 없음",
+        final_cause_code="FILE_NOT_RECEIVED",
+        final_cause_name="파일 미수신",
         diagnosis_level="추정",
         owner="BATCH_OPERATION",
         recommended_actions=["확인"],
@@ -106,10 +106,16 @@ def test_v0_execution_path_kept(monkeypatch):
     dumped = result.model_dump()
     assert "selected_tools" not in dumped
     assert "tool_results" not in dumped
-    assert dumped["final_cause_code"] == "INPUT_FILE_NOT_FOUND"
+    assert dumped["final_cause_code"] == "FILE_NOT_RECEIVED"
 
 
 def test_tool_use_has_no_static_log_routing():
     source = (PROJECT_ROOT / "app" / "tool_use.py").read_text(encoding="utf-8")
     assert 'if "FileNotFoundError"' not in source
     assert "if error_code" not in source
+    assert "file_case_001" not in source
+    tools_dir = PROJECT_ROOT / "app" / "tools"
+    for path in tools_dir.glob("*.py"):
+        text = path.read_text(encoding="utf-8")
+        assert "file_case_001" not in text
+        assert 'if case_id' not in text

@@ -1,6 +1,7 @@
 import json
 
 from app.baseline import diagnose, extract_json_object
+from app.cause_codes import validate_cause_code, vocabulary_prompt_block
 from app.llm_client import chat_complete
 from app.schemas import ToolSelection, ToolResult, V1DiagnosisResult
 from app.tools.evidence import filter_evidence, supporting_tool_results
@@ -101,7 +102,7 @@ def _final_user_prompt(log_text: str, initial, tool_results: list[ToolResult]) -
 
 
 def finalize_diagnosis(log_text: str, initial, tool_results: list[ToolResult]) -> dict:
-    from pydantic import BaseModel
+    from pydantic import BaseModel, field_validator
 
     class FinalDraft(BaseModel):
         summary: str
@@ -113,7 +114,17 @@ def finalize_diagnosis(log_text: str, initial, tool_results: list[ToolResult]) -
         limitations: list[str]
         recommended_actions: list[str] = []
 
-    system_prompt = _load_prompt(settings.V1_FINAL_PROMPT_PATH)
+        @field_validator("final_cause_code")
+        @classmethod
+        def canonical_code(cls, value: str) -> str:
+            return validate_cause_code(value.strip())
+
+    system_prompt = (
+        _load_prompt(settings.V1_FINAL_PROMPT_PATH).rstrip()
+        + "\n\n"
+        + vocabulary_prompt_block()
+        + "\n"
+    )
     user_prompt = _final_user_prompt(log_text, initial, tool_results)
     draft = _parse_json_with_retry(system_prompt, user_prompt, FinalDraft)
     payload = draft.model_dump()

@@ -4,6 +4,8 @@ from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.cause_codes import validate_cause_code
+
 CAUSE_CODE_PATTERN = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*")
 
 
@@ -32,7 +34,7 @@ class Hypothesis(BaseModel):
                 "cause_code는 영문 대문자/숫자와 underscore로 구분한 "
                 "UPPER_SNAKE_CASE여야 합니다. 예: FILE_NOT_RECEIVED"
             )
-        return code
+        return validate_cause_code(code)
 
 
 class ToolResult(BaseModel):
@@ -75,13 +77,13 @@ class V1DiagnosisResult(BaseModel):
 
     @field_validator("final_cause_code")
     @classmethod
-    def final_cause_code_upper_snake(cls, value: str) -> str:
+    def final_cause_code_canonical(cls, value: str) -> str:
         code = value.strip()
         if not CAUSE_CODE_PATTERN.fullmatch(code):
             raise ValueError(
                 "final_cause_code는 UPPER_SNAKE_CASE여야 합니다. 예: INVALID_BUSINESS_DATE"
             )
-        return code
+        return validate_cause_code(code)
 
 
 class DiagnosisResult(BaseModel):
@@ -95,6 +97,16 @@ class DiagnosisResult(BaseModel):
     owner: str
     recommended_actions: list[str]
     limitations: list[str]
+
+    @field_validator("final_cause_code")
+    @classmethod
+    def final_cause_code_canonical(cls, value: str) -> str:
+        code = value.strip()
+        if not CAUSE_CODE_PATTERN.fullmatch(code):
+            raise ValueError(
+                "final_cause_code는 UPPER_SNAKE_CASE여야 합니다. 예: INVALID_BUSINESS_DATE"
+            )
+        return validate_cause_code(code)
 
     @model_validator(mode="after")
     def final_cause_must_be_one_of_hypotheses(self) -> "DiagnosisResult":

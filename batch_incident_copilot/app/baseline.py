@@ -1,13 +1,19 @@
 import json
 import re
 
+from app.cause_codes import vocabulary_prompt_block
 from app.llm_client import chat_complete
 from app.schemas import DiagnosisResult
 from config import settings
 
 
 def load_system_prompt() -> str:
-    return settings.PROMPT_PATH.read_text(encoding="utf-8")
+    return (
+        settings.PROMPT_PATH.read_text(encoding="utf-8").rstrip()
+        + "\n\n"
+        + vocabulary_prompt_block()
+        + "\n"
+    )
 
 
 def extract_json_object(text: str) -> dict:

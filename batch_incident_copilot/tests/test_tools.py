@@ -18,6 +18,10 @@ def test_check_file_status_success():
     assert result.data is not None
     assert result.data["exists"] is False
     assert result.data["received"] is False
+    siblings = {item["path"]: item for item in result.data["same_directory_files"]}
+    assert siblings["/data/in/sales_20260818.csv"]["exists"] is False
+    assert siblings["/data/in/sales_20260819.csv"]["exists"] is True
+    assert siblings["/data/in/sales_20260819.csv"]["received"] is True
 
 
 def test_check_file_status_failed():

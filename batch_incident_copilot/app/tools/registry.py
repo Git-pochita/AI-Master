@@ -26,6 +26,7 @@ def get_tool_specs() -> list[dict[str, Any]]:
             "name": "check_file_status",
             "description": (
                 "로컬 mock 파일 카탈로그에서 지정 경로의 수신/존재 상태를 조회합니다. "
+                "같은 디렉터리에 있는 다른 mock 파일 상태(same_directory_files)도 함께 반환합니다. "
                 "실제 파일 시스템은 읽지 않습니다. 인자: path."
             ),
             "arguments": {"path": "조회할 파일 경로"},

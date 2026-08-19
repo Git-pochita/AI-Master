@@ -17,12 +17,11 @@ from app.schemas import Hypothesis
         "FILE_NOT_RECEIVED",
         "INVALID_BUSINESS_DATE",
         "INVALID_FILE_PATH",
-        "A",
-        "FILE2",
-        "ERR_404",
+        "TABLE_NOT_FOUND",
+        "MISSING_REQUIRED_PARAMETER",
     ],
 )
-def test_cause_code_accepts_upper_snake(code: str):
+def test_cause_code_accepts_canonical(code: str):
     hypothesis = Hypothesis(
         cause_code=code,
         cause_name="테스트",
@@ -42,9 +41,15 @@ def test_cause_code_accepts_upper_snake(code: str):
         "FILE__NOT",
         "파일없음",
         "FILE NOT",
+        "A",
+        "FILE2",
+        "ERR_404",
+        "INPUT_FILE_NOT_FOUND",
+        "INPUT_PATH_CONFIGURATION_ERROR",
+        "INPUT_PATH_MISCONFIGURATION",
     ],
 )
-def test_cause_code_rejects_invalid_format(code: str):
+def test_cause_code_rejects_invalid_or_non_canonical(code: str):
     with pytest.raises(ValidationError):
         Hypothesis(
             cause_code=code,
