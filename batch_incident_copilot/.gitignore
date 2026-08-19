@@ -1,0 +1,10 @@
+.env
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+.python-version
+results/v0_baseline/*.json
+!results/v0_baseline/.gitkeep

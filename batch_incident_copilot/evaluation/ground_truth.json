@@ -1,0 +1,18 @@
+{
+  "file_case_001": {
+    "actual_cause_code": "INVALID_BUSINESS_DATE",
+    "actual_cause_name": "실행일자 파라미터 오류",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "expected_diagnosis_level_v0": "추정",
+    "expected_owner": "BATCH_OPERATION",
+    "v1_required_tools": [
+      "check_file_status",
+      "validate_parameter"
+    ],
+    "notes": "실제 원인은 실행일자 파라미터 오류이다. V0는 Tool이 없어 로그만으로는 이 원인을 확정하지 못할 수 있다. 파일 미수신, 실행일자 파라미터 오류, 파일 경로 오류를 후보에 포함하는 것이 기대 동작이다. expected_diagnosis_level_v0는 추정이다."
+  }
+}
