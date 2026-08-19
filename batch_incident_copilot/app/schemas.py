@@ -1,7 +1,10 @@
+import re
 from enum import Enum
 from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
+
+CAUSE_CODE_PATTERN = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*")
 
 
 class ValidationDecision(str, Enum):
@@ -24,8 +27,11 @@ class Hypothesis(BaseModel):
     @classmethod
     def cause_code_upper_snake(cls, value: str) -> str:
         code = value.strip()
-        if not code:
-            raise ValueError("cause_code는 비어 있을 수 없습니다.")
+        if not CAUSE_CODE_PATTERN.fullmatch(code):
+            raise ValueError(
+                "cause_code는 영문 대문자/숫자와 underscore로 구분한 "
+                "UPPER_SNAKE_CASE여야 합니다. 예: FILE_NOT_RECEIVED"
+            )
         return code
 
 
