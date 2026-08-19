@@ -1,0 +1,16 @@
+{
+  "/data/in/sales_20260818.csv": {
+    "path": "/data/in/sales_20260818.csv",
+    "exists": false,
+    "received": false,
+    "size_bytes": null,
+    "last_modified": null
+  },
+  "/data/in/sales_20260819.csv": {
+    "path": "/data/in/sales_20260819.csv",
+    "exists": true,
+    "received": true,
+    "size_bytes": 204800,
+    "last_modified": "2026-08-19T01:50:00"
+  }
+}
