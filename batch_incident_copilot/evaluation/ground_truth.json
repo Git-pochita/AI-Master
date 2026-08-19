@@ -8,6 +8,7 @@
       "INVALID_FILE_PATH"
     ],
     "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
     "v1_required_tools": [
       "check_file_status",

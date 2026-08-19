@@ -13,7 +13,7 @@ def create_client() -> AzureOpenAI:
 
 
 def chat_complete(system_prompt: str, user_prompt: str) -> str:
-    """단일 LLM 호출. Tool calling을 사용하지 않는다."""
+    """메시지 기반 단일 LLM 호출. OpenAI native tool calling API는 사용하지 않는다."""
     client = create_client()
     resp = client.chat.completions.create(
         model=settings.AZURE_OPENAI_MODEL,

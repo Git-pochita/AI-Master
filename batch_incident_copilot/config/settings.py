@@ -13,7 +13,11 @@ AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-pre
 AZURE_OPENAI_MODEL = os.getenv("AZURE_OPENAI_MODEL", "gpt-4.1")
 
 PROMPT_PATH = PROJECT_ROOT / "prompts" / "v0_system_prompt.txt"
+V1_TOOL_SELECT_PROMPT_PATH = PROJECT_ROOT / "prompts" / "v1_tool_select_prompt.txt"
+V1_FINAL_PROMPT_PATH = PROJECT_ROOT / "prompts" / "v1_final_diagnosis_prompt.txt"
 RESULTS_DIR = PROJECT_ROOT / "results" / "v0_baseline"
+V0_RESULTS_DIR = RESULTS_DIR
+V1_RESULTS_DIR = PROJECT_ROOT / "results" / "v1_tool_use"
 GROUND_TRUTH_PATH = PROJECT_ROOT / "evaluation" / "ground_truth.json"
 
 

@@ -1,0 +1,11 @@
+{
+  "DAILY_SALES_LOAD": {
+    "business_date": {
+      "parameter_name": "business_date",
+      "type": "date_yyyymmdd",
+      "job_run_date": "20260819",
+      "expected_value": "20260819",
+      "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다."
+    }
+  }
+}

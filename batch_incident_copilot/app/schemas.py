@@ -35,6 +35,55 @@ class Hypothesis(BaseModel):
         return code
 
 
+class ToolResult(BaseModel):
+    tool: str
+    status: Literal["SUCCESS", "FAILED"]
+    data: Optional[dict[str, Any]] = None
+    error: Optional[str] = None
+
+
+class ToolSelection(BaseModel):
+    selected_tool: Optional[str] = None
+    reason: str = ""
+    arguments: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("selected_tool", mode="before")
+    @classmethod
+    def empty_tool_to_none(cls, value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        text = str(value).strip()
+        if not text or text.lower() in {"null", "none"}:
+            return None
+        return text
+
+
+class V1DiagnosisResult(BaseModel):
+    case_id: Optional[str] = None
+    summary: str = ""
+    extracted_info: dict[str, Any] = Field(default_factory=dict)
+    initial_hypotheses: list[Hypothesis]
+    selected_tools: list[ToolSelection] = Field(default_factory=list)
+    tool_results: list[ToolResult] = Field(default_factory=list)
+    final_cause_code: str
+    final_cause_name: str
+    diagnosis_level: Literal["추정", "가능성 높음", "확인됨"]
+    owner: str
+    evidence: list[str]
+    limitations: list[str]
+    recommended_actions: list[str] = Field(default_factory=list)
+
+    @field_validator("final_cause_code")
+    @classmethod
+    def final_cause_code_upper_snake(cls, value: str) -> str:
+        code = value.strip()
+        if not CAUSE_CODE_PATTERN.fullmatch(code):
+            raise ValueError(
+                "final_cause_code는 UPPER_SNAKE_CASE여야 합니다. 예: INVALID_BUSINESS_DATE"
+            )
+        return code
+
+
 class DiagnosisResult(BaseModel):
     case_id: Optional[str] = None
     summary: str
