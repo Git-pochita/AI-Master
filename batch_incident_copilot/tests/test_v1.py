@@ -166,15 +166,19 @@ def test_tool_use_has_no_static_log_routing():
     assert 'if "table not found"' not in source
     assert "if error_code" not in source
     assert "file_case_001" not in source
+    assert "file_case_002" not in source
     assert "db_case_001" not in source
     assert "sql_case_001" not in source
+    assert "param_case_001" not in source
     tools_dir = PROJECT_ROOT / "app" / "tools"
     forbidden_snippets = (
         'if "login failed"',
         'if "table not found"',
         "file_case_001",
+        "file_case_002",
         "db_case_001",
         "sql_case_001",
+        "param_case_001",
         "if case_id",
     )
     for path in tools_dir.glob("*.py"):

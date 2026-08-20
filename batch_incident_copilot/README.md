@@ -65,17 +65,32 @@ python main.py --version v1 --log data/sample_logs/sql_case_001.log --case-id sq
 
 ## 평가
 
+단일 결과:
+
 ```bash
 python evaluation/evaluator.py --result results/v0_baseline/file_case_001.json --case-id file_case_001
 python evaluation/evaluator.py --result results/v1_tool_use/file_case_001.json --case-id file_case_001
 ```
 
+10건 일괄 평가 (V0 + V1):
+
+```bash
+python evaluation/run_evaluation.py --versions v0 v1
+```
+
+집계 리포트:
+
+- `evaluation/reports/v0_summary.json`
+- `evaluation/reports/v1_summary.json`
+- `evaluation/reports/v0_vs_v1.md`
+
 비교 항목:
 
-- `final_diagnosis_correct`
-- `hypothesis_recall_hit` (초기 hypotheses에 실제 원인이 있는가)
-- `diagnosis_level_correct`
-- `owner_correct`
+- `final_diagnosis_accuracy`
+- `hypothesis_recall` (초기 hypotheses에 실제 원인이 있는가)
+- `diagnosis_level_accuracy`
+- `owner_accuracy`
+- V1: `required_tool_recall`, `unnecessary_tool_rate`
 
 V1 Tool은 로컬 mock JSON만 조회합니다. 실제 파일 시스템/DB는 사용하지 않습니다.
 

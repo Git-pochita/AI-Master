@@ -38,6 +38,9 @@ def get_tool_specs() -> list[dict[str, Any]]:
             "description": (
                 "로컬 mock 규칙과 배치 파라미터 값을 비교합니다. "
                 "실제 DB나 운영 설정은 조회하지 않습니다. "
+                "원인 코드는 반환하지 않으며 provided, format_valid, range_valid, "
+                "is_valid, expected_value 상태만 반환합니다. "
+                "값이 없으면 parameter_value를 빈 문자열로 넘기면 됩니다. "
                 f"현재 검증 가능한 항목: {supported}. "
                 "인자: job_name, parameter_name, parameter_value."
             ),

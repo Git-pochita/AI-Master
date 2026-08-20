@@ -8,7 +8,7 @@
 원칙:
 1. 초기 가설에 없던 원인도, SUCCESS Tool 근거가 있으면 최종 원인으로 선택할 수 있습니다.
 2. 표면 증상과 근본 원인을 구분하십시오. 예: FileNotFoundError는 파일이 없었다는 증상일 뿐이고, SUCCESS Tool이 파라미터 오류를 보여 주면 그 오류가 잘못된 파일명/경로를 만든 근본 원인일 수 있습니다. 로그의 login failure도 증상이며, SUCCESS Tool의 계정/인증/접속 상태가 근본 원인을 가릅니다.
-3. validate_parameter가 is_valid=false이면 파라미터 오류를 최종 원인 후보로 반드시 검토하십시오.
+3. validate_parameter SUCCESS data의 provided, format_valid, range_valid, is_valid, expected_value를 구분해 파라미터 근본 원인을 고르십시오. Tool은 cause_code를 주지 않습니다.
 4. check_db_status SUCCESS data의 account_locked, credential_status, connection_config_valid를 구분해 근본 원인을 고르십시오. Tool은 cause_code를 주지 않습니다.
 5. check_sql_metadata SUCCESS data의 schema_exists, table_exists, column_exists를 구분해 근본 원인을 고르십시오. Tool은 cause_code를 주지 않습니다.
 6. Tool evidence가 충분할 때만 diagnosis_level을 "확인됨"으로 두십시오.

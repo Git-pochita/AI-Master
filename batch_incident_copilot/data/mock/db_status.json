@@ -9,6 +9,11 @@
       "account_locked": true,
       "credential_status": "VALID",
       "connection_config_valid": true
+    },
+    "batch_rpt": {
+      "account_locked": true,
+      "credential_status": "VALID",
+      "connection_config_valid": true
     }
   },
   "REPORT_DB": {

@@ -56,6 +56,41 @@ def test_validate_parameter_invalid():
     assert result.data["parameter_value"] == "20260818"
 
 
+def test_validate_parameter_missing_format_and_range():
+    missing = validate_parameter(
+        job_name="DAILY_STORE_CLOSE",
+        parameter_name="store_id",
+        parameter_value="",
+    )
+    assert missing.status == "SUCCESS"
+    assert missing.data["provided"] is False
+    assert missing.data["required"] is True
+    assert missing.data["is_valid"] is False
+    assert "cause_code" not in missing.data
+
+    bad_format = validate_parameter(
+        job_name="DAILY_REGION_AGG",
+        parameter_name="region_code",
+        parameter_value="korea",
+    )
+    assert bad_format.status == "SUCCESS"
+    assert bad_format.data["provided"] is True
+    assert bad_format.data["format_valid"] is False
+    assert bad_format.data["is_valid"] is False
+    assert "cause_code" not in bad_format.data
+
+    bad_range = validate_parameter(
+        job_name="DAILY_RETRY_BATCH",
+        parameter_name="retry_count",
+        parameter_value="99",
+    )
+    assert bad_range.status == "SUCCESS"
+    assert bad_range.data["format_valid"] is True
+    assert bad_range.data["range_valid"] is False
+    assert bad_range.data["is_valid"] is False
+    assert "cause_code" not in bad_range.data
+
+
 def test_failed_tool_results_are_not_used_as_evidence():
     failed = ToolResult(
         tool="check_file_status",
@@ -115,6 +150,11 @@ def test_check_db_status_mock_states():
     assert locked.data["account_locked"] is True
     assert locked.data["credential_status"] == "VALID"
     assert locked.data["connection_config_valid"] is True
+
+    eval_locked = check_db_status(connection_name="SALES_DB", account="batch_rpt")
+    assert eval_locked.status == "SUCCESS"
+    assert eval_locked.data["account_locked"] is True
+    assert eval_locked.data["credential_status"] == "VALID"
 
     config_error = check_db_status(connection_name="REPORT_DB", account="batch_user")
     assert config_error.status == "SUCCESS"

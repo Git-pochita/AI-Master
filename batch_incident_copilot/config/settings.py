@@ -19,6 +19,8 @@ RESULTS_DIR = PROJECT_ROOT / "results" / "v0_baseline"
 V0_RESULTS_DIR = RESULTS_DIR
 V1_RESULTS_DIR = PROJECT_ROOT / "results" / "v1_tool_use"
 GROUND_TRUTH_PATH = PROJECT_ROOT / "evaluation" / "ground_truth.json"
+SAMPLE_LOGS_DIR = PROJECT_ROOT / "data" / "sample_logs"
+REPORTS_DIR = PROJECT_ROOT / "evaluation" / "reports"
 
 
 def require_api_key() -> str:

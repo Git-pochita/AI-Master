@@ -12,5 +12,19 @@
     "received": true,
     "size_bytes": 204800,
     "last_modified": "2026-08-19T01:50:00"
+  },
+  "/data/in/sale_20260819.csv": {
+    "path": "/data/in/sale_20260819.csv",
+    "exists": false,
+    "received": false,
+    "size_bytes": null,
+    "last_modified": null
+  },
+  "/data/in/orders/orders_20260819.csv": {
+    "path": "/data/in/orders/orders_20260819.csv",
+    "exists": false,
+    "received": false,
+    "size_bytes": null,
+    "last_modified": null
   }
 }

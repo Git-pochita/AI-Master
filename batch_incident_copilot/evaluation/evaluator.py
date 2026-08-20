@@ -9,6 +9,13 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from app.schemas import DiagnosisResult, Hypothesis
 from config import settings
+from evaluation.metrics import (
+    required_tool_recall,
+    selected_tool_names,
+    tool_failure_count,
+    unnecessary_tool_count,
+    unnecessary_tool_rate,
+)
 
 
 def load_ground_truth() -> dict:
@@ -34,6 +41,8 @@ def evaluate_metrics(
     owner: str,
     ground_truth: dict,
     expected_level_key: str,
+    selected_tools: list[str] | None = None,
+    tool_results: list | None = None,
 ) -> dict:
     actual_cause_code = ground_truth.get("actual_cause_code")
     expected_codes = set(ground_truth.get("expected_hypothesis_codes", []))
@@ -43,7 +52,7 @@ def evaluate_metrics(
     recalled = [actual_cause_code] if hypothesis_recall_hit else []
     expected_level = ground_truth.get(expected_level_key)
 
-    return {
+    metrics = {
         "case_id": case_id,
         "final_diagnosis_correct": final_cause_code == actual_cause_code,
         "predicted_final_cause_code": final_cause_code,
@@ -59,6 +68,19 @@ def evaluate_metrics(
         "predicted_owner": owner,
         "expected_owner": ground_truth.get("expected_owner"),
     }
+    if selected_tools is not None:
+        required = list(ground_truth.get("required_tools") or [])
+        payload = {"selected_tools": [{"selected_tool": name} for name in selected_tools]}
+        if tool_results is not None:
+            payload["tool_results"] = tool_results
+        metrics["required_tools"] = required
+        metrics["selected_tools"] = selected_tools
+        metrics["required_tool_recall"] = required_tool_recall(required, selected_tools)
+        metrics["unnecessary_tool_count"] = unnecessary_tool_count(required, selected_tools)
+        metrics["unnecessary_tool_rate"] = unnecessary_tool_rate(required, selected_tools)
+        metrics["tool_call_count"] = len(selected_tools)
+        metrics["tool_failure_count"] = tool_failure_count(payload)
+    return metrics
 
 
 def evaluate_case(result: DiagnosisResult, ground_truth: dict) -> dict:
@@ -89,6 +111,8 @@ def evaluate_payload(payload: dict, ground_truth: dict) -> dict:
         owner=payload.get("owner"),
         ground_truth=ground_truth,
         expected_level_key=expected_level_key,
+        selected_tools=selected_tool_names(payload) if is_v1 else None,
+        tool_results=payload.get("tool_results") if is_v1 else None,
     )
 
 

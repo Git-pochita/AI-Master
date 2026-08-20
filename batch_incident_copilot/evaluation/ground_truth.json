@@ -20,7 +20,43 @@
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
-    "notes": "실제 원인은 실행일자 파라미터 오류이다. V0는 Tool이 없어 로그만으로는 이 원인을 확정하지 못할 수 있다. 파일 미수신, 실행일자 파라미터 오류, 파일 경로 오류를 후보에 포함하는 것이 기대 동작이다. expected_diagnosis_level_v0는 추정이다."
+    "notes": "표면은 FileNotFound이다. 실제 원인은 실행일자 파라미터 오류이며 check_file_status와 validate_parameter가 모두 필요하다."
+  },
+  "file_case_002": {
+    "case_id": "file_case_002",
+    "incident_domain": "FILE",
+    "actual_cause_code": "FILE_NOT_RECEIVED",
+    "actual_cause_name": "파일 미수신",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [
+      "check_file_status"
+    ],
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "notes": "business_date와 경로 형식은 정상이다. mock에서 해당 파일이 수신되지 않았다. 원인 검증에 필요한 Tool은 check_file_status이다."
+  },
+  "file_case_003": {
+    "case_id": "file_case_003",
+    "incident_domain": "FILE",
+    "actual_cause_code": "INVALID_FILE_PATH",
+    "actual_cause_name": "파일 경로 오류",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [
+      "check_file_status"
+    ],
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "notes": "로그 경로 /data/in/sale_20260819.csv는 없고, 같은 디렉터리의 sales_20260819.csv는 존재한다. 원인 검증 Tool은 check_file_status이다."
   },
   "db_case_001": {
     "case_id": "db_case_001",
@@ -38,7 +74,25 @@
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
-    "notes": "로그에는 DB authentication/login failure가 보이지만, mock 상태는 account_locked=false, credential_status=MISMATCH, connection_config_valid=true이다. V1은 check_db_status SUCCESS 결과로 DB_CREDENTIAL_MISMATCH를 확정해야 한다."
+    "notes": "로그는 login failure이다. mock은 credential_status=MISMATCH, account_locked=false, config 정상이다."
+  },
+  "db_case_002": {
+    "case_id": "db_case_002",
+    "incident_domain": "DB",
+    "actual_cause_code": "DB_ACCOUNT_LOCKED",
+    "actual_cause_name": "DB 계정 잠김",
+    "expected_hypothesis_codes": [
+      "DB_CREDENTIAL_MISMATCH",
+      "DB_ACCOUNT_LOCKED",
+      "DB_CONNECTION_CONFIG_ERROR"
+    ],
+    "required_tools": [
+      "check_db_status"
+    ],
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "notes": "로그는 db_case_001과 유사한 login failure이다. mock은 account_locked=true, credential_status=VALID, config 정상이다."
   },
   "sql_case_001": {
     "case_id": "sql_case_001",
@@ -56,6 +110,78 @@
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
-    "notes": "로그에는 table not found가 보이지만, mock metadata는 schema_exists=true, table_exists=false이다. V1은 check_sql_metadata SUCCESS 결과로 TABLE_NOT_FOUND를 확정해야 한다."
+    "notes": "schema는 있고 SALES_SUMMARY 테이블은 없다."
+  },
+  "sql_case_002": {
+    "case_id": "sql_case_002",
+    "incident_domain": "SQL",
+    "actual_cause_code": "COLUMN_NOT_FOUND",
+    "actual_cause_name": "컬럼 없음",
+    "expected_hypothesis_codes": [
+      "TABLE_NOT_FOUND",
+      "COLUMN_NOT_FOUND",
+      "INVALID_SCHEMA"
+    ],
+    "required_tools": [
+      "check_sql_metadata"
+    ],
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "notes": "SALES.SALES_DAILY 테이블은 있고 TOTAL_AMT 컬럼은 없다. 원인 검증 Tool은 check_sql_metadata이다."
+  },
+  "param_case_001": {
+    "case_id": "param_case_001",
+    "incident_domain": "PARAMETER",
+    "actual_cause_code": "MISSING_REQUIRED_PARAMETER",
+    "actual_cause_name": "필수 파라미터 누락",
+    "expected_hypothesis_codes": [
+      "MISSING_REQUIRED_PARAMETER",
+      "INVALID_PARAMETER_FORMAT",
+      "INVALID_PARAMETER_RANGE"
+    ],
+    "required_tools": [
+      "validate_parameter"
+    ],
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "notes": "store_id 값이 없다. validate_parameter는 provided=false, required=true를 반환해야 한다."
+  },
+  "param_case_002": {
+    "case_id": "param_case_002",
+    "incident_domain": "PARAMETER",
+    "actual_cause_code": "INVALID_PARAMETER_FORMAT",
+    "actual_cause_name": "파라미터 형식 오류",
+    "expected_hypothesis_codes": [
+      "MISSING_REQUIRED_PARAMETER",
+      "INVALID_PARAMETER_FORMAT",
+      "INVALID_PARAMETER_RANGE"
+    ],
+    "required_tools": [
+      "validate_parameter"
+    ],
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "notes": "region_code=korea는 허용 형식/코드가 아니다. validate_parameter는 format_valid=false를 반환해야 한다."
+  },
+  "param_case_003": {
+    "case_id": "param_case_003",
+    "incident_domain": "PARAMETER",
+    "actual_cause_code": "INVALID_PARAMETER_RANGE",
+    "actual_cause_name": "파라미터 범위 오류",
+    "expected_hypothesis_codes": [
+      "MISSING_REQUIRED_PARAMETER",
+      "INVALID_PARAMETER_FORMAT",
+      "INVALID_PARAMETER_RANGE"
+    ],
+    "required_tools": [
+      "validate_parameter"
+    ],
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "notes": "retry_count=99는 정수 형식이지만 허용 범위 1-5를 벗어난다. validate_parameter는 range_valid=false를 반환해야 한다."
   }
 }

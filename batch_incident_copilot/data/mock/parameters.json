@@ -3,9 +3,55 @@
     "business_date": {
       "parameter_name": "business_date",
       "type": "date_yyyymmdd",
+      "required": true,
       "job_run_date": "20260819",
       "expected_value": "20260819",
+      "format_pattern": "^[0-9]{8}$",
       "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다."
+    }
+  },
+  "DAILY_ORDERS_LOAD": {
+    "business_date": {
+      "parameter_name": "business_date",
+      "type": "date_yyyymmdd",
+      "required": true,
+      "job_run_date": "20260819",
+      "expected_value": "20260819",
+      "format_pattern": "^[0-9]{8}$",
+      "rule": "DAILY_ORDERS_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다."
+    }
+  },
+  "DAILY_STORE_CLOSE": {
+    "store_id": {
+      "parameter_name": "store_id",
+      "type": "string",
+      "required": true,
+      "expected_value": "ST001",
+      "format_pattern": "^ST[0-9]{3}$",
+      "rule": "DAILY_STORE_CLOSE의 store_id는 필수이며 ST### 형식이어야 한다."
+    }
+  },
+  "DAILY_REGION_AGG": {
+    "region_code": {
+      "parameter_name": "region_code",
+      "type": "enum",
+      "required": true,
+      "allowed_values": ["KR", "JP", "US"],
+      "expected_value": "KR",
+      "format_pattern": "^[A-Z]{2}$",
+      "rule": "DAILY_REGION_AGG의 region_code는 대문자 2자리 코드(KR/JP/US)여야 한다."
+    }
+  },
+  "DAILY_RETRY_BATCH": {
+    "retry_count": {
+      "parameter_name": "retry_count",
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 5,
+      "expected_value": "3",
+      "format_pattern": "^[0-9]+$",
+      "rule": "DAILY_RETRY_BATCH의 retry_count는 1 이상 5 이하 정수여야 한다."
     }
   }
 }
