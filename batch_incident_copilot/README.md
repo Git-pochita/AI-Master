@@ -47,10 +47,21 @@ V1 Tool Use:
 
 ```bash
 python main.py --version v1 --log data/sample_logs/file_case_001.log --case-id file_case_001
+python main.py --version v1 --log data/sample_logs/db_case_001.log --case-id db_case_001
+python main.py --version v1 --log data/sample_logs/sql_case_001.log --case-id sql_case_001
 ```
 
-- V0 결과: `results/v0_baseline/file_case_001.json`
-- V1 결과: `results/v1_tool_use/file_case_001.json`
+현재 V1 Tool:
+
+- `check_file_status`
+- `validate_parameter`
+- `check_db_status`
+- `check_sql_metadata`
+
+모든 Tool은 로컬 mock JSON만 조회합니다. 실제 DB 접속과 credential 검증은 하지 않습니다.
+
+- V0 결과: `results/v0_baseline/<case_id>.json`
+- V1 결과: `results/v1_tool_use/<case_id>.json`
 
 ## 평가
 

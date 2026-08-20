@@ -18,6 +18,10 @@ from app.schemas import Hypothesis
         "INVALID_BUSINESS_DATE",
         "INVALID_FILE_PATH",
         "TABLE_NOT_FOUND",
+        "DB_CREDENTIAL_MISMATCH",
+        "DB_ACCOUNT_LOCKED",
+        "COLUMN_NOT_FOUND",
+        "INVALID_SCHEMA",
         "MISSING_REQUIRED_PARAMETER",
     ],
 )

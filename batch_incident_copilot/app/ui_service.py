@@ -31,6 +31,8 @@ EXTRACT_FIELDS = (
     ("path", "File path"),
     ("business_date", "Parameter / business_date"),
     ("parameters", "Parameters"),
+    ("connection_name", "DB connection"),
+    ("account", "DB account"),
     ("sql_object", "SQL object"),
     ("table", "SQL object"),
     ("schema", "SQL object"),
@@ -122,6 +124,17 @@ def summarize_tool_data(data: dict[str, Any] | None) -> dict[str, Any]:
         "is_valid",
         "rule",
         "job_run_date",
+        "connection_name",
+        "account",
+        "account_locked",
+        "credential_status",
+        "connection_config_valid",
+        "schema",
+        "table",
+        "column",
+        "schema_exists",
+        "table_exists",
+        "column_exists",
     ):
         if key in data:
             summary[key] = data[key]

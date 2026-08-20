@@ -140,6 +140,31 @@ def test_extract_and_summarize_helpers():
     assert "exists" in summary
     assert "noise" not in summary
 
+    db_summary = summarize_tool_data(
+        {
+            "connection_name": "SALES_DB",
+            "account": "batch_user",
+            "account_locked": False,
+            "credential_status": "MISMATCH",
+            "connection_config_valid": True,
+            "secret": "should-not-show",
+        }
+    )
+    assert db_summary["credential_status"] == "MISMATCH"
+    assert "secret" not in db_summary
+
+    sql_summary = summarize_tool_data(
+        {
+            "schema": "SALES",
+            "table": "SALES_SUMMARY",
+            "schema_exists": True,
+            "table_exists": False,
+            "column_exists": None,
+        }
+    )
+    assert sql_summary["table_exists"] is False
+    assert sql_summary["schema_exists"] is True
+
 
 def test_hypotheses_from_v1_payload():
     items = hypotheses_from_result(

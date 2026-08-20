@@ -1,0 +1,21 @@
+{
+  "SALES_DB": {
+    "batch_user": {
+      "account_locked": false,
+      "credential_status": "MISMATCH",
+      "connection_config_valid": true
+    },
+    "locked_user": {
+      "account_locked": true,
+      "credential_status": "VALID",
+      "connection_config_valid": true
+    }
+  },
+  "REPORT_DB": {
+    "batch_user": {
+      "account_locked": false,
+      "credential_status": "VALID",
+      "connection_config_valid": false
+    }
+  }
+}

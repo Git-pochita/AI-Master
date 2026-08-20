@@ -74,6 +74,56 @@ def test_v1_result_schema_valid():
     V1DiagnosisResult.model_validate(dumped)
 
 
+def test_v1_result_schema_accepts_db_and_sql_tools():
+    result = V1DiagnosisResult(
+        case_id="db_case_001",
+        summary="DB/SQL Tool 결과 회귀",
+        extracted_info={"connection_name": "SALES_DB"},
+        initial_hypotheses=[_hypothesis()],
+        selected_tools=[
+            ToolSelection(
+                selected_tool="check_db_status",
+                reason="DB 상태 확인",
+                arguments={"connection_name": "SALES_DB", "account": "batch_user"},
+            ),
+            ToolSelection(
+                selected_tool="check_sql_metadata",
+                reason="SQL metadata 확인",
+                arguments={"schema": "SALES", "table": "SALES_SUMMARY", "column": None},
+            ),
+        ],
+        tool_results=[
+            ToolResult(
+                tool="check_db_status",
+                status="SUCCESS",
+                data={
+                    "account_locked": False,
+                    "credential_status": "MISMATCH",
+                    "connection_config_valid": True,
+                },
+                error=None,
+            ),
+            ToolResult(
+                tool="check_sql_metadata",
+                status="FAILED",
+                data=None,
+                error="SQL_METADATA_DATA_NOT_FOUND",
+            ),
+        ],
+        final_cause_code="DB_CREDENTIAL_MISMATCH",
+        final_cause_name="DB 인증 정보 불일치",
+        diagnosis_level="확인됨",
+        owner="BATCH_OPERATION",
+        evidence=["credential_status=MISMATCH"],
+        limitations=["mock 데이터 범위로만 확인함"],
+    )
+    dumped = result.model_dump()
+    assert dumped["selected_tools"][0]["selected_tool"] == "check_db_status"
+    assert dumped["tool_results"][0]["tool"] == "check_db_status"
+    assert dumped["tool_results"][1]["status"] == "FAILED"
+    V1DiagnosisResult.model_validate(dumped)
+
+
 def test_v1_schema_rejects_bad_cause_code():
     with pytest.raises(ValidationError):
         V1DiagnosisResult(
@@ -112,10 +162,22 @@ def test_v0_execution_path_kept(monkeypatch):
 def test_tool_use_has_no_static_log_routing():
     source = (PROJECT_ROOT / "app" / "tool_use.py").read_text(encoding="utf-8")
     assert 'if "FileNotFoundError"' not in source
+    assert 'if "login failed"' not in source
+    assert 'if "table not found"' not in source
     assert "if error_code" not in source
     assert "file_case_001" not in source
+    assert "db_case_001" not in source
+    assert "sql_case_001" not in source
     tools_dir = PROJECT_ROOT / "app" / "tools"
+    forbidden_snippets = (
+        'if "login failed"',
+        'if "table not found"',
+        "file_case_001",
+        "db_case_001",
+        "sql_case_001",
+        "if case_id",
+    )
     for path in tools_dir.glob("*.py"):
         text = path.read_text(encoding="utf-8")
-        assert "file_case_001" not in text
-        assert 'if case_id' not in text
+        for snippet in forbidden_snippets:
+            assert snippet not in text, f"{path.name} contains {snippet}"

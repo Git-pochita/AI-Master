@@ -1,0 +1,23 @@
+{
+  "SALES": {
+    "schema_exists": true,
+    "tables": {
+      "SALES_SUMMARY": {
+        "table_exists": false,
+        "columns": {}
+      },
+      "SALES_DAILY": {
+        "table_exists": true,
+        "columns": {
+          "SALES_DT": true,
+          "STORE_CD": true,
+          "TOTAL_AMT": false
+        }
+      }
+    }
+  },
+  "FINANCE_X": {
+    "schema_exists": false,
+    "tables": {}
+  }
+}
