@@ -202,7 +202,7 @@ def test_real_db_tool_strengthens_credential_mismatch():
     assert trace.tool_rounds[0].evidence["credential_status"] == "MISMATCH"
     updates = {item.cause_code: item.change for item in trace.diagnosis_updates}
     assert updates["DB_CREDENTIAL_MISMATCH"] == "가능성 상승"
-    assert updates["DB_ACCOUNT_LOCKED"] == "파생 현상으로 재분류"
+    assert updates["DB_ACCOUNT_LOCKED"] == "가능성 하락"
 
 
 def test_real_sql_tool_strengthens_table_not_found():
@@ -238,7 +238,7 @@ def test_real_sql_tool_strengthens_table_not_found():
     assert trace.tool_rounds[0].evidence["table_exists"] is False
     updates = {item.cause_code: item.change for item in trace.diagnosis_updates}
     assert updates["TABLE_NOT_FOUND"] == "가능성 상승"
-    assert updates["INVALID_SCHEMA"] == "파생 현상으로 재분류"
+    assert updates["INVALID_SCHEMA"] == "가능성 하락"
 
 
 def test_v0_trace_has_no_tool_rounds_and_keeps_non_final_hypotheses():
