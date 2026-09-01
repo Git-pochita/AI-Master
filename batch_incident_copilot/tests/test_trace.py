@@ -12,6 +12,7 @@ from app.tools.check_sql_metadata import check_sql_metadata
 from app.tools.validate_parameter import validate_parameter
 from app.trace import (
     build_execution_trace,
+    build_trace_view,
     format_tool_input,
     purpose_for_tool,
 )
@@ -301,13 +302,140 @@ def test_contradicted_hypothesis_is_downgraded():
 
 
 def test_streamlit_renders_execution_trace_section():
-    source = (PROJECT_ROOT / "streamlit_app.py").read_text(encoding="utf-8")
-    assert "Agent Execution Trace" in source
-    assert "Investigation Process" in source
-    assert "[Step 1] Log Analysis" in source
-    assert "[Step 4] Diagnosis Update" in source
-    assert "Chain-of-Thought" in source
-    assert "_render_execution_trace(outcome.trace, version)" in source
+    streamlit_src = (PROJECT_ROOT / "streamlit_app.py").read_text(encoding="utf-8")
+    trace_src = (PROJECT_ROOT / "app" / "trace.py").read_text(encoding="utf-8")
+    assert "Agent Execution Trace" in streamlit_src
+    assert "Investigation Process" in streamlit_src
+    assert "with st.status" not in streamlit_src
+    assert "Chain-of-Thought" in streamlit_src
+    assert "_render_execution_trace(outcome.trace, version)" in streamlit_src
+    for title in (
+        "Log Analysis",
+        "Initial Hypotheses",
+        "Tool Call",
+        "Tool Arguments",
+        "Tool Result",
+        "Evidence / Diagnosis Update",
+        "Final Diagnosis",
+    ):
+        assert title in trace_src
+
+
+def test_trace_view_has_required_sections_and_no_empty_bullets():
+    param_result = validate_parameter(
+        job_name="DAILY_SALES_LOAD",
+        parameter_name="business_date",
+        parameter_value="20260818",
+    )
+    file_result = check_file_status(path="/data/in/sales_20260818.csv")
+    payload = V1DiagnosisResult(
+        case_id="file_case_001",
+        summary="unused",
+        extracted_info={
+            "job_name": "DAILY_SALES_LOAD",
+            "business_date": "20260818",
+            "error_messages": ["FileNotFoundError: /data/in/sales_20260818.csv"],
+            "return_code": "12",
+        },
+        initial_hypotheses=[
+            Hypothesis(cause_code="FILE_NOT_RECEIVED", cause_name="파일 미수신", evidence=["FileNotFoundError"]),
+            Hypothesis(cause_code="INVALID_BUSINESS_DATE", cause_name="실행일자 파라미터 오류", evidence=["business_date"]),
+        ],
+        selected_tools=[
+            ToolSelection(
+                selected_tool="validate_parameter",
+                reason="unused-reason",
+                arguments={
+                    "job_name": "DAILY_SALES_LOAD",
+                    "parameter_name": "business_date",
+                    "parameter_value": "20260818",
+                },
+            ),
+            ToolSelection(
+                selected_tool="check_file_status",
+                reason="unused-reason",
+                arguments={"path": "/data/in/sales_20260818.csv"},
+            ),
+        ],
+        tool_results=[param_result, file_result],
+        final_cause_code="INVALID_BUSINESS_DATE",
+        final_cause_name="실행일자 파라미터 오류",
+        diagnosis_level="확인됨",
+        owner="BATCH_OPERATION",
+        evidence=["is_valid=false"],
+        limitations=["mock"],
+        recommended_actions=["business_date 수정"],
+    ).model_dump()
+    trace = build_execution_trace("v1", payload)
+    view = build_trace_view(trace)
+    titles = [section.title for section in view]
+    assert titles == [
+        "Log Analysis",
+        "Initial Hypotheses",
+        "Tool Call",
+        "Tool Arguments",
+        "Tool Result",
+        "Evidence / Diagnosis Update",
+        "Final Diagnosis",
+    ]
+    blob = []
+    for section in view:
+        assert section.rows, f"empty section: {section.title}"
+        for row in section.rows:
+            assert row.value.strip(), f"empty row in {section.title}"
+            assert row.value.strip() not in {"-", "*", "•"}
+            blob.append(row.value)
+    joined = "\n".join(blob)
+    assert "validate_parameter" in joined
+    assert "check_file_status" in joined
+    assert "20260818" in joined
+    assert "20260819" in joined
+    assert "unused-reason" not in joined
+    assert "FILE_NOT_RECEIVED" in joined
+    assert "INVALID_BUSINESS_DATE" in joined
+
+
+def test_failed_tool_trace_view_shows_arguments_and_exclusion():
+    failed = check_file_status(path="/data/in/sales_20260831.csv")
+    assert failed.status == "FAILED"
+    payload = {
+        "extracted_info": {
+            "job_name": "DAILY_SALES_LOAD",
+            "business_date": "20260831",
+            "error_messages": ["FileNotFoundError: /data/in/sales_20260831.csv"],
+        },
+        "initial_hypotheses": [
+            _hyp("FILE_NOT_RECEIVED", "파일 미수신", "FileNotFoundError"),
+        ],
+        "selected_tools": [
+            {
+                "selected_tool": "check_file_status",
+                "reason": "should-not-appear",
+                "arguments": {"path": "/data/in/sales_20260831.csv"},
+            }
+        ],
+        "tool_results": [failed.model_dump()],
+        "final_cause_code": "FILE_NOT_RECEIVED",
+        "final_cause_name": "파일 미수신",
+        "diagnosis_level": "추정",
+        "owner": "BATCH_OPERATION",
+        "evidence": ["FileNotFoundError"],
+        "recommended_actions": [],
+    }
+    trace = build_execution_trace("v1", payload)
+    assert trace.tool_rounds[0].excluded_from_final_evidence is True
+    view = {section.title: section for section in build_trace_view(trace)}
+    call_text = " ".join(row.value for row in view["Tool Call"].rows)
+    arg_text = " ".join(f"{row.label} {row.value}" for row in view["Tool Arguments"].rows)
+    result_text = " ".join(f"{row.kind}:{row.value}" for row in view["Tool Result"].rows)
+    assert "check_file_status" in call_text
+    assert "/data/in/sales_20260831.csv" in arg_text
+    assert "error:" in result_text
+    assert "카탈로그에 경로가 없습니다" in result_text
+    assert "FAILED Tool 결과는 최종 evidence에서 제외했습니다." in result_text
+    assert "should-not-appear" not in call_text
+    assert "should-not-appear" not in arg_text
+    assert "should-not-appear" not in result_text
 
 
 def test_tool_use_module_does_not_import_trace():

@@ -7,6 +7,7 @@ extracted_info, hypotheses, selected_tools, tool_results, 최종 진단 필드�
 
 from __future__ import annotations
 
+import json
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -78,6 +79,7 @@ class ToolRound(BaseModel):
     status: str
     evidence: dict[str, Any] = Field(default_factory=dict)
     error: str | None = None
+    excluded_from_final_evidence: bool = False
 
 
 class LogAnalysisStep(BaseModel):
@@ -102,6 +104,17 @@ class AgentExecutionTrace(BaseModel):
     tool_rounds: list[ToolRound] = Field(default_factory=list)
     diagnosis_updates: list[HypothesisUpdate] = Field(default_factory=list)
     final_diagnosis: FinalDiagnosisStep
+
+
+class TraceViewRow(BaseModel):
+    kind: Literal["text", "kv", "error", "note"] = "text"
+    label: str = ""
+    value: str
+
+
+class TraceViewSection(BaseModel):
+    title: str
+    rows: list[TraceViewRow] = Field(default_factory=list)
 
 
 def _hypotheses(payload: dict[str, Any]) -> list[dict[str, Any]]:
@@ -383,6 +396,7 @@ def _build_tool_rounds(payload: dict[str, Any]) -> list[ToolRound]:
                 status=str(result.get("status") or ""),
                 evidence=evidence_from_tool_data(result.get("data") or {}),
                 error=result.get("error"),
+                excluded_from_final_evidence=str(result.get("status") or "") == "FAILED",
             )
         )
     return rounds
@@ -429,3 +443,146 @@ def build_execution_trace(version: str, payload: dict[str, Any] | None) -> Agent
             ],
         ),
     )
+
+
+def _stringify(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, ensure_ascii=False)
+    return str(value).strip()
+
+
+def _row(kind: Literal["text", "kv", "error", "note"], value: Any, label: str = "") -> TraceViewRow | None:
+    text = _stringify(value)
+    if not text:
+        return None
+    return TraceViewRow(kind=kind, label=label, value=text)
+
+
+def _extend(rows: list[TraceViewRow], row: TraceViewRow | None) -> None:
+    if row is not None:
+        rows.append(row)
+
+
+def build_trace_view(trace: AgentExecutionTrace) -> list[TraceViewSection]:
+    """Streamlit에 그릴 섹션. 빈 값은 넣지 않아 '-', '*' bullet이 생기지 않게 한다."""
+    sections: list[TraceViewSection] = []
+    analysis = trace.log_analysis
+    log_rows: list[TraceViewRow] = []
+    _extend(log_rows, _row("text", analysis.message or "로그 분석 시작"))
+    if analysis.core_errors:
+        _extend(log_rows, _row("text", "핵심 오류"))
+        for item in analysis.core_errors:
+            _extend(log_rows, _row("text", item))
+    else:
+        _extend(log_rows, _row("note", "extracted_info에서 표시할 오류 메시지가 없습니다."))
+    if analysis.extracted_fields:
+        _extend(log_rows, _row("text", "추출된 필드"))
+        for field in analysis.extracted_fields:
+            label = _stringify(field.get("label"))
+            value = field.get("value")
+            if isinstance(value, list):
+                joined = ", ".join(_stringify(item) for item in value if _stringify(item))
+                _extend(log_rows, _row("kv", joined, label=label))
+            else:
+                _extend(log_rows, _row("kv", value, label=label))
+    sections.append(TraceViewSection(title="Log Analysis", rows=log_rows))
+
+    hyp_rows: list[TraceViewRow] = []
+    if analysis.initial_hypotheses:
+        for item in analysis.initial_hypotheses:
+            code = _stringify(item.get("cause_code"))
+            name = _stringify(item.get("cause_name"))
+            if not code:
+                continue
+            _extend(hyp_rows, _row("text", f"{code} — {name}" if name else code))
+    else:
+        _extend(hyp_rows, _row("note", "초기 가설이 없습니다."))
+    sections.append(TraceViewSection(title="Initial Hypotheses", rows=hyp_rows))
+
+    call_rows: list[TraceViewRow] = []
+    arg_rows: list[TraceViewRow] = []
+    result_rows: list[TraceViewRow] = []
+    if trace.version != "v1":
+        _extend(call_rows, _row("note", "V0는 Tool을 호출하지 않습니다."))
+        _extend(arg_rows, _row("note", "V0는 Tool 인자가 없습니다."))
+        _extend(result_rows, _row("note", "V0는 Tool 실행 결과가 없습니다."))
+    elif not trace.tool_rounds:
+        _extend(call_rows, _row("note", "호출한 Tool이 없습니다."))
+        _extend(arg_rows, _row("note", "전달된 Tool arguments가 없습니다."))
+        _extend(result_rows, _row("note", "Tool 실행 결과가 없습니다."))
+    else:
+        for index, item in enumerate(trace.tool_rounds, start=1):
+            prefix = f"[{index}] {item.tool}"
+            _extend(call_rows, _row("kv", item.tool, label=f"Tool {index}"))
+            _extend(call_rows, _row("kv", item.purpose, label="목적"))
+            _extend(arg_rows, _row("text", prefix))
+            if item.input_display:
+                _extend(arg_rows, _row("kv", item.input_display, label="Input"))
+            if item.arguments:
+                for key, value in item.arguments.items():
+                    _extend(arg_rows, _row("kv", value, label=str(key)))
+            else:
+                _extend(arg_rows, _row("note", f"{item.tool}: 전달된 arguments가 없습니다."))
+            _extend(result_rows, _row("text", prefix))
+            _extend(result_rows, _row("kv", item.status or "UNKNOWN", label="status"))
+            if item.status == "FAILED" or item.excluded_from_final_evidence:
+                _extend(result_rows, _row("error", item.error or "Tool 실행 실패"))
+                _extend(
+                    result_rows,
+                    _row(
+                        "note",
+                        "FAILED Tool 결과는 최종 evidence에서 제외했습니다.",
+                    ),
+                )
+            elif item.evidence:
+                for key, value in item.evidence.items():
+                    _extend(result_rows, _row("kv", value, label=str(key)))
+            else:
+                _extend(result_rows, _row("note", "표시할 evidence 필드가 없습니다."))
+
+    sections.append(TraceViewSection(title="Tool Call", rows=call_rows))
+    sections.append(TraceViewSection(title="Tool Arguments", rows=arg_rows))
+    sections.append(TraceViewSection(title="Tool Result", rows=result_rows))
+
+    update_rows: list[TraceViewRow] = []
+    _extend(
+        update_rows,
+        _row(
+            "note",
+            "Tool SUCCESS 필드와 최종 원인 코드로 계산한 구조화 상태입니다. 내부 reasoning 문장은 없습니다.",
+        ),
+    )
+    if trace.diagnosis_updates:
+        for item in trace.diagnosis_updates:
+            _extend(update_rows, _row("kv", item.change, label=item.cause_code))
+            for signal in item.signals:
+                _extend(update_rows, _row("kv", signal, label="signal"))
+    else:
+        _extend(update_rows, _row("note", "표시할 가설 상태 변화가 없습니다."))
+    sections.append(TraceViewSection(title="Evidence / Diagnosis Update", rows=update_rows))
+
+    final = trace.final_diagnosis
+    final_rows: list[TraceViewRow] = []
+    _extend(final_rows, _row("kv", final.final_cause_code, label="final_cause"))
+    _extend(final_rows, _row("kv", final.final_cause_name, label="final_cause_name"))
+    _extend(final_rows, _row("kv", final.diagnosis_level, label="diagnosis_level"))
+    _extend(final_rows, _row("kv", final.owner, label="owner"))
+    if final.evidence:
+        _extend(final_rows, _row("text", "evidence"))
+        for item in final.evidence:
+            _extend(final_rows, _row("text", item))
+    else:
+        _extend(final_rows, _row("note", "표시할 evidence가 없습니다."))
+    if final.recommended_actions:
+        _extend(final_rows, _row("text", "recommended_action"))
+        for item in final.recommended_actions:
+            _extend(final_rows, _row("text", item))
+    else:
+        _extend(final_rows, _row("note", "권고 조치가 없습니다."))
+    sections.append(TraceViewSection(title="Final Diagnosis", rows=final_rows))
+    return sections
+

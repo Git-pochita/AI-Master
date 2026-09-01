@@ -16,6 +16,7 @@ from app.ui_service import (
     hypotheses_from_result,
     summarize_tool_data,
 )
+from app.trace import AgentExecutionTrace, build_trace_view
 
 st.set_page_config(page_title="Batch Incident Copilot", layout="wide")
 
@@ -78,115 +79,17 @@ def _render_validation(validation: dict) -> None:
             st.success(reason)
 
 
-def _render_log_analysis_step(step: dict) -> None:
-    st.write(step.get("message") or "로그 분석 시작")
-    core_errors = step.get("core_errors") or []
-    st.markdown("**핵심 오류**")
-    if core_errors:
-        for item in core_errors:
-            st.write(f"- {item}")
-    else:
-        st.caption("extracted_info에서 표시할 오류 메시지가 없습니다.")
-
-    fields = step.get("extracted_fields") or []
-    if fields:
-        st.markdown("**추출된 필드**")
-        for row in fields:
-            label = row.get("label")
-            value = row.get("value")
-            if isinstance(value, list):
-                st.markdown(f"**{label}**")
-                for item in value:
-                    st.write(f"- {item}")
-            else:
-                st.write(f"**{label}:** {value}")
-
-    st.markdown("**초기 원인 후보**")
-    hyps = step.get("initial_hypotheses") or []
-    if not hyps:
-        st.caption("초기 가설이 없습니다.")
+def _render_trace_row(row) -> None:
+    if row.kind == "error":
+        st.error(row.value)
         return
-    for item in hyps:
-        code = item.get("cause_code")
-        name = item.get("cause_name")
-        st.write(f"- `{code}` — {name}" if name else f"- `{code}`")
-
-
-def _render_tool_call_step(rounds: list[dict], version_name: str) -> None:
-    if version_name != "v1":
-        st.caption("V0는 Tool을 호출하지 않습니다.")
+    if row.kind == "note":
+        st.info(row.value)
         return
-    if not rounds:
-        st.caption("호출한 Tool이 없습니다.")
+    if row.kind == "kv":
+        st.markdown(f"**{row.label}:** {row.value}" if row.label else row.value)
         return
-    for item in rounds:
-        st.markdown(f"**Tool:** `{item.get('tool')}`")
-        st.write(f"**목적:** {item.get('purpose')}")
-        st.write(f"**Input:** {item.get('input_display') or '—'}")
-        arguments = item.get("arguments") or {}
-        if arguments:
-            with st.container():
-                for key, value in arguments.items():
-                    st.write(f"- {key}: {value}")
-
-
-def _render_tool_result_step(rounds: list[dict], version_name: str) -> None:
-    if version_name != "v1":
-        st.caption("V0는 Tool 실행 결과가 없습니다.")
-        return
-    if not rounds:
-        st.caption("Tool 실행 결과가 없습니다.")
-        return
-    for item in rounds:
-        tool = item.get("tool")
-        status = item.get("status") or "UNKNOWN"
-        st.markdown(f"**{tool}** — `{status}`")
-        if status == "FAILED":
-            st.error(item.get("error") or "Tool 실행 실패")
-            st.caption("FAILED Tool 결과는 최종 근거의 일부로 사용하지 않습니다.")
-            continue
-        evidence = item.get("evidence") or {}
-        if evidence:
-            st.markdown("**핵심 evidence**")
-            for key, value in evidence.items():
-                st.write(f"- {key}: {value}")
-        else:
-            st.caption("표시할 evidence 필드가 없습니다.")
-
-
-def _render_diagnosis_update_step(updates: list[dict]) -> None:
-    if not updates:
-        st.caption("표시할 가설 상태 변화가 없습니다.")
-        return
-    st.caption("Tool SUCCESS 필드와 최종 원인 코드로 계산한 구조화 상태입니다. 내부 reasoning 문장은 없습니다.")
-    for item in updates:
-        code = item.get("cause_code")
-        change = item.get("change")
-        st.write(f"- `{code}` → **{change}**")
-        for signal in item.get("signals") or []:
-            st.caption(f"  signal: {signal}")
-
-
-def _render_trace_final_step(step: dict) -> None:
-    st.write(f"**final_cause:** `{step.get('final_cause_code')}`")
-    if step.get("final_cause_name"):
-        st.write(f"**final_cause_name:** {step.get('final_cause_name')}")
-    st.write(f"**diagnosis_level:** `{step.get('diagnosis_level')}`")
-    st.write(f"**owner:** {step.get('owner')}")
-    st.markdown("**evidence**")
-    evidence = step.get("evidence") or []
-    if evidence:
-        for item in evidence:
-            st.write(f"- {item}")
-    else:
-        st.caption("표시할 evidence가 없습니다.")
-    st.markdown("**recommended_action**")
-    actions = step.get("recommended_actions") or []
-    if actions:
-        for item in actions:
-            st.write(f"- {item}")
-    else:
-        st.caption("권고 조치가 없습니다.")
+    st.markdown(row.value)
 
 
 def _render_execution_trace(trace: dict | None, version_name: str) -> None:
@@ -199,28 +102,22 @@ def _render_execution_trace(trace: dict | None, version_name: str) -> None:
         st.warning("실행 Trace를 만들지 못했습니다.")
         return
 
-    log_analysis = trace.get("log_analysis") or {}
-    rounds = trace.get("tool_rounds") or []
-    updates = trace.get("diagnosis_updates") or []
-    final_step = trace.get("final_diagnosis") or {}
-
-    with st.status("Investigation Process", expanded=True) as status:
-        with st.container():
-            with st.expander("[Step 1] Log Analysis — 완료", expanded=True):
-                _render_log_analysis_step(log_analysis)
-        with st.container():
-            with st.expander("[Step 2] Tool Call — 완료", expanded=True):
-                _render_tool_call_step(rounds, version_name)
-        with st.container():
-            with st.expander("[Step 3] Tool Result — 완료", expanded=True):
-                _render_tool_result_step(rounds, version_name)
-        with st.container():
-            with st.expander("[Step 4] Diagnosis Update — 완료", expanded=True):
-                _render_diagnosis_update_step(updates)
-        with st.container():
-            with st.expander("[Step 5] Final Diagnosis — 완료", expanded=True):
-                _render_trace_final_step(final_step)
-        status.update(label="Investigation Process 완료", state="complete")
+    # st.status + nested st.expander 조합은 Streamlit에서 본문이 사라지고
+    # 빈 '-', '*' bullet만 남는 현상을 만든다. 중첩 없이 bordered container만 사용한다.
+    payload = dict(trace)
+    if version_name:
+        payload["version"] = version_name
+    model = AgentExecutionTrace.model_validate(payload)
+    sections = build_trace_view(model)
+    st.markdown("**Investigation Process**")
+    for section in sections:
+        with st.container(border=True):
+            st.markdown(f"**{section.title}**")
+            if not section.rows:
+                st.info("표시할 항목이 없습니다.")
+                continue
+            for row in section.rows:
+                _render_trace_row(row)
 
 
 def _render_diagnosis_level(level: str) -> None:
