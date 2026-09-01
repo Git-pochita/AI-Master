@@ -197,6 +197,16 @@ def test_check_db_status_mock_states():
     assert config_error.data["credential_status"] == "VALID"
     assert config_error.data["connection_config_valid"] is False
 
+    crm = check_db_status(connection_name="CRMDB", account="BATCH_CRM")
+    assert crm.status == "SUCCESS"
+    assert crm.error is None
+    assert crm.data["connection_name"] == "CRMDB"
+    assert crm.data["account"] == "BATCH_CRM"
+    assert crm.data["account_locked"] is False
+    assert crm.data["credential_status"] == "MISMATCH"
+    assert crm.data["connection_config_valid"] is True
+    assert "cause_code" not in crm.data
+
 
 def test_check_sql_metadata_success_table_missing():
     result = check_sql_metadata(schema="SALES", table="SALES_SUMMARY", column=None)

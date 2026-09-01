@@ -22,5 +22,12 @@
       "credential_status": "VALID",
       "connection_config_valid": false
     }
+  },
+  "CRMDB": {
+    "BATCH_CRM": {
+      "account_locked": false,
+      "credential_status": "MISMATCH",
+      "connection_config_valid": true
+    }
   }
 }

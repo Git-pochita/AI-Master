@@ -1,0 +1,8 @@
+2026-09-01 03:50:00 INFO  JOB=DAILY_CRM_DB_LOAD START
+2026-09-01 03:50:01 INFO  connection_name=CRMDB
+2026-09-01 03:50:01 INFO  account=BATCH_CRM
+2026-09-01 03:50:02 INFO  connecting to mock host crm-db.internal port=1521
+2026-09-01 03:50:03 ERROR ORA-01017: invalid username/password; logon denied
+2026-09-01 03:50:03 ERROR DB authentication/login failure for account=BATCH_CRM connection=CRMDB
+2026-09-01 03:50:04 ERROR job failed with return_code=12
+2026-09-01 03:50:05 INFO  JOB=DAILY_CRM_DB_LOAD END
