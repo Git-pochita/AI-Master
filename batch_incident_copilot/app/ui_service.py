@@ -46,6 +46,7 @@ class AnalysisOutcome(BaseModel):
     result: dict[str, Any] | None = None
     error: str | None = None
     case_id: str | None = None
+    trace: dict[str, Any] | None = None
 
 
 def public_error_message(exc: BaseException) -> str:
@@ -122,6 +123,8 @@ def summarize_tool_data(data: dict[str, Any] | None) -> dict[str, Any]:
         "parameter_value",
         "expected_value",
         "is_valid",
+        "format_valid",
+        "range_valid",
         "rule",
         "job_run_date",
         "connection_name",
@@ -157,10 +160,14 @@ def analyze(
             result=None,
             error=None,
             case_id=resolved_case_id,
+            trace=None,
         )
     try:
         result = run_backend(version, log_text, resolved_case_id)
         payload = result.model_dump()
+        from app.trace import build_execution_trace
+
+        trace = build_execution_trace(version, payload).model_dump()
         return AnalysisOutcome(
             ok=True,
             version=version,
@@ -168,6 +175,7 @@ def analyze(
             result=payload,
             error=None,
             case_id=resolved_case_id,
+            trace=trace,
         )
     except Exception as exc:
         logger.exception("analysis failed")
@@ -178,6 +186,7 @@ def analyze(
             result=None,
             error=public_error_message(exc),
             case_id=resolved_case_id,
+            trace=None,
         )
 
 

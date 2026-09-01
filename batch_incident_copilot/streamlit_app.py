@@ -78,31 +78,149 @@ def _render_validation(validation: dict) -> None:
             st.success(reason)
 
 
-def _render_extracted(payload: dict) -> None:
-    st.subheader("추출 정보")
-    rows = extract_visible_fields(payload.get("extracted_info") or {})
-    if not rows:
-        st.caption("표시할 추출 정보가 없습니다.")
-        return
-    for label, value in rows:
-        if isinstance(value, list):
-            st.markdown(f"**{label}**")
-            for item in value:
-                st.write(f"- {item}")
-        else:
-            st.write(f"**{label}:** {value}")
+def _render_log_analysis_step(step: dict) -> None:
+    st.write(step.get("message") or "로그 분석 시작")
+    core_errors = step.get("core_errors") or []
+    st.markdown("**핵심 오류**")
+    if core_errors:
+        for item in core_errors:
+            st.write(f"- {item}")
+    else:
+        st.caption("extracted_info에서 표시할 오류 메시지가 없습니다.")
 
+    fields = step.get("extracted_fields") or []
+    if fields:
+        st.markdown("**추출된 필드**")
+        for row in fields:
+            label = row.get("label")
+            value = row.get("value")
+            if isinstance(value, list):
+                st.markdown(f"**{label}**")
+                for item in value:
+                    st.write(f"- {item}")
+            else:
+                st.write(f"**{label}:** {value}")
 
-def _render_hypotheses(payload: dict) -> None:
-    st.subheader("초기 원인 가설")
-    items = hypotheses_from_result(payload)
-    if not items:
+    st.markdown("**초기 원인 후보**")
+    hyps = step.get("initial_hypotheses") or []
+    if not hyps:
         st.caption("초기 가설이 없습니다.")
         return
-    for item in items:
-        st.markdown(f"**{item.get('cause_code')}** — {item.get('cause_name')}")
-        for evidence in item.get("evidence") or []:
-            st.write(f"- {evidence}")
+    for item in hyps:
+        code = item.get("cause_code")
+        name = item.get("cause_name")
+        st.write(f"- `{code}` — {name}" if name else f"- `{code}`")
+
+
+def _render_tool_call_step(rounds: list[dict], version_name: str) -> None:
+    if version_name != "v1":
+        st.caption("V0는 Tool을 호출하지 않습니다.")
+        return
+    if not rounds:
+        st.caption("호출한 Tool이 없습니다.")
+        return
+    for item in rounds:
+        st.markdown(f"**Tool:** `{item.get('tool')}`")
+        st.write(f"**목적:** {item.get('purpose')}")
+        st.write(f"**Input:** {item.get('input_display') or '—'}")
+        arguments = item.get("arguments") or {}
+        if arguments:
+            with st.container():
+                for key, value in arguments.items():
+                    st.write(f"- {key}: {value}")
+
+
+def _render_tool_result_step(rounds: list[dict], version_name: str) -> None:
+    if version_name != "v1":
+        st.caption("V0는 Tool 실행 결과가 없습니다.")
+        return
+    if not rounds:
+        st.caption("Tool 실행 결과가 없습니다.")
+        return
+    for item in rounds:
+        tool = item.get("tool")
+        status = item.get("status") or "UNKNOWN"
+        st.markdown(f"**{tool}** — `{status}`")
+        if status == "FAILED":
+            st.error(item.get("error") or "Tool 실행 실패")
+            st.caption("FAILED Tool 결과는 최종 근거의 일부로 사용하지 않습니다.")
+            continue
+        evidence = item.get("evidence") or {}
+        if evidence:
+            st.markdown("**핵심 evidence**")
+            for key, value in evidence.items():
+                st.write(f"- {key}: {value}")
+        else:
+            st.caption("표시할 evidence 필드가 없습니다.")
+
+
+def _render_diagnosis_update_step(updates: list[dict]) -> None:
+    if not updates:
+        st.caption("표시할 가설 상태 변화가 없습니다.")
+        return
+    st.caption("Tool SUCCESS 필드와 최종 원인 코드로 계산한 구조화 상태입니다. 내부 reasoning 문장은 없습니다.")
+    for item in updates:
+        code = item.get("cause_code")
+        change = item.get("change")
+        st.write(f"- `{code}` → **{change}**")
+        for signal in item.get("signals") or []:
+            st.caption(f"  signal: {signal}")
+
+
+def _render_trace_final_step(step: dict) -> None:
+    st.write(f"**final_cause:** `{step.get('final_cause_code')}`")
+    if step.get("final_cause_name"):
+        st.write(f"**final_cause_name:** {step.get('final_cause_name')}")
+    st.write(f"**diagnosis_level:** `{step.get('diagnosis_level')}`")
+    st.write(f"**owner:** {step.get('owner')}")
+    st.markdown("**evidence**")
+    evidence = step.get("evidence") or []
+    if evidence:
+        for item in evidence:
+            st.write(f"- {item}")
+    else:
+        st.caption("표시할 evidence가 없습니다.")
+    st.markdown("**recommended_action**")
+    actions = step.get("recommended_actions") or []
+    if actions:
+        for item in actions:
+            st.write(f"- {item}")
+    else:
+        st.caption("권고 조치가 없습니다.")
+
+
+def _render_execution_trace(trace: dict | None, version_name: str) -> None:
+    st.subheader("Agent Execution Trace")
+    st.caption(
+        "시스템에서 발생한 관찰 가능한 이벤트만 단계별로 표시합니다. "
+        "LLM 내부 Chain-of-Thought는 출력하지 않습니다."
+    )
+    if not trace:
+        st.warning("실행 Trace를 만들지 못했습니다.")
+        return
+
+    log_analysis = trace.get("log_analysis") or {}
+    rounds = trace.get("tool_rounds") or []
+    updates = trace.get("diagnosis_updates") or []
+    final_step = trace.get("final_diagnosis") or {}
+
+    with st.status("Investigation Process", expanded=True) as status:
+        with st.container():
+            with st.expander("[Step 1] Log Analysis — 완료", expanded=True):
+                _render_log_analysis_step(log_analysis)
+        with st.container():
+            with st.expander("[Step 2] Tool Call — 완료", expanded=True):
+                _render_tool_call_step(rounds, version_name)
+        with st.container():
+            with st.expander("[Step 3] Tool Result — 완료", expanded=True):
+                _render_tool_result_step(rounds, version_name)
+        with st.container():
+            with st.expander("[Step 4] Diagnosis Update — 완료", expanded=True):
+                _render_diagnosis_update_step(updates)
+        with st.container():
+            with st.expander("[Step 5] Final Diagnosis — 완료", expanded=True):
+                _render_trace_final_step(final_step)
+        status.update(label="Investigation Process 완료", state="complete")
 
 
 def _render_diagnosis_level(level: str) -> None:
@@ -124,7 +242,7 @@ def _render_final(payload: dict) -> None:
     st.markdown("**evidence**")
     evidence_items = list(payload.get("evidence") or [])
     if not evidence_items:
-        for hyp in payload.get("hypotheses") or []:
+        for hyp in hypotheses_from_result(payload):
             if hyp.get("cause_code") == payload.get("final_cause_code"):
                 evidence_items = list(hyp.get("evidence") or [])
                 break
@@ -133,13 +251,44 @@ def _render_final(payload: dict) -> None:
             st.write(f"- {item}")
     else:
         st.caption("표시할 evidence가 없습니다.")
+    st.markdown("**recommended_action**")
+    actions = payload.get("recommended_actions") or []
+    if actions:
+        for item in actions:
+            st.write(f"- {item}")
+    else:
+        st.caption("권고 조치가 없습니다.")
     st.markdown("**limitations**")
     for item in payload.get("limitations") or []:
         st.write(f"- {item}")
 
 
+def _render_extracted(payload: dict) -> None:
+    rows = extract_visible_fields(payload.get("extracted_info") or {})
+    if not rows:
+        st.caption("표시할 추출 정보가 없습니다.")
+        return
+    for label, value in rows:
+        if isinstance(value, list):
+            st.markdown(f"**{label}**")
+            for item in value:
+                st.write(f"- {item}")
+        else:
+            st.write(f"**{label}:** {value}")
+
+
+def _render_hypotheses(payload: dict) -> None:
+    items = hypotheses_from_result(payload)
+    if not items:
+        st.caption("초기 가설이 없습니다.")
+        return
+    for item in items:
+        st.markdown(f"**{item.get('cause_code')}** — {item.get('cause_name')}")
+        for evidence in item.get("evidence") or []:
+            st.write(f"- {evidence}")
+
+
 def _render_tools(payload: dict) -> None:
-    st.subheader("점검 Tool 실행 결과")
     selections = payload.get("selected_tools") or []
     results = payload.get("tool_results") or []
     if not selections and not results:
@@ -154,15 +303,13 @@ def _render_tools(payload: dict) -> None:
         title = f"점검 {index + 1} - {tool_name}"
         if status:
             title = f"{title} ({status})"
-        with st.expander(title, expanded=True):
+        with st.expander(title, expanded=False):
             st.write(f"**tool name:** {tool_name}")
             arguments = selection.get("arguments") or {}
             if arguments:
                 st.write("**arguments**")
                 for key, value in arguments.items():
                     st.write(f"- {key}: {value}")
-            if selection.get("reason"):
-                st.write(f"**선택 이유:** {selection.get('reason')}")
             st.write(f"**status:** {status}")
             if status == "FAILED":
                 st.error(result.get("error") or "Tool 실행 실패")
@@ -205,8 +352,13 @@ if started:
             st.error(outcome.error)
             st.stop()
         payload = outcome.result or {}
-        _render_extracted(payload)
-        _render_hypotheses(payload)
-        if version == "v1":
-            _render_tools(payload)
+        _render_execution_trace(outcome.trace, version)
         _render_final(payload)
+        with st.expander("원본 진단 필드", expanded=False):
+            st.markdown("추출 정보")
+            _render_extracted(payload)
+            st.markdown("초기 원인 가설")
+            _render_hypotheses(payload)
+            if version == "v1":
+                st.markdown("점검 Tool 원본 결과")
+                _render_tools(payload)

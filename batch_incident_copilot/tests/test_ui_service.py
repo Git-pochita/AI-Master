@@ -58,6 +58,7 @@ def test_analyze_abort_does_not_call_backend(monkeypatch):
     assert outcome.ok is False
     assert outcome.validation.decision == ValidationDecision.ABORT
     assert outcome.result is None
+    assert outcome.trace is None
     assert called["n"] == 0
 
 
@@ -85,6 +86,10 @@ def test_v0_wrapper_uses_baseline(monkeypatch):
     assert outcome.ok is True
     assert outcome.result["final_cause_code"] == "FILE_NOT_RECEIVED"
     assert "selected_tools" not in outcome.result
+    assert outcome.trace is not None
+    assert outcome.trace["version"] == "v0"
+    assert outcome.trace["tool_rounds"] == []
+    assert outcome.trace["final_diagnosis"]["final_cause_code"] == "FILE_NOT_RECEIVED"
 
 
 def test_v1_wrapper_keeps_tool_fields(monkeypatch):
@@ -114,6 +119,9 @@ def test_v1_wrapper_keeps_tool_fields(monkeypatch):
     assert outcome.ok is True
     assert outcome.result["final_cause_code"] == "INVALID_BUSINESS_DATE"
     assert outcome.result["selected_tools"][0]["selected_tool"] == "check_file_status"
+    assert "log_analysis" not in outcome.result
+    assert outcome.trace is not None
+    assert outcome.trace["tool_rounds"][0]["tool"] == "check_file_status"
 
 
 def test_public_error_message_redacts_secrets():
