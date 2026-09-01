@@ -5,9 +5,11 @@
 V0/V1/V2/V3는 별도 프로젝트가 아니라 같은 코드베이스의 개발 단계입니다.
 
 - V0: 로그만 보고 단일 LLM이 진단
-- V1: Function Tool Use (현재 추가)
+- V1: Function Tool Use (현재)
 - V2: Dynamic Planning / Re-planning (미구현)
 - V3: Critic / Reflection (미구현)
+
+현재 평가 결과 및 다음 단계: [`docs/next_steps_v2.md`](docs/next_steps_v2.md)
 
 ## 요구 사항
 
@@ -90,17 +92,7 @@ python evaluation/run_evaluation.py --versions v0 v1 --case-id F-01 D-01 S-01
 - `evaluation/reports/v1_summary.json`
 - `evaluation/reports/v0_vs_v1.md`
 
-비교 항목:
-
-- `final_diagnosis_accuracy`
-- `hypothesis_recall` (초기 hypotheses에 실제 원인이 있는가)
-- `diagnosis_level_accuracy`
-- `owner_accuracy`
-- V1: `required_tool_recall`, `unnecessary_tool_rate`
-
-공식 평가셋은 `evaluation/ground_truth.json` 30건입니다. `evaluation/reports/`에 있는 파일은 이전 10건 실행 결과이므로, 30건 일괄 평가를 다시 돌리기 전에는 현재 GT와 건수가 일치하지 않습니다.
-
-V1 Tool은 로컬 mock JSON만 조회합니다. 실제 파일 시스템/DB는 사용하지 않습니다.
+공식 평가셋은 `evaluation/ground_truth.json` 30건입니다. 위 리포트는 Azure OpenAI `gpt-4.1` 기준 공식 30건 V0/V1 결과입니다. 숫자 해석과 다음 단계는 [`docs/next_steps_v2.md`](docs/next_steps_v2.md)를 보십시오.
 
 ## Streamlit UI
 
