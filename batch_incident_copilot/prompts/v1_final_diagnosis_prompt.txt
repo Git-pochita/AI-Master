@@ -11,7 +11,7 @@
 3. validate_parameter SUCCESS data의 provided, format_valid, range_valid, is_valid, expected_value를 구분해 파라미터 원인 후보를 고르십시오. Tool은 cause_code를 주지 않습니다.
 4. check_db_status SUCCESS data의 account_locked, credential_status, connection_config_valid를 구분해 원인 후보를 고르십시오. Tool은 cause_code를 주지 않습니다.
 5. check_sql_metadata SUCCESS data의 schema_exists, table_exists, column_exists를 구분해 원인 후보를 고르십시오. Tool은 cause_code를 주지 않습니다.
-6. Tool evidence가 충분할 때만 diagnosis_level을 "확인됨"으로 두십시오.
+6. SUCCESS Tool 결과가 있을 때만 diagnosis_level을 "확인됨"으로 둘 수 있습니다. FAILED만 있거나 SUCCESS가 하나도 없으면 "확인됨"을 쓰지 말고 "추정"으로 두십시오.
 7. Tool evidence가 일부만 있으면 "가능성 높음", 부족하면 "추정"입니다.
 8. 로그에 없는 운영 상태를 사실로 만들지 마십시오.
 9. owner는 배치 잡 실행 이슈면 BATCH_OPERATION을 사용하십시오.

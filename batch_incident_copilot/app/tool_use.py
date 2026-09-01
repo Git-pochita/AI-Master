@@ -4,8 +4,12 @@ from app.baseline import diagnose, extract_json_object
 from app.cause_codes import validate_cause_code, vocabulary_prompt_block
 from app.llm_client import chat_complete
 from app.schemas import ToolSelection, ToolResult, V1DiagnosisResult
+from app.tools.registry import (
+    complete_arguments_from_extracted,
+    execute_tool,
+    get_tool_specs,
+)
 from app.tools.evidence import filter_evidence, supporting_tool_results
-from app.tools.registry import get_tool_specs, execute_tool
 from config import settings
 
 MAX_TOOL_CALLS = 2
@@ -79,6 +83,11 @@ def collect_tool_results(log_text: str, initial) -> tuple[list[ToolSelection], l
         selection = select_tool(log_text, initial, already_called, results)
         if not selection.selected_tool:
             break
+        selection.arguments = complete_arguments_from_extracted(
+            selection.selected_tool,
+            selection.arguments,
+            getattr(initial, "extracted_info", None),
+        )
         tool_result = execute_tool(selection.selected_tool, selection.arguments)
         selections.append(selection)
         results.append(tool_result)
@@ -134,7 +143,27 @@ def finalize_diagnosis(log_text: str, initial, tool_results: list[ToolResult]) -
             f"{item.tool}: {json.dumps(item.data, ensure_ascii=False)}"
             for item in supporting_tool_results(tool_results)
         ]
+    original_level = payload.get("diagnosis_level") or "추정"
+    capped = apply_diagnosis_level_policy(original_level, tool_results)
+    payload["diagnosis_level"] = capped
+    if original_level == "확인됨" and capped != "확인됨":
+        notes = list(payload.get("limitations") or [])
+        notes.append(
+            "SUCCESS Tool 결과가 없어 diagnosis_level을 확인됨에서 추정으로 조정했습니다."
+        )
+        payload["limitations"] = notes
     return payload
+
+
+def apply_diagnosis_level_policy(level: str, tool_results: list[ToolResult]) -> str:
+    """확인됨은 SUCCESS Tool evidence가 있을 때만 허용한다. cause_code는 바꾸지 않는다."""
+    if level not in {"추정", "가능성 높음", "확인됨"}:
+        level = "추정"
+    if supporting_tool_results(tool_results):
+        return level
+    if level == "확인됨":
+        return "추정"
+    return level
 
 
 def diagnose_v1(log_text: str, case_id: str | None = None) -> V1DiagnosisResult:

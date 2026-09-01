@@ -42,7 +42,7 @@
 }
 
 필드 가이드:
-- extracted_info: 로그에서 읽은 사실만 담습니다. 예: job_name, timestamps, business_date, input_path, error_messages, return_code.
+- extracted_info: 로그에서 읽은 사실만 담습니다. 예: job_name, timestamps, business_date, input_path, connection_name, account, schema, table, error_messages, return_code.
 - cause_code: Canonical Cause Code Vocabulary 중 하나만 사용합니다. 임의의 새 코드를 만들지 마십시오.
 - owner: 로그만으로 추정 가능한 담당 코드. 배치 잡 실행 실패처럼 운영 이슈로 보이면 BATCH_OPERATION을 사용하십시오. 확인되지 않은 조직명/사람 이름을 지어내지 마십시오.
 - recommended_actions: V0 한계를 전제로, 사람이 추가로 확인할 점검 항목을 제안합니다. 도구를 호출한 것처럼 쓰지 마십시오.

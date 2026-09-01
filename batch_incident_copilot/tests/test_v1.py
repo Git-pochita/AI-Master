@@ -159,6 +159,57 @@ def test_v0_execution_path_kept(monkeypatch):
     assert dumped["final_cause_code"] == "FILE_NOT_RECEIVED"
 
 
+def test_db_arguments_are_completed_from_extracted_info(monkeypatch):
+    from types import SimpleNamespace
+
+    from app.schemas import ToolSelection
+    from app.tool_use import collect_tool_results
+
+    initial = SimpleNamespace(
+        case_id="db_case_001",
+        extracted_info={"connection_name": "SALES_DB", "account": "batch_user"},
+        hypotheses=[],
+    )
+    calls = {"n": 0}
+
+    def fake_select(_log, _initial, already_called, _results):
+        calls["n"] += 1
+        if already_called:
+            return ToolSelection(selected_tool=None, reason="done", arguments={})
+        return ToolSelection(
+            selected_tool="check_db_status",
+            reason="DB 상태 확인",
+            arguments={"connection_name": "SALES_DB"},
+        )
+
+    monkeypatch.setattr("app.tool_use.select_tool", fake_select)
+    selections, results = collect_tool_results("log", initial)
+    assert selections[0].arguments["account"] == "batch_user"
+    assert results[0].status == "SUCCESS"
+    assert results[0].data["credential_status"] == "MISMATCH"
+    assert results[0].data["account"] == "batch_user"
+
+
+def test_diagnosis_level_not_confirmed_without_success_tools():
+    from app.tool_use import apply_diagnosis_level_policy
+
+    failed = ToolResult(
+        tool="check_db_status",
+        status="FAILED",
+        data=None,
+        error="필수 인자가 없습니다: account",
+    )
+    assert apply_diagnosis_level_policy("확인됨", [failed]) == "추정"
+    assert apply_diagnosis_level_policy("가능성 높음", [failed]) == "가능성 높음"
+    success = ToolResult(
+        tool="check_db_status",
+        status="SUCCESS",
+        data={"credential_status": "MISMATCH"},
+        error=None,
+    )
+    assert apply_diagnosis_level_policy("확인됨", [success]) == "확인됨"
+
+
 def test_tool_use_has_no_static_log_routing():
     source = (PROJECT_ROOT / "app" / "tool_use.py").read_text(encoding="utf-8")
     assert 'if "FileNotFoundError"' not in source

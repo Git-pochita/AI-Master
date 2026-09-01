@@ -144,6 +144,41 @@ def test_check_db_status_failed_missing_args():
     assert result.error
 
 
+def test_check_db_status_requires_account_and_does_not_invent_mock_account():
+    missing_account = execute_tool(
+        "check_db_status",
+        {"connection_name": "CRMDB"},
+    )
+    assert missing_account.status == "FAILED"
+    assert missing_account.error == "필수 인자가 없습니다: account"
+
+    unknown = execute_tool(
+        "check_db_status",
+        {"connection_name": "CRMDB", "account": "batch_user"},
+    )
+    assert unknown.status == "FAILED"
+    assert unknown.error == "DB_STATUS_DATA_NOT_FOUND"
+
+
+def test_complete_db_arguments_from_extracted_info_only():
+    from app.tools.registry import complete_arguments_from_extracted
+
+    filled = complete_arguments_from_extracted(
+        "check_db_status",
+        {"connection_name": "SALES_DB"},
+        {"connection_name": "SALES_DB", "account": "batch_user"},
+    )
+    assert filled["account"] == "batch_user"
+    unfilled = complete_arguments_from_extracted(
+        "check_db_status",
+        {"connection_name": "CRMDB"},
+        {"connection_name": "CRMDB"},
+    )
+    assert "account" not in unfilled or not unfilled.get("account")
+    specs = {item["name"]: item for item in get_tool_specs()}
+    assert specs["check_db_status"]["required"] == ["connection_name", "account"]
+
+
 def test_check_db_status_mock_states():
     locked = check_db_status(connection_name="SALES_DB", account="locked_user")
     assert locked.status == "SUCCESS"
