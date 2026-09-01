@@ -38,7 +38,7 @@ API Key는 코드에 넣지 않습니다.
 V0 Baseline:
 
 ```bash
-python main.py --version v0 --log data/sample_logs/file_case_001.log --case-id file_case_001
+python main.py --version v0 --log data/sample_logs/F-01.log --case-id F-01
 ```
 
 기본값은 v0입니다. `--version`을 생략해도 V0로 동작합니다.
@@ -46,9 +46,9 @@ python main.py --version v0 --log data/sample_logs/file_case_001.log --case-id f
 V1 Tool Use:
 
 ```bash
-python main.py --version v1 --log data/sample_logs/file_case_001.log --case-id file_case_001
-python main.py --version v1 --log data/sample_logs/db_case_001.log --case-id db_case_001
-python main.py --version v1 --log data/sample_logs/sql_case_001.log --case-id sql_case_001
+python main.py --version v1 --log data/sample_logs/F-01.log --case-id F-01
+python main.py --version v1 --log data/sample_logs/D-01.log --case-id D-01
+python main.py --version v1 --log data/sample_logs/S-01.log --case-id S-01
 ```
 
 현재 V1 Tool:
@@ -68,14 +68,20 @@ python main.py --version v1 --log data/sample_logs/sql_case_001.log --case-id sq
 단일 결과:
 
 ```bash
-python evaluation/evaluator.py --result results/v0_baseline/file_case_001.json --case-id file_case_001
-python evaluation/evaluator.py --result results/v1_tool_use/file_case_001.json --case-id file_case_001
+python evaluation/evaluator.py --result results/v0_baseline/F-01.json --case-id F-01
+python evaluation/evaluator.py --result results/v1_tool_use/F-01.json --case-id F-01
 ```
 
-10건 일괄 평가 (V0 + V1):
+30건 일괄 평가 (V0 + V1):
 
 ```bash
 python evaluation/run_evaluation.py --versions v0 v1
+```
+
+지정 케이스만 실행:
+
+```bash
+python evaluation/run_evaluation.py --versions v0 v1 --case-id F-01 D-01 S-01
 ```
 
 집계 리포트:
@@ -91,6 +97,8 @@ python evaluation/run_evaluation.py --versions v0 v1
 - `diagnosis_level_accuracy`
 - `owner_accuracy`
 - V1: `required_tool_recall`, `unnecessary_tool_rate`
+
+공식 평가셋은 `evaluation/ground_truth.json` 30건입니다. `evaluation/reports/`에 있는 파일은 이전 10건 실행 결과이므로, 30건 일괄 평가를 다시 돌리기 전에는 현재 GT와 건수가 일치하지 않습니다.
 
 V1 Tool은 로컬 mock JSON만 조회합니다. 실제 파일 시스템/DB는 사용하지 않습니다.
 

@@ -1,0 +1,8 @@
+2026-09-01 03:10:00 INFO  JOB=DAILY_SALES_DB_LOAD START
+2026-09-01 03:10:01 INFO  connection_name=SALES_DB
+2026-09-01 03:10:01 INFO  account=batch_user
+2026-09-01 03:10:02 INFO  connecting to mock host sales-db.internal port=1521
+2026-09-01 03:10:03 ERROR ORA-01017: invalid username/password; logon denied
+2026-09-01 03:10:03 ERROR DB authentication/login failure for account=batch_user connection=SALES_DB
+2026-09-01 03:10:04 ERROR job failed with return_code=12
+2026-09-01 03:10:05 INFO  JOB=DAILY_SALES_DB_LOAD END

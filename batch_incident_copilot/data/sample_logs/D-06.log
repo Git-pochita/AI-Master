@@ -1,0 +1,8 @@
+2026-09-01 04:15:00 INFO  JOB=DAILY_LEGACY_EXTRACT START
+2026-09-01 04:15:01 INFO  connection_name=LEGACY_DB
+2026-09-01 04:15:01 INFO  account=batch_legacy
+2026-09-01 04:15:02 INFO  connecting to mock host legacy-db.internal port=1521
+2026-09-01 04:15:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified
+2026-09-01 04:15:03 ERROR DB connection failed for account=batch_legacy connection=LEGACY_DB
+2026-09-01 04:15:04 ERROR job failed with return_code=12
+2026-09-01 04:15:05 INFO  JOB=DAILY_LEGACY_EXTRACT END

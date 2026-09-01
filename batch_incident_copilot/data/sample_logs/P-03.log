@@ -1,0 +1,5 @@
+2026-09-01 06:20:00 INFO  JOB=DAILY_REGION_AGG START
+2026-09-01 06:20:01 INFO  region_code=korea
+2026-09-01 06:20:02 ERROR parameter rejected: region_code=korea
+2026-09-01 06:20:03 ERROR job failed with return_code=12
+2026-09-01 06:20:04 INFO  JOB=DAILY_REGION_AGG END

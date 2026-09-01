@@ -1,7 +1,165 @@
 {
-  "file_case_001": {
-    "case_id": "file_case_001",
+  "F-01": {
+    "case_id": "F-01",
     "incident_domain": "FILE",
+    "scenario": "실제 파일 미수신",
+    "log_file": "F-01.log",
+    "actual_cause_code": "FILE_NOT_RECEIVED",
+    "actual_cause_name": "파일 미수신",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [
+      "check_file_status"
+    ],
+    "unnecessary_tools": [
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_file_status",
+        "arguments": {
+          "path": "/data/in/orders/orders_20260901.csv"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "exists": false,
+          "received": false
+        }
+      }
+    ],
+    "notes": "business_date와 경로 형식은 정상이다. mock에서 orders_20260901.csv가 수신되지 않았다."
+  },
+  "F-02": {
+    "case_id": "F-02",
+    "incident_domain": "FILE",
+    "scenario": "파일 경로 오설정",
+    "log_file": "F-02.log",
+    "actual_cause_code": "INVALID_FILE_PATH",
+    "actual_cause_name": "파일 경로 오류",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [
+      "check_file_status"
+    ],
+    "unnecessary_tools": [
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_file_status",
+        "arguments": {
+          "path": "/data/in/sale_20260901.csv"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "exists": false,
+          "received": false
+        }
+      }
+    ],
+    "notes": "로그 경로 /data/in/sale_20260901.csv는 없고, 같은 디렉터리의 sales_20260901.csv는 존재한다."
+  },
+  "F-03": {
+    "case_id": "F-03",
+    "incident_domain": "FILE",
+    "scenario": "애매한 File 오류를 Tool로 미수신 확인",
+    "log_file": "F-03.log",
+    "actual_cause_code": "FILE_NOT_RECEIVED",
+    "actual_cause_name": "파일 미수신",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [
+      "check_file_status"
+    ],
+    "unnecessary_tools": [
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_file_status",
+        "arguments": {
+          "path": "/data/in/payments/payments_20260901.csv"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "exists": false,
+          "received": false
+        }
+      }
+    ],
+    "notes": "로그는 FileNotFound가 아니라 일반 read 실패이다. mock에서 payments_20260901.csv는 미수신이다."
+  },
+  "F-04": {
+    "case_id": "F-04",
+    "incident_domain": "FILE",
+    "scenario": "잘못된 경로이며 정상 파일은 다른 경로에 존재",
+    "log_file": "F-04.log",
+    "actual_cause_code": "INVALID_FILE_PATH",
+    "actual_cause_name": "파일 경로 오류",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [
+      "check_file_status"
+    ],
+    "unnecessary_tools": [
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_file_status",
+        "arguments": {
+          "path": "/data/in/partner/partnr_20260901.csv"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "exists": false,
+          "received": false
+        }
+      }
+    ],
+    "notes": "로그 경로 partnr_20260901.csv는 없고, 같은 디렉터리 partner_20260901.csv는 존재한다."
+  },
+  "F-05": {
+    "case_id": "F-05",
+    "incident_domain": "FILE",
+    "scenario": "FileNotFound처럼 보이나 실제 business_date 오류",
+    "log_file": "F-05.log",
     "actual_cause_code": "INVALID_BUSINESS_DATE",
     "actual_cause_name": "실행일자 파라미터 오류",
     "expected_hypothesis_codes": [
@@ -13,18 +171,47 @@
       "check_file_status",
       "validate_parameter"
     ],
-    "v1_required_tools": [
-      "check_file_status",
-      "validate_parameter"
+    "unnecessary_tools": [
+      "check_db_status",
+      "check_sql_metadata"
     ],
+    "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_file_status",
+        "arguments": {
+          "path": "/data/in/sales_20260831.csv"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "exists": false,
+          "received": false
+        }
+      },
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "DAILY_SALES_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260831"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "is_valid": false,
+          "expected_value": "20260901"
+        }
+      }
+    ],
     "notes": "표면은 FileNotFound이다. 실제 원인은 실행일자 파라미터 오류이며 check_file_status와 validate_parameter가 모두 필요하다."
   },
-  "file_case_002": {
-    "case_id": "file_case_002",
+  "F-06": {
+    "case_id": "F-06",
     "incident_domain": "FILE",
+    "scenario": "File Tool lookup 실패",
+    "log_file": "F-06.log",
     "actual_cause_code": "FILE_NOT_RECEIVED",
     "actual_cause_name": "파일 미수신",
     "expected_hypothesis_codes": [
@@ -35,104 +222,72 @@
     "required_tools": [
       "check_file_status"
     ],
-    "expected_diagnosis_level_v0": "추정",
-    "expected_diagnosis_level_v1": "확인됨",
-    "expected_owner": "BATCH_OPERATION",
-    "notes": "business_date와 경로 형식은 정상이다. mock에서 해당 파일이 수신되지 않았다. 원인 검증에 필요한 Tool은 check_file_status이다."
-  },
-  "file_case_003": {
-    "case_id": "file_case_003",
-    "incident_domain": "FILE",
-    "actual_cause_code": "INVALID_FILE_PATH",
-    "actual_cause_name": "파일 경로 오류",
-    "expected_hypothesis_codes": [
-      "FILE_NOT_RECEIVED",
-      "INVALID_BUSINESS_DATE",
-      "INVALID_FILE_PATH"
-    ],
-    "required_tools": [
-      "check_file_status"
-    ],
-    "expected_diagnosis_level_v0": "추정",
-    "expected_diagnosis_level_v1": "확인됨",
-    "expected_owner": "BATCH_OPERATION",
-    "notes": "로그 경로 /data/in/sale_20260901.csv는 없고, 같은 디렉터리의 sales_20260901.csv는 존재한다. 원인 검증 Tool은 check_file_status이다."
-  },
-  "db_case_001": {
-    "case_id": "db_case_001",
-    "incident_domain": "DB",
-    "actual_cause_code": "DB_CREDENTIAL_MISMATCH",
-    "actual_cause_name": "DB 인증 정보 불일치",
-    "expected_hypothesis_codes": [
-      "DB_CREDENTIAL_MISMATCH",
-      "DB_ACCOUNT_LOCKED",
-      "DB_CONNECTION_CONFIG_ERROR"
-    ],
-    "required_tools": [
-      "check_db_status"
-    ],
-    "expected_diagnosis_level_v0": "추정",
-    "expected_diagnosis_level_v1": "확인됨",
-    "expected_owner": "BATCH_OPERATION",
-    "notes": "로그는 login failure이다. mock은 credential_status=MISMATCH, account_locked=false, config 정상이다."
-  },
-  "db_case_002": {
-    "case_id": "db_case_002",
-    "incident_domain": "DB",
-    "actual_cause_code": "DB_ACCOUNT_LOCKED",
-    "actual_cause_name": "DB 계정 잠김",
-    "expected_hypothesis_codes": [
-      "DB_CREDENTIAL_MISMATCH",
-      "DB_ACCOUNT_LOCKED",
-      "DB_CONNECTION_CONFIG_ERROR"
-    ],
-    "required_tools": [
-      "check_db_status"
-    ],
-    "expected_diagnosis_level_v0": "추정",
-    "expected_diagnosis_level_v1": "확인됨",
-    "expected_owner": "BATCH_OPERATION",
-    "notes": "로그는 db_case_001과 유사한 login failure이다. mock은 account_locked=true, credential_status=VALID, config 정상이다."
-  },
-  "sql_case_001": {
-    "case_id": "sql_case_001",
-    "incident_domain": "SQL",
-    "actual_cause_code": "TABLE_NOT_FOUND",
-    "actual_cause_name": "테이블 없음",
-    "expected_hypothesis_codes": [
-      "TABLE_NOT_FOUND",
-      "COLUMN_NOT_FOUND",
-      "INVALID_SCHEMA"
-    ],
-    "required_tools": [
+    "unnecessary_tools": [
+      "validate_parameter",
+      "check_db_status",
       "check_sql_metadata"
     ],
+    "expected_tool_outcome": "FAILED",
     "expected_diagnosis_level_v0": "추정",
-    "expected_diagnosis_level_v1": "확인됨",
+    "expected_diagnosis_level_v1": "추정",
     "expected_owner": "BATCH_OPERATION",
-    "notes": "schema는 있고 SALES_SUMMARY 테이블은 없다."
-  },
-  "sql_case_002": {
-    "case_id": "sql_case_002",
-    "incident_domain": "SQL",
-    "actual_cause_code": "COLUMN_NOT_FOUND",
-    "actual_cause_name": "컬럼 없음",
-    "expected_hypothesis_codes": [
-      "TABLE_NOT_FOUND",
-      "COLUMN_NOT_FOUND",
-      "INVALID_SCHEMA"
+    "tool_fixtures": [
+      {
+        "tool": "check_file_status",
+        "arguments": {
+          "path": "/data/in/untracked/ghost_20260901.csv"
+        },
+        "expected_status": "FAILED"
+      }
     ],
-    "required_tools": [
-      "check_sql_metadata"
-    ],
-    "expected_diagnosis_level_v0": "추정",
-    "expected_diagnosis_level_v1": "확인됨",
-    "expected_owner": "BATCH_OPERATION",
-    "notes": "SALES.SALES_DAILY 테이블은 있고 TOTAL_AMT 컬럼은 없다. 원인 검증 Tool은 check_sql_metadata이다."
+    "notes": "경로가 파일 카탈로그에 없어 check_file_status는 FAILED이다. FAILED는 최종 근거가 아니며 diagnosis_level은 추정이다."
   },
-  "param_case_001": {
-    "case_id": "param_case_001",
+  "P-01": {
+    "case_id": "P-01",
     "incident_domain": "PARAMETER",
+    "scenario": "business_date 불일치",
+    "log_file": "P-01.log",
+    "actual_cause_code": "INVALID_BUSINESS_DATE",
+    "actual_cause_name": "실행일자 파라미터 오류",
+    "expected_hypothesis_codes": [
+      "INVALID_BUSINESS_DATE",
+      "MISSING_REQUIRED_PARAMETER",
+      "INVALID_PARAMETER_FORMAT"
+    ],
+    "required_tools": [
+      "validate_parameter"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "DAILY_SALES_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260831"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "is_valid": false,
+          "expected_value": "20260901"
+        }
+      }
+    ],
+    "notes": "파일 오류 없이 business_date=20260831이 거절된다. validate_parameter는 is_valid=false, expected_value=20260901을 반환한다."
+  },
+  "P-02": {
+    "case_id": "P-02",
+    "incident_domain": "PARAMETER",
+    "scenario": "필수 파라미터 누락",
+    "log_file": "P-02.log",
     "actual_cause_code": "MISSING_REQUIRED_PARAMETER",
     "actual_cause_name": "필수 파라미터 누락",
     "expected_hypothesis_codes": [
@@ -143,14 +298,38 @@
     "required_tools": [
       "validate_parameter"
     ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "DAILY_STORE_CLOSE",
+          "parameter_name": "store_id",
+          "parameter_value": ""
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "provided": false,
+          "required": true,
+          "is_valid": false
+        }
+      }
+    ],
     "notes": "store_id 값이 없다. validate_parameter는 provided=false, required=true를 반환해야 한다."
   },
-  "param_case_002": {
-    "case_id": "param_case_002",
+  "P-03": {
+    "case_id": "P-03",
     "incident_domain": "PARAMETER",
+    "scenario": "파라미터 형식 오류",
+    "log_file": "P-03.log",
     "actual_cause_code": "INVALID_PARAMETER_FORMAT",
     "actual_cause_name": "파라미터 형식 오류",
     "expected_hypothesis_codes": [
@@ -161,14 +340,37 @@
     "required_tools": [
       "validate_parameter"
     ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "DAILY_REGION_AGG",
+          "parameter_name": "region_code",
+          "parameter_value": "korea"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "format_valid": false,
+          "is_valid": false
+        }
+      }
+    ],
     "notes": "region_code=korea는 허용 형식/코드가 아니다. validate_parameter는 format_valid=false를 반환해야 한다."
   },
-  "param_case_003": {
-    "case_id": "param_case_003",
+  "P-04": {
+    "case_id": "P-04",
     "incident_domain": "PARAMETER",
+    "scenario": "파라미터 범위 오류",
+    "log_file": "P-04.log",
     "actual_cause_code": "INVALID_PARAMETER_RANGE",
     "actual_cause_name": "파라미터 범위 오류",
     "expected_hypothesis_codes": [
@@ -179,9 +381,823 @@
     "required_tools": [
       "validate_parameter"
     ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "DAILY_RETRY_BATCH",
+          "parameter_name": "retry_count",
+          "parameter_value": "99"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "format_valid": true,
+          "range_valid": false,
+          "is_valid": false
+        }
+      }
+    ],
     "notes": "retry_count=99는 정수 형식이지만 허용 범위 1-5를 벗어난다. validate_parameter는 range_valid=false를 반환해야 한다."
+  },
+  "P-05": {
+    "case_id": "P-05",
+    "incident_domain": "PARAMETER",
+    "scenario": "로그에 expected/actual이 명확하여 Tool 불필요",
+    "log_file": "P-05.log",
+    "actual_cause_code": "INVALID_BUSINESS_DATE",
+    "actual_cause_name": "실행일자 파라미터 오류",
+    "expected_hypothesis_codes": [
+      "INVALID_BUSINESS_DATE",
+      "MISSING_REQUIRED_PARAMETER",
+      "INVALID_PARAMETER_FORMAT"
+    ],
+    "required_tools": [],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "NONE",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "추정",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [],
+    "notes": "로그에 expected=20260901 actual=20260831이 명시되어 있다. Tool 호출은 불필요하며 SUCCESS Tool이 없으면 diagnosis_level은 추정이다."
+  },
+  "P-06": {
+    "case_id": "P-06",
+    "incident_domain": "PARAMETER",
+    "scenario": "Parameter Tool lookup 실패",
+    "log_file": "P-06.log",
+    "actual_cause_code": "INVALID_PARAMETER_FORMAT",
+    "actual_cause_name": "파라미터 형식 오류",
+    "expected_hypothesis_codes": [
+      "MISSING_REQUIRED_PARAMETER",
+      "INVALID_PARAMETER_FORMAT",
+      "INVALID_PARAMETER_RANGE"
+    ],
+    "required_tools": [
+      "validate_parameter"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "FAILED",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "추정",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "DAILY_PROMO_LOAD",
+          "parameter_name": "promo_code",
+          "parameter_value": "summer"
+        },
+        "expected_status": "FAILED"
+      }
+    ],
+    "notes": "DAILY_PROMO_LOAD/promo_code는 파라미터 카탈로그에 없어 validate_parameter는 FAILED이다. FAILED는 최종 근거가 아니며 diagnosis_level은 추정이다."
+  },
+  "D-01": {
+    "case_id": "D-01",
+    "incident_domain": "DB",
+    "scenario": "인증 정보 불일치",
+    "log_file": "D-01.log",
+    "actual_cause_code": "DB_CREDENTIAL_MISMATCH",
+    "actual_cause_name": "DB 인증 정보 불일치",
+    "expected_hypothesis_codes": [
+      "DB_CREDENTIAL_MISMATCH",
+      "DB_ACCOUNT_LOCKED",
+      "DB_CONNECTION_CONFIG_ERROR"
+    ],
+    "required_tools": [
+      "check_db_status"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_db_status",
+        "arguments": {
+          "connection_name": "SALES_DB",
+          "account": "batch_user"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "account_locked": false,
+          "credential_status": "MISMATCH",
+          "connection_config_valid": true
+        }
+      }
+    ],
+    "notes": "로그는 login failure이다. mock은 credential_status=MISMATCH, account_locked=false, config 정상이다."
+  },
+  "D-02": {
+    "case_id": "D-02",
+    "incident_domain": "DB",
+    "scenario": "DB 계정 잠김",
+    "log_file": "D-02.log",
+    "actual_cause_code": "DB_ACCOUNT_LOCKED",
+    "actual_cause_name": "DB 계정 잠김",
+    "expected_hypothesis_codes": [
+      "DB_CREDENTIAL_MISMATCH",
+      "DB_ACCOUNT_LOCKED",
+      "DB_CONNECTION_CONFIG_ERROR"
+    ],
+    "required_tools": [
+      "check_db_status"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_db_status",
+        "arguments": {
+          "connection_name": "SALES_DB",
+          "account": "batch_rpt"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "account_locked": true,
+          "credential_status": "VALID",
+          "connection_config_valid": true
+        }
+      }
+    ],
+    "notes": "로그는 login failure이다. mock은 account_locked=true, credential_status=VALID, config 정상이다."
+  },
+  "D-03": {
+    "case_id": "D-03",
+    "incident_domain": "DB",
+    "scenario": "DB 접속 설정 오류",
+    "log_file": "D-03.log",
+    "actual_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+    "actual_cause_name": "DB 접속 설정 오류",
+    "expected_hypothesis_codes": [
+      "DB_CREDENTIAL_MISMATCH",
+      "DB_ACCOUNT_LOCKED",
+      "DB_CONNECTION_CONFIG_ERROR"
+    ],
+    "required_tools": [
+      "check_db_status"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_db_status",
+        "arguments": {
+          "connection_name": "REPORT_DB",
+          "account": "batch_user"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "account_locked": false,
+          "credential_status": "VALID",
+          "connection_config_valid": false
+        }
+      }
+    ],
+    "notes": "로그는 TNS/접속 실패이다. mock REPORT_DB/batch_user는 connection_config_valid=false이다."
+  },
+  "D-04": {
+    "case_id": "D-04",
+    "incident_domain": "DB",
+    "scenario": "일반 login failure처럼 보이지만 Tool로 account_locked=true 확인",
+    "log_file": "D-04.log",
+    "actual_cause_code": "DB_ACCOUNT_LOCKED",
+    "actual_cause_name": "DB 계정 잠김",
+    "expected_hypothesis_codes": [
+      "DB_CREDENTIAL_MISMATCH",
+      "DB_ACCOUNT_LOCKED",
+      "DB_CONNECTION_CONFIG_ERROR"
+    ],
+    "required_tools": [
+      "check_db_status"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_db_status",
+        "arguments": {
+          "connection_name": "SALES_DB",
+          "account": "locked_user"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "account_locked": true,
+          "credential_status": "VALID",
+          "connection_config_valid": true
+        }
+      }
+    ],
+    "notes": "로그는 ORA-01017 login failure이다. mock SALES_DB/locked_user는 account_locked=true이다."
+  },
+  "D-05": {
+    "case_id": "D-05",
+    "incident_domain": "DB",
+    "scenario": "account 정보 부족으로 Tool 미호출",
+    "log_file": "D-05.log",
+    "actual_cause_code": "DB_CREDENTIAL_MISMATCH",
+    "actual_cause_name": "DB 인증 정보 불일치",
+    "expected_hypothesis_codes": [
+      "DB_CREDENTIAL_MISMATCH",
+      "DB_ACCOUNT_LOCKED",
+      "DB_CONNECTION_CONFIG_ERROR"
+    ],
+    "required_tools": [],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "NONE",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "추정",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [],
+    "notes": "로그에 connection_name만 있고 account가 없다. check_db_status는 호출하지 않아야 하며 diagnosis_level은 추정이다."
+  },
+  "D-06": {
+    "case_id": "D-06",
+    "incident_domain": "DB",
+    "scenario": "DB Tool lookup 실패",
+    "log_file": "D-06.log",
+    "actual_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+    "actual_cause_name": "DB 접속 설정 오류",
+    "expected_hypothesis_codes": [
+      "DB_CREDENTIAL_MISMATCH",
+      "DB_ACCOUNT_LOCKED",
+      "DB_CONNECTION_CONFIG_ERROR"
+    ],
+    "required_tools": [
+      "check_db_status"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "FAILED",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "추정",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_db_status",
+        "arguments": {
+          "connection_name": "LEGACY_DB",
+          "account": "batch_legacy"
+        },
+        "expected_status": "FAILED"
+      }
+    ],
+    "notes": "LEGACY_DB/batch_legacy는 DB 카탈로그에 없어 check_db_status는 FAILED이다. FAILED는 최종 근거가 아니며 diagnosis_level은 추정이다."
+  },
+  "S-01": {
+    "case_id": "S-01",
+    "incident_domain": "SQL",
+    "scenario": "테이블 없음",
+    "log_file": "S-01.log",
+    "actual_cause_code": "TABLE_NOT_FOUND",
+    "actual_cause_name": "테이블 없음",
+    "expected_hypothesis_codes": [
+      "TABLE_NOT_FOUND",
+      "COLUMN_NOT_FOUND",
+      "INVALID_SCHEMA"
+    ],
+    "required_tools": [
+      "check_sql_metadata"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_sql_metadata",
+        "arguments": {
+          "schema": "SALES",
+          "table": "SALES_SUMMARY"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "schema_exists": true,
+          "table_exists": false,
+          "column_exists": null
+        }
+      }
+    ],
+    "notes": "schema는 있고 SALES_SUMMARY 테이블은 없다."
+  },
+  "S-02": {
+    "case_id": "S-02",
+    "incident_domain": "SQL",
+    "scenario": "컬럼 없음",
+    "log_file": "S-02.log",
+    "actual_cause_code": "COLUMN_NOT_FOUND",
+    "actual_cause_name": "컬럼 없음",
+    "expected_hypothesis_codes": [
+      "TABLE_NOT_FOUND",
+      "COLUMN_NOT_FOUND",
+      "INVALID_SCHEMA"
+    ],
+    "required_tools": [
+      "check_sql_metadata"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_sql_metadata",
+        "arguments": {
+          "schema": "SALES",
+          "table": "SALES_DAILY",
+          "column": "TOTAL_AMT"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "schema_exists": true,
+          "table_exists": true,
+          "column_exists": false
+        }
+      }
+    ],
+    "notes": "SALES.SALES_DAILY 테이블은 있고 TOTAL_AMT 컬럼은 없다."
+  },
+  "S-03": {
+    "case_id": "S-03",
+    "incident_domain": "SQL",
+    "scenario": "잘못되거나 존재하지 않는 schema",
+    "log_file": "S-03.log",
+    "actual_cause_code": "INVALID_SCHEMA",
+    "actual_cause_name": "스키마 오류",
+    "expected_hypothesis_codes": [
+      "TABLE_NOT_FOUND",
+      "COLUMN_NOT_FOUND",
+      "INVALID_SCHEMA"
+    ],
+    "required_tools": [
+      "check_sql_metadata"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_sql_metadata",
+        "arguments": {
+          "schema": "FINANCE_X",
+          "table": "LEDGER"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "schema_exists": false,
+          "table_exists": null,
+          "column_exists": null
+        }
+      }
+    ],
+    "notes": "FINANCE_X는 schema_exists=false이다. Tool SUCCESS로 스키마 오류를 확인한다."
+  },
+  "S-04": {
+    "case_id": "S-04",
+    "incident_domain": "SQL",
+    "scenario": "ORA-00942 상황에서 schema/table 여부를 Tool로 구분",
+    "log_file": "S-04.log",
+    "actual_cause_code": "TABLE_NOT_FOUND",
+    "actual_cause_name": "테이블 없음",
+    "expected_hypothesis_codes": [
+      "TABLE_NOT_FOUND",
+      "COLUMN_NOT_FOUND",
+      "INVALID_SCHEMA"
+    ],
+    "required_tools": [
+      "check_sql_metadata"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_sql_metadata",
+        "arguments": {
+          "schema": "SALES",
+          "table": "SALES_MONTHLY"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "schema_exists": true,
+          "table_exists": false,
+          "column_exists": null
+        }
+      }
+    ],
+    "notes": "로그는 ORA-00942만 있다. mock은 SALES schema 존재, SALES_MONTHLY 테이블 없음이다."
+  },
+  "S-05": {
+    "case_id": "S-05",
+    "incident_domain": "SQL",
+    "scenario": "테이블은 존재하지만 특정 컬럼 없음",
+    "log_file": "S-05.log",
+    "actual_cause_code": "COLUMN_NOT_FOUND",
+    "actual_cause_name": "컬럼 없음",
+    "expected_hypothesis_codes": [
+      "TABLE_NOT_FOUND",
+      "COLUMN_NOT_FOUND",
+      "INVALID_SCHEMA"
+    ],
+    "required_tools": [
+      "check_sql_metadata"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_sql_metadata",
+        "arguments": {
+          "schema": "SALES",
+          "table": "SALES_DAILY",
+          "column": "STORE_NM"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "schema_exists": true,
+          "table_exists": true,
+          "column_exists": false
+        }
+      }
+    ],
+    "notes": "SALES.SALES_DAILY는 있고 STORE_NM 컬럼은 없다."
+  },
+  "S-06": {
+    "case_id": "S-06",
+    "incident_domain": "SQL",
+    "scenario": "SQL metadata Tool lookup 실패",
+    "log_file": "S-06.log",
+    "actual_cause_code": "INVALID_SCHEMA",
+    "actual_cause_name": "스키마 오류",
+    "expected_hypothesis_codes": [
+      "TABLE_NOT_FOUND",
+      "COLUMN_NOT_FOUND",
+      "INVALID_SCHEMA"
+    ],
+    "required_tools": [
+      "check_sql_metadata"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status"
+    ],
+    "expected_tool_outcome": "FAILED",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "추정",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_sql_metadata",
+        "arguments": {
+          "schema": "HR_X",
+          "table": "EMPLOYEES"
+        },
+        "expected_status": "FAILED"
+      }
+    ],
+    "notes": "HR_X는 SQL 카탈로그에 없어 check_sql_metadata는 FAILED이다. FAILED는 최종 근거가 아니며 diagnosis_level은 추정이다."
+  },
+  "C-01": {
+    "case_id": "C-01",
+    "incident_domain": "COMPOSITE",
+    "scenario": "로그에 expected/actual까지 명시되어 Tool 불필요",
+    "log_file": "C-01.log",
+    "actual_cause_code": "INVALID_BUSINESS_DATE",
+    "actual_cause_name": "실행일자 파라미터 오류",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "NONE",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "추정",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [],
+    "notes": "FileNotFound와 expected/actual 날짜가 로그에 모두 있다. Tool 호출은 불필요하며 SUCCESS Tool이 없으면 diagnosis_level은 추정이다."
+  },
+  "C-02": {
+    "case_id": "C-02",
+    "incident_domain": "COMPOSITE",
+    "scenario": "File + Parameter 복합, 두 Tool을 사용해 근본 원인 판단",
+    "log_file": "C-02.log",
+    "actual_cause_code": "INVALID_BUSINESS_DATE",
+    "actual_cause_name": "실행일자 파라미터 오류",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [
+      "check_file_status",
+      "validate_parameter"
+    ],
+    "unnecessary_tools": [
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_file_status",
+        "arguments": {
+          "path": "/data/in/orders/orders_20260831.csv"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "exists": false,
+          "received": false
+        }
+      },
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "DAILY_ORDERS_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260831"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "is_valid": false,
+          "expected_value": "20260901"
+        }
+      }
+    ],
+    "notes": "orders_20260831 FileNotFound 표면과 business_date=20260831이 함께 있다. check_file_status와 validate_parameter가 모두 필요하다."
+  },
+  "C-03": {
+    "case_id": "C-03",
+    "incident_domain": "COMPOSITE",
+    "scenario": "DB + SQL 복합, DB 정상이고 table 미존재",
+    "log_file": "C-03.log",
+    "actual_cause_code": "TABLE_NOT_FOUND",
+    "actual_cause_name": "테이블 없음",
+    "expected_hypothesis_codes": [
+      "TABLE_NOT_FOUND",
+      "DB_CREDENTIAL_MISMATCH",
+      "INVALID_SCHEMA"
+    ],
+    "required_tools": [
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_db_status",
+        "arguments": {
+          "connection_name": "SALES_DB",
+          "account": "etl_user"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "account_locked": false,
+          "credential_status": "VALID",
+          "connection_config_valid": true
+        }
+      },
+      {
+        "tool": "check_sql_metadata",
+        "arguments": {
+          "schema": "SALES",
+          "table": "SALES_FACT"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "schema_exists": true,
+          "table_exists": false,
+          "column_exists": null
+        }
+      }
+    ],
+    "notes": "SALES_DB/etl_user는 계정/인증/접속이 정상이다. SALES.SALES_FACT 테이블은 없다."
+  },
+  "C-04": {
+    "case_id": "C-04",
+    "incident_domain": "COMPOSITE",
+    "scenario": "DB Tool 결과 정상 후 SQL 추가 조사",
+    "log_file": "C-04.log",
+    "actual_cause_code": "TABLE_NOT_FOUND",
+    "actual_cause_name": "테이블 없음",
+    "expected_hypothesis_codes": [
+      "TABLE_NOT_FOUND",
+      "DB_CREDENTIAL_MISMATCH",
+      "INVALID_SCHEMA"
+    ],
+    "required_tools": [
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter"
+    ],
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_db_status",
+        "arguments": {
+          "connection_name": "ANALYTICS_DB",
+          "account": "batch_ok"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "account_locked": false,
+          "credential_status": "VALID",
+          "connection_config_valid": true
+        }
+      },
+      {
+        "tool": "check_sql_metadata",
+        "arguments": {
+          "schema": "ANALYTICS",
+          "table": "METRIC_DAILY"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "schema_exists": true,
+          "table_exists": false,
+          "column_exists": null
+        }
+      }
+    ],
+    "notes": "로그에 DB connection OK가 있다. ANALYTICS_DB/batch_ok는 정상이고 ANALYTICS.METRIC_DAILY 테이블은 없다."
+  },
+  "C-05": {
+    "case_id": "C-05",
+    "incident_domain": "COMPOSITE",
+    "scenario": "입력 로그 근거가 부족한 케이스",
+    "log_file": "C-05.log",
+    "actual_cause_code": "FILE_NOT_RECEIVED",
+    "actual_cause_name": "파일 미수신",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [],
+    "unnecessary_tools": [
+      "check_file_status",
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "NONE",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "추정",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [],
+    "notes": "경로/파라미터/DB 정보가 거의 없다. Tool을 호출할 인자가 부족하며 diagnosis_level은 추정이다."
+  },
+  "C-06": {
+    "case_id": "C-06",
+    "incident_domain": "COMPOSITE",
+    "scenario": "File Tool FAILED + Parameter Tool SUCCESS",
+    "log_file": "C-06.log",
+    "actual_cause_code": "INVALID_BUSINESS_DATE",
+    "actual_cause_name": "실행일자 파라미터 오류",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "required_tools": [
+      "check_file_status",
+      "validate_parameter"
+    ],
+    "unnecessary_tools": [
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "expected_tool_outcome": "MIXED",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_file_status",
+        "arguments": {
+          "path": "/data/in/missing_catalog/sales_20260831.csv"
+        },
+        "expected_status": "FAILED"
+      },
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "DAILY_SALES_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260831"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "is_valid": false,
+          "expected_value": "20260901"
+        }
+      }
+    ],
+    "notes": "파일 경로는 카탈로그에 없어 check_file_status는 FAILED이다. validate_parameter는 business_date 불일치를 SUCCESS로 반환한다. FAILED는 최종 근거로 쓰지 않는다."
   }
 }

@@ -1,0 +1,6 @@
+2026-09-01 05:20:00 INFO  JOB=DAILY_PAYMENTS_LOAD START
+2026-09-01 05:20:01 INFO  business_date=20260901
+2026-09-01 05:20:02 INFO  input=/data/in/payments/payments_20260901.csv
+2026-09-01 05:20:03 ERROR failed to read input file during staging
+2026-09-01 05:20:03 ERROR job failed with return_code=12
+2026-09-01 05:20:04 INFO  JOB=DAILY_PAYMENTS_LOAD END

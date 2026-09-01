@@ -207,6 +207,17 @@ def test_check_db_status_mock_states():
     assert crm.data["connection_config_valid"] is True
     assert "cause_code" not in crm.data
 
+    healthy = check_db_status(connection_name="SALES_DB", account="etl_user")
+    assert healthy.status == "SUCCESS"
+    assert healthy.data["account_locked"] is False
+    assert healthy.data["credential_status"] == "VALID"
+    assert healthy.data["connection_config_valid"] is True
+
+    analytics = check_db_status(connection_name="ANALYTICS_DB", account="batch_ok")
+    assert analytics.status == "SUCCESS"
+    assert analytics.data["account_locked"] is False
+    assert analytics.data["connection_config_valid"] is True
+
 
 def test_check_sql_metadata_success_table_missing():
     result = check_sql_metadata(schema="SALES", table="SALES_SUMMARY", column=None)
@@ -257,6 +268,16 @@ def test_check_sql_metadata_schema_table_column_states():
     assert invalid_schema.data["schema_exists"] is False
     assert invalid_schema.data["table_exists"] is None
     assert invalid_schema.data["column_exists"] is None
+
+    monthly = check_sql_metadata(schema="SALES", table="SALES_MONTHLY")
+    assert monthly.status == "SUCCESS"
+    assert monthly.data["schema_exists"] is True
+    assert monthly.data["table_exists"] is False
+
+    analytics_sql = check_sql_metadata(schema="ANALYTICS", table="METRIC_DAILY")
+    assert analytics_sql.status == "SUCCESS"
+    assert analytics_sql.data["schema_exists"] is True
+    assert analytics_sql.data["table_exists"] is False
 
 
 def test_registry_includes_db_and_sql_tools():

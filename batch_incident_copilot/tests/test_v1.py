@@ -221,6 +221,8 @@ def test_tool_use_has_no_static_log_routing():
     assert "db_case_001" not in source
     assert "sql_case_001" not in source
     assert "param_case_001" not in source
+    assert "F-01" not in source
+    assert "C-06" not in source
     tools_dir = PROJECT_ROOT / "app" / "tools"
     forbidden_snippets = (
         'if "login failed"',
@@ -230,6 +232,8 @@ def test_tool_use_has_no_static_log_routing():
         "db_case_001",
         "sql_case_001",
         "param_case_001",
+        "F-01",
+        "C-06",
         "if case_id",
     )
     for path in tools_dir.glob("*.py"):

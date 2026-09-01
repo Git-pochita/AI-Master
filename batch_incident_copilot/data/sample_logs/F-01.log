@@ -1,0 +1,6 @@
+2026-09-01 02:30:00 INFO  JOB=DAILY_ORDERS_LOAD START
+2026-09-01 02:30:01 INFO  business_date=20260901
+2026-09-01 02:30:02 INFO  input=/data/in/orders/orders_20260901.csv
+2026-09-01 02:30:03 ERROR FileNotFoundError: /data/in/orders/orders_20260901.csv
+2026-09-01 02:30:03 ERROR job failed with return_code=12
+2026-09-01 02:30:04 INFO  JOB=DAILY_ORDERS_LOAD END

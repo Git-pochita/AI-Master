@@ -14,6 +14,11 @@
       "account_locked": true,
       "credential_status": "VALID",
       "connection_config_valid": true
+    },
+    "etl_user": {
+      "account_locked": false,
+      "credential_status": "VALID",
+      "connection_config_valid": true
     }
   },
   "REPORT_DB": {
@@ -27,6 +32,13 @@
     "BATCH_CRM": {
       "account_locked": false,
       "credential_status": "MISMATCH",
+      "connection_config_valid": true
+    }
+  },
+  "ANALYTICS_DB": {
+    "batch_ok": {
+      "account_locked": false,
+      "credential_status": "VALID",
       "connection_config_valid": true
     }
   }

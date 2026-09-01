@@ -1,0 +1,8 @@
+2026-09-01 03:55:00 INFO  JOB=DAILY_REPORT_EXTRACT START
+2026-09-01 03:55:01 INFO  connection_name=REPORT_DB
+2026-09-01 03:55:01 INFO  account=batch_user
+2026-09-01 03:55:02 INFO  connecting to mock host report-db.internal port=1521
+2026-09-01 03:55:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified
+2026-09-01 03:55:03 ERROR DB connection failed for account=batch_user connection=REPORT_DB
+2026-09-01 03:55:04 ERROR job failed with return_code=12
+2026-09-01 03:55:05 INFO  JOB=DAILY_REPORT_EXTRACT END

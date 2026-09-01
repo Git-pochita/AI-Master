@@ -1,0 +1,5 @@
+2026-09-01 06:50:00 INFO  JOB=DAILY_PROMO_LOAD START
+2026-09-01 06:50:01 INFO  promo_code=summer
+2026-09-01 06:50:02 ERROR parameter format invalid: promo_code=summer
+2026-09-01 06:50:03 ERROR job failed with return_code=12
+2026-09-01 06:50:04 INFO  JOB=DAILY_PROMO_LOAD END

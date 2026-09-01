@@ -6,12 +6,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.schemas import DiagnosisResult, Hypothesis
-from evaluation.evaluator import evaluate_case, load_ground_truth
+from evaluation.evaluator import evaluate_case, evaluate_payload, load_ground_truth
 
 
 def _diagnosis(hypotheses: list[Hypothesis], final_cause_code: str, final_cause_name: str) -> DiagnosisResult:
     return DiagnosisResult(
-        case_id="file_case_001",
+        case_id="F-05",
         summary="로그에 FileNotFoundError가 기록됨",
         extracted_info={"job": "DAILY_SALES_LOAD"},
         hypotheses=hypotheses,
@@ -46,7 +46,7 @@ def test_hypothesis_recall_hit_when_actual_cause_is_in_hypotheses():
         final_cause_code="FILE_NOT_RECEIVED",
         final_cause_name="파일 미수신",
     )
-    gt = load_ground_truth()["file_case_001"]
+    gt = load_ground_truth()["F-05"]
     metrics = evaluate_case(result, gt)
 
     assert metrics["final_diagnosis_correct"] is False
@@ -73,8 +73,62 @@ def test_hypothesis_recall_miss_when_actual_cause_is_absent():
         final_cause_code="FILE_NOT_RECEIVED",
         final_cause_name="파일 미수신",
     )
-    gt = load_ground_truth()["file_case_001"]
+    gt = load_ground_truth()["F-05"]
     metrics = evaluate_case(result, gt)
 
     assert metrics["hypothesis_recall_hit"] is False
     assert metrics["recalled_hypothesis_codes"] == []
+
+
+def test_v1_empty_required_tools_marks_any_call_unnecessary():
+    gt = load_ground_truth()["P-05"]
+    metrics = evaluate_payload(
+        {
+            "case_id": "P-05",
+            "initial_hypotheses": [
+                {
+                    "cause_code": "INVALID_BUSINESS_DATE",
+                    "cause_name": "실행일자 파라미터 오류",
+                    "evidence": ["expected=20260901 actual=20260831"],
+                }
+            ],
+            "selected_tools": [{"selected_tool": "validate_parameter"}],
+            "tool_results": [],
+            "final_cause_code": "INVALID_BUSINESS_DATE",
+            "diagnosis_level": "추정",
+            "owner": "BATCH_OPERATION",
+        },
+        gt,
+    )
+    assert metrics["required_tool_recall"] == 1.0
+    assert metrics["unnecessary_tool_rate"] == 1.0
+    assert "validate_parameter" in metrics["expected_unnecessary_tools"]
+
+
+def test_v1_required_tools_recall_and_unnecessary():
+    gt = load_ground_truth()["F-05"]
+    metrics = evaluate_payload(
+        {
+            "case_id": "F-05",
+            "initial_hypotheses": [
+                {
+                    "cause_code": "INVALID_BUSINESS_DATE",
+                    "cause_name": "실행일자 파라미터 오류",
+                    "evidence": ["business_date=20260831"],
+                }
+            ],
+            "selected_tools": [
+                {"selected_tool": "check_file_status"},
+                {"selected_tool": "check_db_status"},
+            ],
+            "tool_results": [],
+            "final_cause_code": "INVALID_BUSINESS_DATE",
+            "diagnosis_level": "추정",
+            "owner": "BATCH_OPERATION",
+        },
+        gt,
+    )
+    assert metrics["required_tool_recall"] == 0.5
+    assert metrics["unnecessary_tool_count"] == 1
+    assert metrics["unnecessary_tool_rate"] == 0.5
+    assert metrics["required_tools"] == ["check_file_status", "validate_parameter"]

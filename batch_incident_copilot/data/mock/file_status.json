@@ -26,5 +26,47 @@
     "received": false,
     "size_bytes": null,
     "last_modified": null
+  },
+  "/data/in/orders/orders_20260831.csv": {
+    "path": "/data/in/orders/orders_20260831.csv",
+    "exists": false,
+    "received": false,
+    "size_bytes": null,
+    "last_modified": null
+  },
+  "/data/in/payments/payments_20260901.csv": {
+    "path": "/data/in/payments/payments_20260901.csv",
+    "exists": false,
+    "received": false,
+    "size_bytes": null,
+    "last_modified": null
+  },
+  "/data/in/partner/partnr_20260901.csv": {
+    "path": "/data/in/partner/partnr_20260901.csv",
+    "exists": false,
+    "received": false,
+    "size_bytes": null,
+    "last_modified": null
+  },
+  "/data/in/partner/partner_20260901.csv": {
+    "path": "/data/in/partner/partner_20260901.csv",
+    "exists": true,
+    "received": true,
+    "size_bytes": 102400,
+    "last_modified": "2026-09-01T01:40:00"
+  },
+  "/data/in/ledger_20260831.csv": {
+    "path": "/data/in/ledger_20260831.csv",
+    "exists": false,
+    "received": false,
+    "size_bytes": null,
+    "last_modified": null
+  },
+  "/data/in/ledger_20260901.csv": {
+    "path": "/data/in/ledger_20260901.csv",
+    "exists": true,
+    "received": true,
+    "size_bytes": 81920,
+    "last_modified": "2026-09-01T01:45:00"
   }
 }

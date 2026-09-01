@@ -74,6 +74,9 @@ def evaluate_metrics(
         if tool_results is not None:
             payload["tool_results"] = tool_results
         metrics["required_tools"] = required
+        metrics["expected_unnecessary_tools"] = list(
+            ground_truth.get("unnecessary_tools") or []
+        )
         metrics["selected_tools"] = selected_tools
         metrics["required_tool_recall"] = required_tool_recall(required, selected_tools)
         metrics["unnecessary_tool_count"] = unnecessary_tool_count(required, selected_tools)
@@ -133,7 +136,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Batch Incident Copilot 평가")
     parser.add_argument(
         "--result",
-        default=str(settings.RESULTS_DIR / "file_case_001.json"),
+        default=str(settings.RESULTS_DIR / "F-01.json"),
         help="진단 결과 JSON 경로",
     )
     parser.add_argument("--case-id", default=None, help="평가할 case_id")

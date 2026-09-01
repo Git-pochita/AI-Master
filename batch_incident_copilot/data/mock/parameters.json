@@ -21,6 +21,28 @@
       "rule": "DAILY_ORDERS_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다."
     }
   },
+  "DAILY_PAYMENTS_LOAD": {
+    "business_date": {
+      "parameter_name": "business_date",
+      "type": "date_yyyymmdd",
+      "required": true,
+      "job_run_date": "20260901",
+      "expected_value": "20260901",
+      "format_pattern": "^[0-9]{8}$",
+      "rule": "DAILY_PAYMENTS_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다."
+    }
+  },
+  "DAILY_PARTNER_LOAD": {
+    "business_date": {
+      "parameter_name": "business_date",
+      "type": "date_yyyymmdd",
+      "required": true,
+      "job_run_date": "20260901",
+      "expected_value": "20260901",
+      "format_pattern": "^[0-9]{8}$",
+      "rule": "DAILY_PARTNER_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다."
+    }
+  },
   "DAILY_STORE_CLOSE": {
     "store_id": {
       "parameter_name": "store_id",

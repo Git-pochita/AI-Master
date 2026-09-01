@@ -1,0 +1,6 @@
+2026-09-01 06:40:00 INFO  JOB=DAILY_SALES_LOAD START
+2026-09-01 06:40:01 INFO  expected_business_date=20260901
+2026-09-01 06:40:01 INFO  actual_business_date=20260831
+2026-09-01 06:40:02 ERROR business_date mismatch: expected=20260901 actual=20260831
+2026-09-01 06:40:03 ERROR job failed with return_code=12
+2026-09-01 06:40:04 INFO  JOB=DAILY_SALES_LOAD END

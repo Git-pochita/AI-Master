@@ -11,13 +11,31 @@
         "columns": {
           "SALES_DT": true,
           "STORE_CD": true,
-          "TOTAL_AMT": false
+          "TOTAL_AMT": false,
+          "STORE_NM": false
         }
+      },
+      "SALES_MONTHLY": {
+        "table_exists": false,
+        "columns": {}
+      },
+      "SALES_FACT": {
+        "table_exists": false,
+        "columns": {}
       }
     }
   },
   "FINANCE_X": {
     "schema_exists": false,
     "tables": {}
+  },
+  "ANALYTICS": {
+    "schema_exists": true,
+    "tables": {
+      "METRIC_DAILY": {
+        "table_exists": false,
+        "columns": {}
+      }
+    }
   }
 }

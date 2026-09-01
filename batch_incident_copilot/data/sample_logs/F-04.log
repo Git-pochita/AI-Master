@@ -1,0 +1,6 @@
+2026-09-01 05:40:00 INFO  JOB=DAILY_PARTNER_LOAD START
+2026-09-01 05:40:01 INFO  business_date=20260901
+2026-09-01 05:40:02 INFO  input=/data/in/partner/partnr_20260901.csv
+2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv
+2026-09-01 05:40:03 ERROR job failed with return_code=12
+2026-09-01 05:40:04 INFO  JOB=DAILY_PARTNER_LOAD END
