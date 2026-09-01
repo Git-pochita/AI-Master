@@ -103,6 +103,7 @@ def test_v1_empty_required_tools_marks_any_call_unnecessary():
     assert metrics["required_tool_recall"] == 1.0
     assert metrics["unnecessary_tool_rate"] == 1.0
     assert "validate_parameter" in metrics["expected_unnecessary_tools"]
+    assert metrics["tool_necessity"] == "NOT_NEEDED"
 
 
 def test_v1_required_tools_recall_and_unnecessary():

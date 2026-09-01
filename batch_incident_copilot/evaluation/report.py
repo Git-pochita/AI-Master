@@ -27,6 +27,13 @@ def domain_counts(ground_truth: dict) -> dict[str, int]:
     return dict(sorted(counts.items()))
 
 
+def tool_necessity_counts(ground_truth: dict) -> dict[str, int]:
+    counts: Counter[str] = Counter()
+    for item in ground_truth.values():
+        counts[str(item.get("tool_necessity") or "UNKNOWN")] += 1
+    return dict(sorted(counts.items()))
+
+
 def write_json(path: Path, payload: dict[str, Any]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -42,8 +49,10 @@ def render_comparison_markdown(
     notes: list[str],
 ) -> str:
     counts = domain_counts(ground_truth)
+    necessity = tool_necessity_counts(ground_truth)
     total = len(ground_truth)
     domain_lines = ", ".join(f"{name} {n}건" for name, n in counts.items()) or "없음"
+    necessity_lines = ", ".join(f"{name} {n}건" for name, n in necessity.items()) or "없음"
     lines = [
         "# V0 vs V1 Evaluation",
         "",
@@ -51,6 +60,9 @@ def render_comparison_markdown(
         "",
         f"- 총 평가 케이스: {total}",
         f"- 장애 영역별 건수: {domain_lines}",
+        f"- Tool 호출 기대(GT metadata): {necessity_lines}",
+        "- Tool 호출 기대 구분: REQUIRED=원인 검증에 Tool 필요, NOT_NEEDED=로그 근거가 충분하여 Tool 불필요, NOT_CALLABLE=필수 인자/근거 부족으로 호출 불가",
+        "- Tool Recall / Unnecessary Tool Rate 채점 공식은 변경하지 않았습니다. 위 구분은 해석용 metadata입니다.",
         f"- 사용 모델: `{model}`",
         "- 실행 환경: local/mock PoC. Tool은 로컬 JSON만 조회하며 실제 운영 DB/파일시스템에 접속하지 않습니다.",
         "- execution time이 있어도 로컬 PoC 측정값이며, 운영 장애 분석 시간 절감을 의미하지 않습니다.",

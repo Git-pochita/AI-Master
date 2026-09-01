@@ -41,5 +41,12 @@
       "credential_status": "VALID",
       "connection_config_valid": true
     }
+  },
+  "SYNC_DB": {
+    "BATCH_SYNC": {
+      "account_locked": true,
+      "credential_status": "VALID",
+      "connection_config_valid": true
+    }
   }
 }

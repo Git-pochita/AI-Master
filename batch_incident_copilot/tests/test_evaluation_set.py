@@ -21,6 +21,7 @@ REQUIRED_FIELDS = {
     "expected_hypothesis_codes",
     "required_tools",
     "unnecessary_tools",
+    "tool_necessity",
     "expected_tool_outcome",
     "expected_diagnosis_level_v0",
     "expected_diagnosis_level_v1",
@@ -86,7 +87,8 @@ def test_ground_truth_fields_codes_tools_and_logs():
             assert tool in HANDLERS
         for tool in gt["unnecessary_tools"]:
             assert tool in HANDLERS
-        assert gt["expected_diagnosis_level_v0"] == "추정"
+        assert gt["tool_necessity"] in {"REQUIRED", "NOT_NEEDED", "NOT_CALLABLE"}
+        assert gt["expected_diagnosis_level_v0"] in {"추정", "가능성 높음", "확인됨"}
         assert gt["expected_diagnosis_level_v1"] in {"추정", "가능성 높음", "확인됨"}
         assert gt["expected_owner"] == "BATCH_OPERATION"
         log_path = settings.SAMPLE_LOGS_DIR / gt["log_file"]
@@ -107,11 +109,21 @@ def test_tool_outcome_matches_diagnosis_level_policy():
     for case_id, gt in all_gt.items():
         outcome = gt["expected_tool_outcome"]
         assert outcome in {"SUCCESS", "FAILED", "NONE", "MIXED"}, case_id
+        if gt["tool_necessity"] == "REQUIRED":
+            assert gt["required_tools"], case_id
+        else:
+            assert gt["required_tools"] == [], case_id
         fixtures = gt["tool_fixtures"]
         if outcome == "NONE":
             assert gt["required_tools"] == []
             assert fixtures == []
-            assert gt["expected_diagnosis_level_v1"] == "추정"
+            assert gt["tool_necessity"] in {"NOT_NEEDED", "NOT_CALLABLE"}
+            if gt["tool_necessity"] == "NOT_NEEDED":
+                assert gt["expected_diagnosis_level_v0"] == "확인됨"
+                assert gt["expected_diagnosis_level_v1"] == "확인됨"
+            else:
+                assert gt["expected_diagnosis_level_v0"] == "추정"
+                assert gt["expected_diagnosis_level_v1"] == "추정"
         elif outcome == "FAILED":
             assert gt["required_tools"]
             assert fixtures
@@ -155,4 +167,13 @@ def test_file_and_parameter_root_causes_are_distinct():
     assert all_gt["F-05"]["actual_cause_code"] == "INVALID_BUSINESS_DATE"
     assert all_gt["F-05"]["required_tools"] == ["check_file_status", "validate_parameter"]
     assert all_gt["P-05"]["required_tools"] == []
+    assert all_gt["P-05"]["tool_necessity"] == "NOT_NEEDED"
+    assert all_gt["P-05"]["expected_diagnosis_level_v1"] == "확인됨"
+    assert all_gt["C-01"]["actual_cause_code"] == "DB_ACCOUNT_LOCKED"
+    assert all_gt["C-01"]["required_tools"] == []
+    assert all_gt["C-01"]["tool_necessity"] == "NOT_NEEDED"
+    assert all_gt["D-05"]["tool_necessity"] == "NOT_CALLABLE"
+    assert all_gt["C-05"]["tool_necessity"] == "NOT_CALLABLE"
     assert all_gt["C-06"]["expected_tool_outcome"] == "MIXED"
+    necessity = {item["tool_necessity"] for item in all_gt.values()}
+    assert necessity == {"REQUIRED", "NOT_NEEDED", "NOT_CALLABLE"}

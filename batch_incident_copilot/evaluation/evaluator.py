@@ -67,6 +67,7 @@ def evaluate_metrics(
         "owner_correct": owner == ground_truth.get("expected_owner"),
         "predicted_owner": owner,
         "expected_owner": ground_truth.get("expected_owner"),
+        "tool_necessity": ground_truth.get("tool_necessity"),
     }
     if selected_tools is not None:
         required = list(ground_truth.get("required_tools") or [])

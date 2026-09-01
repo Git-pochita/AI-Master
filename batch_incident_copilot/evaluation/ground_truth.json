@@ -19,6 +19,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -58,6 +59,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -97,6 +99,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -136,6 +139,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -175,6 +179,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -227,6 +232,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "FAILED",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "추정",
@@ -262,6 +268,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -303,6 +310,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -345,6 +353,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -386,6 +395,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -427,12 +437,13 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "NOT_NEEDED",
     "expected_tool_outcome": "NONE",
-    "expected_diagnosis_level_v0": "추정",
-    "expected_diagnosis_level_v1": "추정",
+    "expected_diagnosis_level_v0": "확인됨",
+    "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
     "tool_fixtures": [],
-    "notes": "로그에 expected=20260901 actual=20260831이 명시되어 있다. Tool 호출은 불필요하며 SUCCESS Tool이 없으면 diagnosis_level은 추정이다."
+    "notes": "로그에 expected=20260901 actual=20260831이 직접 명시되어 근거가 확실하다. Tool 호출은 불필요하며, 호출하면 unnecessary tool이다. diagnosis_level은 Tool 유무가 아니라 근거 확실성으로 확인됨이다."
   },
   "P-06": {
     "case_id": "P-06",
@@ -454,6 +465,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "FAILED",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "추정",
@@ -491,6 +503,7 @@
       "validate_parameter",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -532,6 +545,7 @@
       "validate_parameter",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -573,6 +587,7 @@
       "validate_parameter",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -614,6 +629,7 @@
       "validate_parameter",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -654,12 +670,13 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "NOT_CALLABLE",
     "expected_tool_outcome": "NONE",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "추정",
     "expected_owner": "BATCH_OPERATION",
     "tool_fixtures": [],
-    "notes": "로그에 connection_name만 있고 account가 없다. check_db_status는 호출하지 않아야 하며 diagnosis_level은 추정이다."
+    "notes": "로그에 connection_name만 있고 account가 없다. check_db_status는 필요해 보여도 필수 인자가 없어 호출 불가(NOT_CALLABLE)이며 diagnosis_level은 추정이다."
   },
   "D-06": {
     "case_id": "D-06",
@@ -681,6 +698,7 @@
       "validate_parameter",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "FAILED",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "추정",
@@ -717,6 +735,7 @@
       "validate_parameter",
       "check_db_status"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -758,6 +777,7 @@
       "validate_parameter",
       "check_db_status"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -800,6 +820,7 @@
       "validate_parameter",
       "check_db_status"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -841,6 +862,7 @@
       "validate_parameter",
       "check_db_status"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -882,6 +904,7 @@
       "validate_parameter",
       "check_db_status"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -924,6 +947,7 @@
       "validate_parameter",
       "check_db_status"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "FAILED",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "추정",
@@ -943,14 +967,14 @@
   "C-01": {
     "case_id": "C-01",
     "incident_domain": "COMPOSITE",
-    "scenario": "로그에 expected/actual까지 명시되어 Tool 불필요",
+    "scenario": "ORA-28000으로 계정 잠김이 로그에 명시되어 Tool 불필요",
     "log_file": "C-01.log",
-    "actual_cause_code": "INVALID_BUSINESS_DATE",
-    "actual_cause_name": "실행일자 파라미터 오류",
+    "actual_cause_code": "DB_ACCOUNT_LOCKED",
+    "actual_cause_name": "DB 계정 잠김",
     "expected_hypothesis_codes": [
-      "FILE_NOT_RECEIVED",
-      "INVALID_BUSINESS_DATE",
-      "INVALID_FILE_PATH"
+      "DB_CREDENTIAL_MISMATCH",
+      "DB_ACCOUNT_LOCKED",
+      "DB_CONNECTION_CONFIG_ERROR"
     ],
     "required_tools": [],
     "unnecessary_tools": [
@@ -959,12 +983,13 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "NOT_NEEDED",
     "expected_tool_outcome": "NONE",
-    "expected_diagnosis_level_v0": "추정",
-    "expected_diagnosis_level_v1": "추정",
+    "expected_diagnosis_level_v0": "확인됨",
+    "expected_diagnosis_level_v1": "확인됨",
     "expected_owner": "BATCH_OPERATION",
     "tool_fixtures": [],
-    "notes": "FileNotFound와 expected/actual 날짜가 로그에 모두 있다. Tool 호출은 불필요하며 SUCCESS Tool이 없으면 diagnosis_level은 추정이다."
+    "notes": "로그에 ORA-28000과 DB account BATCH_SYNC is locked가 직접 있다. check_db_status는 호출할 수 있지만 불필요(NOT_NEEDED)이며, 호출하면 unnecessary tool이다. diagnosis_level은 확인됨이다."
   },
   "C-02": {
     "case_id": "C-02",
@@ -986,6 +1011,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -1038,6 +1064,7 @@
       "check_file_status",
       "validate_parameter"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -1092,6 +1119,7 @@
       "check_file_status",
       "validate_parameter"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "SUCCESS",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",
@@ -1145,12 +1173,13 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "NOT_CALLABLE",
     "expected_tool_outcome": "NONE",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "추정",
     "expected_owner": "BATCH_OPERATION",
     "tool_fixtures": [],
-    "notes": "경로/파라미터/DB 정보가 거의 없다. Tool을 호출할 인자가 부족하며 diagnosis_level은 추정이다."
+    "notes": "경로/파라미터/DB 정보가 거의 없다. Tool을 호출할 필수 인자가 없고 근거도 부족(NOT_CALLABLE)이며 diagnosis_level은 추정이다."
   },
   "C-06": {
     "case_id": "C-06",
@@ -1172,6 +1201,7 @@
       "check_db_status",
       "check_sql_metadata"
     ],
+    "tool_necessity": "REQUIRED",
     "expected_tool_outcome": "MIXED",
     "expected_diagnosis_level_v0": "추정",
     "expected_diagnosis_level_v1": "확인됨",

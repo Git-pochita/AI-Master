@@ -5,7 +5,17 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.cause_codes import validate_cause_code
+from app.cause_codes import (
+    CANONICAL_CAUSE_CODES,
+    CAUSE_CODE_NAMES,
+    validate_cause_code,
+)
+
+
+def test_canonical_cause_code_unique_count_is_twelve():
+    assert len(CANONICAL_CAUSE_CODES) == 12
+    assert len(CAUSE_CODE_NAMES) == 12
+    assert set(CAUSE_CODE_NAMES) == set(CANONICAL_CAUSE_CODES)
 
 
 def test_validate_cause_code_rejects_aliases():

@@ -218,6 +218,12 @@ def test_check_db_status_mock_states():
     assert analytics.data["account_locked"] is False
     assert analytics.data["connection_config_valid"] is True
 
+    sync_locked = check_db_status(connection_name="SYNC_DB", account="BATCH_SYNC")
+    assert sync_locked.status == "SUCCESS"
+    assert sync_locked.data["account_locked"] is True
+    assert sync_locked.data["credential_status"] == "VALID"
+    assert sync_locked.data["connection_config_valid"] is True
+
 
 def test_check_sql_metadata_success_table_missing():
     result = check_sql_metadata(schema="SALES", table="SALES_SUMMARY", column=None)

@@ -120,6 +120,7 @@ def test_report_generation_contains_comparison_table():
             "file_case_001": {
                 "actual_cause_code": "INVALID_BUSINESS_DATE",
                 "incident_domain": "FILE",
+                "tool_necessity": "REQUIRED",
             }
         },
         model="gpt-4.1",
@@ -130,3 +131,6 @@ def test_report_generation_contains_comparison_table():
     assert "Required Tool Recall | N/A | 100.0%" in md
     assert "local/mock PoC" in md
     assert "file_case_001 | INVALID_BUSINESS_DATE | FILE_NOT_RECEIVED | INVALID_BUSINESS_DATE" in md
+    assert "Tool 호출 기대(GT metadata): REQUIRED 1건" in md
+    assert "NOT_NEEDED" in md
+    assert "NOT_CALLABLE" in md
