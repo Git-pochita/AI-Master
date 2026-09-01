@@ -15,16 +15,16 @@ from app.tools.validate_parameter import validate_parameter
 
 
 def test_check_file_status_success():
-    result = check_file_status(path="/data/in/sales_20260818.csv")
+    result = check_file_status(path="/data/in/sales_20260831.csv")
     assert result.status == "SUCCESS"
     assert result.error is None
     assert result.data is not None
     assert result.data["exists"] is False
     assert result.data["received"] is False
     siblings = {item["path"]: item for item in result.data["same_directory_files"]}
-    assert siblings["/data/in/sales_20260818.csv"]["exists"] is False
-    assert siblings["/data/in/sales_20260819.csv"]["exists"] is True
-    assert siblings["/data/in/sales_20260819.csv"]["received"] is True
+    assert siblings["/data/in/sales_20260831.csv"]["exists"] is False
+    assert siblings["/data/in/sales_20260901.csv"]["exists"] is True
+    assert siblings["/data/in/sales_20260901.csv"]["received"] is True
 
 
 def test_check_file_status_failed():
@@ -38,22 +38,22 @@ def test_validate_parameter_valid():
     result = validate_parameter(
         job_name="DAILY_SALES_LOAD",
         parameter_name="business_date",
-        parameter_value="20260819",
+        parameter_value="20260901",
     )
     assert result.status == "SUCCESS"
     assert result.data["is_valid"] is True
-    assert result.data["expected_value"] == "20260819"
+    assert result.data["expected_value"] == "20260901"
 
 
 def test_validate_parameter_invalid():
     result = validate_parameter(
         job_name="DAILY_SALES_LOAD",
         parameter_name="business_date",
-        parameter_value="20260818",
+        parameter_value="20260831",
     )
     assert result.status == "SUCCESS"
     assert result.data["is_valid"] is False
-    assert result.data["parameter_value"] == "20260818"
+    assert result.data["parameter_value"] == "20260831"
 
 
 def test_validate_parameter_missing_format_and_range():
@@ -101,7 +101,7 @@ def test_failed_tool_results_are_not_used_as_evidence():
     success = ToolResult(
         tool="validate_parameter",
         status="SUCCESS",
-        data={"is_valid": False, "parameter_value": "20260818"},
+        data={"is_valid": False, "parameter_value": "20260831"},
         error=None,
     )
     usable = supporting_tool_results([failed, success])
@@ -109,12 +109,12 @@ def test_failed_tool_results_are_not_used_as_evidence():
     evidence = filter_evidence(
         [
             "카탈로그에 경로가 없습니다: /tmp/missing.csv",
-            "business_date=20260818 is invalid",
+            "business_date=20260831 is invalid",
         ],
         [failed, success],
     )
     assert "카탈로그에 경로가 없습니다: /tmp/missing.csv" not in evidence
-    assert "business_date=20260818 is invalid" in evidence
+    assert "business_date=20260831 is invalid" in evidence
 
 
 def test_check_db_status_success_credential_mismatch():

@@ -16,12 +16,12 @@ from app.ui_service import (
 )
 
 
-SAMPLE = """2026-08-19 02:00:00 INFO  JOB=DAILY_SALES_LOAD START
-2026-08-19 02:00:01 INFO  business_date=20260818
-2026-08-19 02:00:02 INFO  input=/data/in/sales_20260818.csv
-2026-08-19 02:00:03 ERROR FileNotFoundError: /data/in/sales_20260818.csv
-2026-08-19 02:00:03 ERROR job failed with return_code=12
-2026-08-19 02:00:04 INFO  JOB=DAILY_SALES_LOAD END
+SAMPLE = """2026-09-01 02:00:00 INFO  JOB=DAILY_SALES_LOAD START
+2026-09-01 02:00:01 INFO  business_date=20260831
+2026-09-01 02:00:02 INFO  input=/data/in/sales_20260831.csv
+2026-09-01 02:00:03 ERROR FileNotFoundError: /data/in/sales_20260831.csv
+2026-09-01 02:00:03 ERROR job failed with return_code=12
+2026-09-01 02:00:04 INFO  JOB=DAILY_SALES_LOAD END
 """
 
 
@@ -104,7 +104,7 @@ def test_v1_wrapper_keeps_tool_fields(monkeypatch):
                         "evidence": ["FileNotFoundError"],
                     }
                 ],
-                "selected_tools": [{"selected_tool": "check_file_status", "reason": "파일 확인", "arguments": {"path": "/data/in/sales_20260818.csv"}}],
+                "selected_tools": [{"selected_tool": "check_file_status", "reason": "파일 확인", "arguments": {"path": "/data/in/sales_20260831.csv"}}],
                 "tool_results": [{"tool": "check_file_status", "status": "SUCCESS", "data": {"exists": False}, "error": None}],
                 "final_cause_code": "INVALID_BUSINESS_DATE",
                 "final_cause_name": "실행일자 파라미터 오류",
@@ -135,15 +135,15 @@ def test_extract_and_summarize_helpers():
         {
             "job_name": "DAILY_SALES_LOAD",
             "return_code": "12",
-            "input_path": "/data/in/sales_20260818.csv",
-            "business_date": "20260818",
+            "input_path": "/data/in/sales_20260831.csv",
+            "business_date": "20260831",
         }
     )
     labels = [label for label, _ in rows]
     assert "Job name" in labels
     assert "Return code" in labels
     summary = summarize_tool_data(
-        {"exists": False, "received": False, "path": "/data/in/sales_20260818.csv", "noise": 1}
+        {"exists": False, "received": False, "path": "/data/in/sales_20260831.csv", "noise": 1}
     )
     assert "exists" in summary
     assert "noise" not in summary

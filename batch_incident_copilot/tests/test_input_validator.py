@@ -8,12 +8,12 @@ if str(PROJECT_ROOT) not in sys.path:
 from app.input_validator import validate_log_content, validate_log_path
 from app.schemas import ValidationDecision
 
-SAMPLE_ERROR_LOG = """2026-08-19 02:00:00 INFO  JOB=DAILY_SALES_LOAD START
-2026-08-19 02:00:01 INFO  business_date=20260818
-2026-08-19 02:00:02 INFO  input=/data/in/sales_20260818.csv
-2026-08-19 02:00:03 ERROR FileNotFoundError: /data/in/sales_20260818.csv
-2026-08-19 02:00:03 ERROR job failed with return_code=12
-2026-08-19 02:00:04 INFO  JOB=DAILY_SALES_LOAD END
+SAMPLE_ERROR_LOG = """2026-09-01 02:00:00 INFO  JOB=DAILY_SALES_LOAD START
+2026-09-01 02:00:01 INFO  business_date=20260831
+2026-09-01 02:00:02 INFO  input=/data/in/sales_20260831.csv
+2026-09-01 02:00:03 ERROR FileNotFoundError: /data/in/sales_20260831.csv
+2026-09-01 02:00:03 ERROR job failed with return_code=12
+2026-09-01 02:00:04 INFO  JOB=DAILY_SALES_LOAD END
 """
 
 

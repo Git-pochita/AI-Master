@@ -39,7 +39,7 @@ def test_v1_result_schema_valid():
                 arguments={
                     "job_name": "DAILY_SALES_LOAD",
                     "parameter_name": "business_date",
-                    "parameter_value": "20260818",
+                    "parameter_value": "20260831",
                 },
             )
         ],

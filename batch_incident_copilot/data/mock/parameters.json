@@ -4,8 +4,8 @@
       "parameter_name": "business_date",
       "type": "date_yyyymmdd",
       "required": true,
-      "job_run_date": "20260819",
-      "expected_value": "20260819",
+      "job_run_date": "20260901",
+      "expected_value": "20260901",
       "format_pattern": "^[0-9]{8}$",
       "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다."
     }
@@ -15,8 +15,8 @@
       "parameter_name": "business_date",
       "type": "date_yyyymmdd",
       "required": true,
-      "job_run_date": "20260819",
-      "expected_value": "20260819",
+      "job_run_date": "20260901",
+      "expected_value": "20260901",
       "format_pattern": "^[0-9]{8}$",
       "rule": "DAILY_ORDERS_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다."
     }

@@ -26,12 +26,12 @@ def test_purpose_and_input_use_observable_arguments_only():
     args = {
         "job_name": "DAILY_SALES_LOAD",
         "parameter_name": "business_date",
-        "parameter_value": "20260818",
+        "parameter_value": "20260831",
     }
     assert purpose_for_tool("validate_parameter", args) == "business_date 값이 정상인지 확인"
     assert (
         format_tool_input("validate_parameter", args)
-        == "job=DAILY_SALES_LOAD, parameter=business_date, value=20260818"
+        == "job=DAILY_SALES_LOAD, parameter=business_date, value=20260831"
     )
 
 
@@ -39,12 +39,12 @@ def test_v1_trace_from_real_parameter_and_file_tools():
     param_result = validate_parameter(
         job_name="DAILY_SALES_LOAD",
         parameter_name="business_date",
-        parameter_value="20260818",
+        parameter_value="20260831",
     )
-    file_result = check_file_status(path="/data/in/sales_20260818.csv")
+    file_result = check_file_status(path="/data/in/sales_20260831.csv")
     assert param_result.status == "SUCCESS"
     assert param_result.data["is_valid"] is False
-    assert param_result.data["expected_value"] == "20260819"
+    assert param_result.data["expected_value"] == "20260901"
     assert file_result.status == "SUCCESS"
 
     payload = V1DiagnosisResult(
@@ -52,9 +52,9 @@ def test_v1_trace_from_real_parameter_and_file_tools():
         summary="unused-llm-prose",
         extracted_info={
             "job_name": "DAILY_SALES_LOAD",
-            "business_date": "20260818",
-            "input_path": "/data/in/sales_20260818.csv",
-            "error_messages": ["FileNotFoundError: /data/in/sales_20260818.csv"],
+            "business_date": "20260831",
+            "input_path": "/data/in/sales_20260831.csv",
+            "error_messages": ["FileNotFoundError: /data/in/sales_20260831.csv"],
             "return_code": "12",
         },
         initial_hypotheses=[
@@ -66,7 +66,7 @@ def test_v1_trace_from_real_parameter_and_file_tools():
             Hypothesis(
                 cause_code="INVALID_BUSINESS_DATE",
                 cause_name="실행일자 파라미터 오류",
-                evidence=["business_date=20260818"],
+                evidence=["business_date=20260831"],
             ),
         ],
         selected_tools=[
@@ -76,13 +76,13 @@ def test_v1_trace_from_real_parameter_and_file_tools():
                 arguments={
                     "job_name": "DAILY_SALES_LOAD",
                     "parameter_name": "business_date",
-                    "parameter_value": "20260818",
+                    "parameter_value": "20260831",
                 },
             ),
             ToolSelection(
                 selected_tool="check_file_status",
                 reason="숨기면 안 되는 CoT처럼 보이는 긴 문장",
-                arguments={"path": "/data/in/sales_20260818.csv"},
+                arguments={"path": "/data/in/sales_20260831.csv"},
             ),
         ],
         tool_results=[param_result, file_result],
@@ -90,7 +90,7 @@ def test_v1_trace_from_real_parameter_and_file_tools():
         final_cause_name="실행일자 파라미터 오류",
         diagnosis_level="확인됨",
         owner="BATCH_OPERATION",
-        evidence=["expected_value=20260819", "parameter_value=20260818", "is_valid=false"],
+        evidence=["expected_value=20260901", "parameter_value=20260831", "is_valid=false"],
         limitations=["mock"],
         recommended_actions=["business_date를 잡 실행일로 수정"],
     ).model_dump()
@@ -103,7 +103,7 @@ def test_v1_trace_from_real_parameter_and_file_tools():
     dumped = trace.model_dump()
 
     assert dumped["log_analysis"]["message"] == "로그 분석 시작"
-    assert "FileNotFoundError: /data/in/sales_20260818.csv" in dumped["log_analysis"]["core_errors"]
+    assert "FileNotFoundError: /data/in/sales_20260831.csv" in dumped["log_analysis"]["core_errors"]
     assert "return_code=12" in dumped["log_analysis"]["core_errors"]
     codes = [item["cause_code"] for item in dumped["log_analysis"]["initial_hypotheses"]]
     assert codes == ["FILE_NOT_RECEIVED", "INVALID_BUSINESS_DATE"]
@@ -113,8 +113,8 @@ def test_v1_trace_from_real_parameter_and_file_tools():
     assert dumped["tool_rounds"][0]["input_display"].startswith("job=DAILY_SALES_LOAD")
     assert dumped["tool_rounds"][0]["status"] == "SUCCESS"
     evidence = dumped["tool_rounds"][0]["evidence"]
-    assert evidence["actual"] == "20260818"
-    assert evidence["expected"] == "20260819"
+    assert evidence["actual"] == "20260831"
+    assert evidence["expected"] == "20260901"
     assert evidence["is_valid"] is False
     assert "이 필드는 Trace 목적에 사용하지 않는다" not in str(dumped)
     assert "unused-llm-prose" not in str(dumped["log_analysis"])
@@ -247,11 +247,11 @@ def test_v0_trace_has_no_tool_rounds_and_keeps_non_final_hypotheses():
         "summary": "V0 prose",
         "extracted_info": {
             "job_name": "DAILY_SALES_LOAD",
-            "error_messages": ["FileNotFoundError: /data/in/sales_20260818.csv"],
+            "error_messages": ["FileNotFoundError: /data/in/sales_20260831.csv"],
         },
         "hypotheses": [
             _hyp("FILE_NOT_RECEIVED", "파일 미수신", "FileNotFoundError"),
-            _hyp("INVALID_BUSINESS_DATE", "실행일자 파라미터 오류", "business_date=20260818"),
+            _hyp("INVALID_BUSINESS_DATE", "실행일자 파라미터 오류", "business_date=20260831"),
         ],
         "final_cause_code": "FILE_NOT_RECEIVED",
         "final_cause_name": "파일 미수신",
@@ -271,7 +271,7 @@ def test_v0_trace_has_no_tool_rounds_and_keeps_non_final_hypotheses():
 
 
 def test_contradicted_hypothesis_is_downgraded():
-    result = check_file_status(path="/data/in/sales_20260819.csv")
+    result = check_file_status(path="/data/in/sales_20260901.csv")
     assert result.status == "SUCCESS"
     assert result.data["exists"] is True
     payload = {
@@ -284,7 +284,7 @@ def test_contradicted_hypothesis_is_downgraded():
             {
                 "selected_tool": "check_file_status",
                 "reason": "unused",
-                "arguments": {"path": "/data/in/sales_20260819.csv"},
+                "arguments": {"path": "/data/in/sales_20260901.csv"},
             }
         ],
         "tool_results": [result.model_dump()],
@@ -325,16 +325,16 @@ def test_trace_view_has_required_sections_and_no_empty_bullets():
     param_result = validate_parameter(
         job_name="DAILY_SALES_LOAD",
         parameter_name="business_date",
-        parameter_value="20260818",
+        parameter_value="20260831",
     )
-    file_result = check_file_status(path="/data/in/sales_20260818.csv")
+    file_result = check_file_status(path="/data/in/sales_20260831.csv")
     payload = V1DiagnosisResult(
         case_id="file_case_001",
         summary="unused",
         extracted_info={
             "job_name": "DAILY_SALES_LOAD",
-            "business_date": "20260818",
-            "error_messages": ["FileNotFoundError: /data/in/sales_20260818.csv"],
+            "business_date": "20260831",
+            "error_messages": ["FileNotFoundError: /data/in/sales_20260831.csv"],
             "return_code": "12",
         },
         initial_hypotheses=[
@@ -348,13 +348,13 @@ def test_trace_view_has_required_sections_and_no_empty_bullets():
                 arguments={
                     "job_name": "DAILY_SALES_LOAD",
                     "parameter_name": "business_date",
-                    "parameter_value": "20260818",
+                    "parameter_value": "20260831",
                 },
             ),
             ToolSelection(
                 selected_tool="check_file_status",
                 reason="unused-reason",
-                arguments={"path": "/data/in/sales_20260818.csv"},
+                arguments={"path": "/data/in/sales_20260831.csv"},
             ),
         ],
         tool_results=[param_result, file_result],
@@ -388,21 +388,21 @@ def test_trace_view_has_required_sections_and_no_empty_bullets():
     joined = "\n".join(blob)
     assert "validate_parameter" in joined
     assert "check_file_status" in joined
-    assert "20260818" in joined
-    assert "20260819" in joined
+    assert "20260831" in joined
+    assert "20260901" in joined
     assert "unused-reason" not in joined
     assert "FILE_NOT_RECEIVED" in joined
     assert "INVALID_BUSINESS_DATE" in joined
 
 
 def test_failed_tool_trace_view_shows_arguments_and_exclusion():
-    failed = check_file_status(path="/data/in/sales_20260831.csv")
+    failed = check_file_status(path="/data/in/not_in_catalog.csv")
     assert failed.status == "FAILED"
     payload = {
         "extracted_info": {
             "job_name": "DAILY_SALES_LOAD",
             "business_date": "20260831",
-            "error_messages": ["FileNotFoundError: /data/in/sales_20260831.csv"],
+            "error_messages": ["FileNotFoundError: /data/in/not_in_catalog.csv"],
         },
         "initial_hypotheses": [
             _hyp("FILE_NOT_RECEIVED", "파일 미수신", "FileNotFoundError"),
@@ -411,7 +411,7 @@ def test_failed_tool_trace_view_shows_arguments_and_exclusion():
             {
                 "selected_tool": "check_file_status",
                 "reason": "should-not-appear",
-                "arguments": {"path": "/data/in/sales_20260831.csv"},
+                "arguments": {"path": "/data/in/not_in_catalog.csv"},
             }
         ],
         "tool_results": [failed.model_dump()],
@@ -429,7 +429,7 @@ def test_failed_tool_trace_view_shows_arguments_and_exclusion():
     arg_text = " ".join(f"{row.label} {row.value}" for row in view["Tool Arguments"].rows)
     result_text = " ".join(f"{row.kind}:{row.value}" for row in view["Tool Result"].rows)
     assert "check_file_status" in call_text
-    assert "/data/in/sales_20260831.csv" in arg_text
+    assert "/data/in/not_in_catalog.csv" in arg_text
     assert "error:" in result_text
     assert "카탈로그에 경로가 없습니다" in result_text
     assert "FAILED Tool 결과는 최종 evidence에서 제외했습니다." in result_text

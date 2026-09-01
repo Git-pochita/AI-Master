@@ -30,17 +30,17 @@ def test_hypothesis_recall_hit_when_actual_cause_is_in_hypotheses():
             Hypothesis(
                 cause_code="FILE_NOT_RECEIVED",
                 cause_name="파일 미수신",
-                evidence=["FileNotFoundError: /data/in/sales_20260818.csv"],
+                evidence=["FileNotFoundError: /data/in/sales_20260831.csv"],
             ),
             Hypothesis(
                 cause_code="INVALID_BUSINESS_DATE",
                 cause_name="실행일자 파라미터 오류",
-                evidence=["business_date=20260818"],
+                evidence=["business_date=20260831"],
             ),
             Hypothesis(
                 cause_code="INVALID_FILE_PATH",
                 cause_name="파일 경로 오류",
-                evidence=["input=/data/in/sales_20260818.csv"],
+                evidence=["input=/data/in/sales_20260831.csv"],
             ),
         ],
         final_cause_code="FILE_NOT_RECEIVED",
@@ -62,12 +62,12 @@ def test_hypothesis_recall_miss_when_actual_cause_is_absent():
             Hypothesis(
                 cause_code="FILE_NOT_RECEIVED",
                 cause_name="파일 미수신",
-                evidence=["FileNotFoundError: /data/in/sales_20260818.csv"],
+                evidence=["FileNotFoundError: /data/in/sales_20260831.csv"],
             ),
             Hypothesis(
                 cause_code="INVALID_FILE_PATH",
                 cause_name="파일 경로 오류",
-                evidence=["input=/data/in/sales_20260818.csv"],
+                evidence=["input=/data/in/sales_20260831.csv"],
             ),
         ],
         final_cause_code="FILE_NOT_RECEIVED",
