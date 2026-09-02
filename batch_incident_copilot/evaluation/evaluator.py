@@ -87,6 +87,20 @@ def evaluate_metrics(
     return metrics
 
 
+def _attach_v3_fields(metrics: dict, payload: dict) -> dict:
+    if payload.get("version") != "v3":
+        return metrics
+    critic = payload.get("critic_result") or {}
+    if not isinstance(critic, dict):
+        critic = critic.model_dump()
+    metrics["revised"] = bool(payload.get("revised"))
+    metrics["original_v2_cause_code"] = payload.get("original_v2_cause_code")
+    metrics["original_v2_diagnosis_level"] = payload.get("original_v2_diagnosis_level")
+    metrics["original_v2_owner"] = payload.get("original_v2_owner")
+    metrics["critic_verdict"] = critic.get("verdict")
+    return metrics
+
+
 def evaluate_case(result: DiagnosisResult, ground_truth: dict) -> dict:
     return evaluate_metrics(
         case_id=result.case_id,
@@ -107,7 +121,7 @@ def evaluate_payload(payload: dict, ground_truth: dict) -> dict:
     else:
         predicted_codes = _hypothesis_codes(payload.get("hypotheses") or [])
         expected_level_key = "expected_diagnosis_level_v0"
-    return evaluate_metrics(
+    metrics = evaluate_metrics(
         case_id=payload.get("case_id"),
         predicted_codes=predicted_codes,
         final_cause_code=payload.get("final_cause_code"),
@@ -118,6 +132,7 @@ def evaluate_payload(payload: dict, ground_truth: dict) -> dict:
         selected_tools=selected_tool_names(payload) if is_v1 else None,
         tool_results=payload.get("tool_results") if is_v1 else None,
     )
+    return _attach_v3_fields(metrics, payload)
 
 
 def evaluate_result_file(result_path: Path, case_id: str | None = None) -> dict:

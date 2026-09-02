@@ -92,6 +92,10 @@ def run_backend(version: str, log_text: str, case_id: str):
         from app.planning import diagnose_v2
 
         return diagnose_v2(log_text, case_id=case_id)
+    if version == "v3":
+        from app.v3 import diagnose_v3
+
+        return diagnose_v3(log_text, case_id=case_id)
     return diagnose(log_text, case_id=case_id)
 
 
@@ -172,12 +176,20 @@ def analyze(
         from app.agent_events import build_agent_events
         from app.trace import build_execution_trace
 
-        trace_version = "v1" if version == "v2" else version
+        trace_version = "v1" if version in {"v2", "v3"} else version
         trace = build_execution_trace(trace_version, payload).model_dump()
-        if version == "v2":
-            trace["version"] = "v2"
+        if version in {"v2", "v3"}:
+            trace["version"] = version
             trace["planning_trace"] = payload.get("planning_trace") or []
             trace["stop_reason"] = payload.get("stop_reason")
+        if version == "v3":
+            trace["critic_result"] = payload.get("critic_result")
+            trace["revised"] = payload.get("revised")
+            trace["original_v2_cause_code"] = payload.get("original_v2_cause_code")
+            trace["original_v2_diagnosis_level"] = payload.get(
+                "original_v2_diagnosis_level"
+            )
+            trace["original_v2_owner"] = payload.get("original_v2_owner")
         trace["agent_events"] = [
             event.model_dump() for event in build_agent_events(version, payload)
         ]

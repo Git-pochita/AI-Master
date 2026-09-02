@@ -50,6 +50,11 @@ STEP_LABELS: dict[str, str] = {
     "planning_limit": "Planning Limit",
     "tool_call_limit": "Tool Call Limit",
     "duplicate_tool_blocked": "Duplicate Tool Blocked",
+    "critic_check": "Critic Check",
+    "evidence_consistency": "Evidence Consistency",
+    "revision_requested": "Revision Requested",
+    "reflection": "Reflection",
+    "final_revision": "Final Revision",
 }
 
 # AgentEvent 스키마에 두면 안 되는 private CoT 필드.
@@ -489,8 +494,7 @@ def _v1_events(payload: dict[str, Any]) -> list[AgentEvent]:
     return events
 
 
-def _v2_events(payload: dict[str, Any]) -> list[AgentEvent]:
-    source = "v2"
+def _v2_events(payload: dict[str, Any], source: str = "v2") -> list[AgentEvent]:
     events = [
         _log_analysis_event(payload, source),
         _initial_hypotheses_event(payload, source),
@@ -601,10 +605,110 @@ def _v2_events(payload: dict[str, Any]) -> list[AgentEvent]:
     return events
 
 
+def _critic_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    critic = payload.get("critic_result") or {}
+    if not isinstance(critic, dict):
+        critic = critic.model_dump()
+    return critic
+
+
+def _issue_types(issues: list) -> list[str]:
+    names: list[str] = []
+    for item in issues:
+        if isinstance(item, dict):
+            value = item.get("issue_type")
+        else:
+            value = getattr(item, "issue_type", None)
+        if value is None:
+            continue
+        names.append(value.value if hasattr(value, "value") else str(value))
+    return names
+
+
+def _v3_critic_events(payload: dict[str, Any]) -> list[AgentEvent]:
+    source = "v3"
+    critic = _critic_payload(payload)
+    verdict = critic.get("verdict") or "PASS"
+    issues = critic.get("issues") or []
+    issue_types = _issue_types(issues)
+    events = [
+        _event(
+            component="Feedback",
+            step="critic_check",
+            summary="최종 진단과 수집된 evidence의 일치 여부를 검증했습니다.",
+            metadata={
+                "verdict": verdict,
+                "issue_types": issue_types,
+                "issue_count": len(issues),
+            },
+            source=source,
+        ),
+        _event(
+            component="Evaluation",
+            step="evidence_consistency",
+            summary="evidence 일관성 검사 결과를 기록했습니다.",
+            metadata={
+                "verdict": verdict,
+                "evidence_consistent": critic.get("evidence_consistent"),
+                "issue_count": len(issues),
+            },
+            source=source,
+        ),
+    ]
+    if verdict != "REVISE":
+        return events
+    recommended = critic.get("recommended_cause_code")
+    revision_meta: dict[str, Any] = {}
+    if recommended:
+        revision_meta["recommended_cause_code"] = recommended
+    events.append(
+        _event(
+            component="Feedback",
+            step="revision_requested",
+            summary="Critic이 최종 진단 재검토를 요청했습니다.",
+            metadata=revision_meta,
+            source=source,
+        )
+    )
+    events.append(
+        _event(
+            component="Feedback",
+            step="reflection",
+            summary="V2 진단과 Critic 이슈를 비교해 최종 진단을 재검토했습니다.",
+            metadata={"revised": bool(payload.get("revised"))},
+            source=source,
+        )
+    )
+    if payload.get("revised"):
+        events.append(
+            _event(
+                component="Reasoning",
+                step="final_revision",
+                summary="최종 원인을 교정했습니다.",
+                metadata={
+                    "original": payload.get("original_v2_cause_code"),
+                    "next": payload.get("final_cause_code"),
+                    "diagnosis_level": payload.get("diagnosis_level"),
+                },
+                source=source,
+            )
+        )
+    return events
+
+
+def _v3_events(payload: dict[str, Any]) -> list[AgentEvent]:
+    producer = _v2_events(payload, source="v3")
+    body = [item for item in producer if item.step != "final_diagnosis"]
+    final = [item for item in producer if item.step == "final_diagnosis"]
+    return body + _v3_critic_events(payload) + final
+
+
 def build_agent_events(version: str, payload: dict[str, Any] | None) -> list[AgentEvent]:
     data = payload or {}
     if version == "v0":
         return _v0_events(data)
+    if version == "v3":
+        return _v3_events(data)
     if version == "v2":
         return _v2_events(data)
     return _v1_events(data)

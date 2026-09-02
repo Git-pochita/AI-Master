@@ -94,4 +94,44 @@ def aggregate_case_metrics(version: str, case_rows: list[dict[str, Any]]) -> dic
         summary["tool_failure_count"] = sum(
             int(_field(row, "tool_failure_count", 0) or 0) for row in case_rows
         )
+    if version == "v3":
+        summary["required_tool_recall"] = mean(
+            float(_field(row, "required_tool_recall", 0.0) or 0.0) for row in case_rows
+        )
+        summary["unnecessary_tool_rate"] = mean(
+            float(_field(row, "unnecessary_tool_rate", 0.0) or 0.0) for row in case_rows
+        )
+        summary["average_tool_calls"] = mean(
+            float(_field(row, "tool_call_count", 0) or 0) for row in case_rows
+        )
+        summary["tool_failure_count"] = sum(
+            int(_field(row, "tool_failure_count", 0) or 0) for row in case_rows
+        )
+        revise_rows = [
+            row for row in evaluated if row.get("critic_verdict") == "REVISE"
+        ]
+        summary["critic_revision_count"] = len(revise_rows)
+        v2_correct = [
+            row
+            for row in evaluated
+            if row.get("original_v2_cause_code") == row.get("actual_cause_code")
+        ]
+        unnecessary = [
+            row
+            for row in v2_correct
+            if row.get("predicted_final_cause_code")
+            != row.get("original_v2_cause_code")
+        ]
+        summary["unnecessary_revision_rate"] = (
+            (len(unnecessary) / len(v2_correct)) if v2_correct else 0.0
+        )
+        precise = [
+            row
+            for row in revise_rows
+            if row.get("final_diagnosis_correct")
+            and row.get("original_v2_cause_code") != row.get("actual_cause_code")
+        ]
+        summary["critic_revision_precision"] = (
+            (len(precise) / len(revise_rows)) if revise_rows else 0.0
+        )
     return summary
