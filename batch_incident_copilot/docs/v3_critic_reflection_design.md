@@ -113,7 +113,7 @@ V1은 같은 Tool만으로 `INVALID_FILE_PATH` 정답. V2 refined는 extra `vali
 - 로그 경로: `/data/in/partner/partnr_20260901.csv`, `JOB=DAILY_PARTNER_LOAD`
 - Tool: `check_file_status` SUCCESS, 대상 `exists=false`
 - sibling: `partner_20260901.csv` `exists=true`, `received=true`
-- V2 planning_trace round 2 reason은 경로 오타 가능성을 **강하게 시사**한다고 적음
+- V2 `planning_trace` round 2의 planner `reason`은 경로 오타 가능성을 **강하게 시사**한다고 적음. 이 문장은 **설계/발표 분석용**이다. Critic runtime 입력에는 planner `reason`을 넣지 않는다 (5.3절).
 - V2 final은 그래도 `FILE_NOT_RECEIVED`
 - V1도 동일 오답. V3의 대표 target
 
@@ -200,7 +200,36 @@ DB/SQL/PARAMETER도 동일 질문이다. 예: `account_locked=false`인데 `DB_A
 - 동점이면 **Producer(V2) 유지 = PASS**. 애매하면 고치지 않는 것이 regression 방지의 핵심
 - 대안이 초기 가설에 없어도 된다 (V1/V2 finalizer와 동일). 다만 SUCCESS 필드로 뒷받침해야 한다
 
-A와 B는 같이 쓰는 것이 보통이다. A만 있고 대안이 없으면 REVISE해도 코드를 못 바꾼다. 그 경우 권고는 diagnosis_level 하향 또는 limitation 추가이지, 임의 코드 교체가 아니다.
+A만 있거나 B만 있으면 **cause_code를 바꾸지 않는다.** cause 변경은 아래 Cause Revision Gate를 모두 통과할 때만 허용한다.
+
+### Cause Revision Gate
+
+목적: **Unnecessary Revision Rate와 V2 정답 28건 regression을 최소화**하는 것. 이 gate에 case_id를 넣지 않는다.
+
+최종 `cause_code` 변경은 아래를 **모두** 만족할 때만 허용한다.
+
+1. `EVIDENCE_CONFLICT` 존재 — 현재 V2 final cause가 하나 이상의 중요한 SUCCESS evidence를 설명하지 못함
+2. `BETTER_SUPPORTED_CAUSE` 존재 — canonical cause vocabulary 안의 다른 cause가 그 conflict를 더 잘 설명함
+3. 대안 cause는 `validate_cause_code()`를 통과한 canonical code
+4. 대안 cause를 지지하는 근거는 SUCCESS Tool evidence, 또는 original log / `extracted_info`의 관찰 가능한 사실이어야 함
+5. 현재 cause와 대안 cause의 근거가 동점 또는 애매하면 V2 유지 = PASS
+
+```text
+EVIDENCE_CONFLICT only
+→ cause 변경 금지
+→ 필요하면 diagnosis level 하향 또는 limitation 추가
+
+BETTER_SUPPORTED_CAUSE only
+→ 현재 cause와 명확한 conflict가 없으면 PASS
+
+EVIDENCE_CONFLICT
++ BETTER_SUPPORTED_CAUSE
++ canonical alternative
++ SUCCESS evidence support
+→ cause revision 허용
+```
+
+`verdict=REVISE`가 나와도 gate를 못 통과하면 Revision은 cause를 바꾸지 않는다. level/`limitations`만 손볼 수 있다.
 
 ### C. FAILED Tool Evidence Guard (`FAILED_EVIDENCE_USED`)
 
@@ -261,7 +290,15 @@ Critic 원칙:
 
 ### 5.1 제안 모델
 
+설계 예시일 뿐, 이 문서에서 Python을 구현하지 않는다. list 필드는 mutable default(`= []`)를 쓰지 않고 `Field(default_factory=list)`를 쓴다.
+
 ```python
+from enum import Enum
+from typing import Literal, Optional
+
+from pydantic import BaseModel, Field
+
+
 class CriticIssueType(str, Enum):
     EVIDENCE_CONFLICT = "EVIDENCE_CONFLICT"
     BETTER_SUPPORTED_CAUSE = "BETTER_SUPPORTED_CAUSE"
@@ -274,7 +311,7 @@ class CriticIssueType(str, Enum):
 class CriticIssue(BaseModel):
     issue_type: CriticIssueType
     description: str  # 관찰 가능한 불일치. private CoT 금지
-    related_evidence: list[str] = []
+    related_evidence: list[str] = Field(default_factory=list)
     blocking: bool = True
 
 
@@ -283,7 +320,7 @@ class CriticResult(BaseModel):
     evidence_consistent: bool
     diagnosis_level_appropriate: bool
     owner_consistent: bool
-    issues: list[CriticIssue] = []
+    issues: list[CriticIssue] = Field(default_factory=list)
     recommended_cause_code: Optional[str] = None  # canonical only
     recommended_diagnosis_level: Optional[
         Literal["추정", "가능성 높음", "확인됨"]
@@ -294,10 +331,10 @@ class CriticResult(BaseModel):
 
 조정안:
 
-1. `recommended_cause_code`는 있으면 `validate_cause_code()`. 없으면 REVISE여도 Revision이 cause를 유지할 수 있음.
-2. `blocking=False` issue는 PASS를 깨지 않음 (TOO_LOW, owner 메모용). **blocking issue가 1개라도 있으면 verdict=REVISE.** 없으면 PASS, `issues`는 non-blocking만 가능.
+1. `recommended_cause_code`는 있으면 `validate_cause_code()`. Cause Revision Gate를 통과하지 못하면 권고가 있어도 Revision은 cause를 유지한다.
+2. `blocking=False` issue는 PASS를 깨지 않음 (TOO_LOW, owner 메모용). FAILED / TOO_HIGH 등 blocking issue가 있으면 verdict=REVISE일 수 있다. **cause 변경은 verdict와 별개로 Cause Revision Gate를 통과해야 한다.**
 3. PASS이면 `recommended_*`는 null. 권고를 조용히 실어 보내면 Revision이 유혹된다.
-4. `revision_reason` / `description`에 `selected_tools[].reason`, planner `reason`, 진단 `summary`를 복사하지 않음 (AgentEvent CoT 정책과 동일).
+4. `revision_reason` / `description`에 `selected_tools[].reason`, planner `reason`/`goal`, 진단 `summary`를 복사하지 않음 (AgentEvent CoT 정책과 동일).
 
 ### 5.2 Hybrid 검증 (권장)
 
@@ -308,9 +345,35 @@ class CriticResult(BaseModel):
 | C FAILED evidence | 결정적. `filter_evidence` / error 토큰 |
 | D level cap | 결정적. `apply_diagnosis_level_policy` |
 | E owner 공란 | 결정적. 비어 있으면 issue, 그 외 기본 PASS |
-| A/B evidence vs alternative | LLM structured Critic. 입력은 로그 excerpt, extracted_info, SUCCESS tool data, V2 final cause/level/evidence. **GT 없음. case_id 없음.** |
+| A/B evidence vs alternative | LLM structured Critic. 입력은 5.3 allowlist만. **GT 없음. case_id 없음. planner rationale 없음.** |
 
-LLM Critic user payload에서 빼는 것: `ground_truth`, `case_id`, planner `reason` 전문.
+### 5.3 Critic runtime 입력 (allowlist / denylist)
+
+Critic은 Producer의 판단을 따라가는 두 번째 LLM이 아니라, **동일한 관찰 가능한 evidence를 독립적으로 재검증**하는 역할이어야 한다. Planner rationale를 입력하면 confirmation bias가 생길 수 있으므로 제외한다.
+
+분석/발표 문서에서 “Planner도 오타 가능성을 인지했다”고 **설명하는 것**은 허용한다. 그 텍스트를 Critic runtime 입력에 넣는 것과는 구분한다.
+
+**허용 (allowlist):**
+
+- original log
+- `extracted_info`
+- SUCCESS tool results / normalized evidence (`supporting_tool_results()`)
+- V2 `final_cause_code`
+- V2 `diagnosis_level`
+- V2 `owner`
+- V2 filtered `evidence` (`filter_evidence()` 이후)
+- canonical cause vocabulary (`app/cause_codes.py`)
+
+**금지 (denylist):**
+
+- ground truth
+- `case_id`
+- `planning_trace[].reason`
+- planner `goal`
+- planner 자유서술 rationale
+- `selected_tools[].reason`
+- LLM 내부 Chain-of-Thought
+- 기존 Agent의 자유서술 판단을 그대로 복사한 텍스트 (진단 `summary` 전문, unresolved_questions의 자유 서술 등)
 
 ---
 
@@ -352,11 +415,14 @@ Revision 출력: V1 `FinalDraft`와 같은 최종 진단 필드.
 원칙:
 
 - Critic `recommended_cause_code`를 **무조건 채택하지 않음**
+- **cause_code 변경은 Cause Revision Gate를 모두 통과한 경우에만** (`EVIDENCE_CONFLICT` + `BETTER_SUPPORTED_CAUSE` + canonical alternative + SUCCESS/관찰 가능 근거). 한쪽 issue만으로는 cause를 바꾸지 않음
+- 동점/애매하면 V2 cause 유지
 - FAILED error는 supporting evidence 제외 (`filter_evidence` 재적용)
 - `apply_diagnosis_level_policy` 재적용
 - canonical cause만
 - 추가 Tool 없음
 - 확신이 안 되면 **V2 cause를 유지**하고 limitation에 Critic 이슈를 남김. `revised=false`가 될 수 있음
+- Revision 입력에도 planner `reason` / `goal` / `selected_tools[].reason`을 넣지 않음 (5.3과 동일)
 
 `revised=true` 조건: `final_cause_code` 또는 `diagnosis_level`이 V2와 달라졌을 때. owner만 바꾼 것은 권장하지 않으며, 바꾸더라도 KPI에서 별도 표시.
 
@@ -446,8 +512,9 @@ private CoT 비노출 정책은 [`agent_event_log.md`](agent_event_log.md)와 �
 4. canonical 대안 `INVALID_FILE_PATH`는 1+2를 함께 설명
 5. 다른 canonical(예: `INVALID_BUSINESS_DATE`)은 이 FILE evidence를 더 잘 설명하지 않음 (F-02/F-04는 날짜 불일치 signal 없음. refined도 extra param tool 없음)
 
-→ blocking `EVIDENCE_CONFLICT` + `BETTER_SUPPORTED_CAUSE` → REVISE  
-→ Revision이 SUCCESS sibling 필드를 반영하면 `INVALID_FILE_PATH` 후보
+→ Cause Revision Gate: `EVIDENCE_CONFLICT` **그리고** `BETTER_SUPPORTED_CAUSE` + canonical 대안 + SUCCESS 근거 → cause revision 허용  
+→ Revision이 SUCCESS sibling 필드를 반영하면 `INVALID_FILE_PATH` 후보  
+→ 이 설명은 설계 검증용이다. runtime gate에 case_id를 넣지 않는다.
 
 ### 9.2 왜 F-01/F-03은 PASS여야 하는가
 
@@ -478,7 +545,8 @@ if "sale_" in path: ...
 구현 전 정의. LLM live 없이 fixture 우선. 저장 결과 `results/v2_planning/F-02.json` 등을 deterministic 입력으로 쓸 수 있다.
 
 1. V2 정답 + 강한 일치 evidence (예: F-01/F-03 형태, 또는 P-01 `is_valid=false`) → Critic PASS, 필드 불변
-2. V2 오답 + conflicting SUCCESS (F-02/F-04 형태 sibling received=true) → REVISE, recommended_cause_code는 canonical
+2. conflicting SUCCESS + 더 잘 설명하는 canonical 대안이 **동시에** 있는 형태 → Cause Revision Gate 통과, cause 변경 허용. `EVIDENCE_CONFLICT`만 있거나 `BETTER_SUPPORTED_CAUSE`만 있으면 cause 변경 금지
+2b. Critic 입력 fixture에 `planning_trace[].reason` / `selected_tools[].reason` / `case_id` / GT가 없음을 검증
 3. FAILED Tool만 → 확인됨 금지 (`apply_diagnosis_level_policy`)
 4. FAILED error 문자열이 evidence에 있으면 `FAILED_EVIDENCE_USED`, Revision 후 evidence에서 제거
 5. SUCCESS 없이 확인됨 → TOO_HIGH / cap
@@ -571,7 +639,7 @@ REVISE를 남발하면 P가 떨어진다. PASS가 기본이어야 P와 U가 동�
 
 1. **Schema만**: `CriticIssue`, `CriticResult`, `V3DiagnosisResult`. 단위 테스트(canonical validation, PASS 기본값).
 2. **결정적 Critic 가드**: FAILED evidence, diagnosis_level cap, owner 공란. LLM 없음.
-3. **LLM Critic A/B**: structured output. fixture로 F-02/F-04 형태 REVISE, F-01/F-03 형태 PASS.
+3. **LLM Critic A/B**: structured output. 5.3 allowlist만 입력. Cause Revision Gate(A+B 동시) 없이 cause를 바꾸지 않음. F-01/F-03 형태 PASS.
 4. **Revision 1회**: V2 prompt 미수정. 신규 revision prompt. 무조건 채택 금지 + filter_evidence 재적용.
 5. **`diagnose_v3()` + CLI `--version v3`**: 내부에서 `diagnose_v2()` 호출만.
 6. **AgentEvent v3 steps** + Streamlit 고수준 Trace (기존 V2 Trace 유지).
