@@ -17,6 +17,7 @@ from app.critic import (
     CRITIC_ALLOWED_KEYS,
     CRITIC_DENIED_KEYS,
     CriticLLMDraft,
+    alternative_supported_by_observable,
     build_critic_input,
     cause_revision_allowed,
     run_critic,
@@ -26,6 +27,7 @@ from app.schemas import (
     CriticIssueType,
     CriticResult,
     StopReason,
+    ToolResult,
     V2DiagnosisResult,
     V3DiagnosisResult,
 )
@@ -216,6 +218,146 @@ def test_both_blocking_issues_allow_cause_revision():
     assert result.critic_result.verdict == "REVISE"
     assert result.final_cause_code == "INVALID_FILE_PATH"
     assert result.revised is True
+
+
+def _success_tool(token: str) -> ToolResult:
+    return ToolResult(
+        tool="check_file_status",
+        status="SUCCESS",
+        data={"path": f"/data/in/{token}", "exists": True, "received": True},
+        error=None,
+    )
+
+
+def _gate_critic(related: list[str]) -> CriticResult:
+    return CriticResult(
+        verdict="REVISE",
+        evidence_consistent=False,
+        diagnosis_level_appropriate=True,
+        owner_consistent=True,
+        issues=[
+            _issue(CriticIssueType.EVIDENCE_CONFLICT, related),
+            _issue(CriticIssueType.BETTER_SUPPORTED_CAUSE, related),
+        ],
+        recommended_cause_code="INVALID_FILE_PATH",
+    )
+
+
+def test_empty_related_evidence_blocks_cause_revision():
+    tools = [_success_tool("observed_sibling.csv")]
+    critic = _gate_critic([])
+    assert (
+        cause_revision_allowed(
+            critic,
+            current_cause="FILE_NOT_RECEIVED",
+            log_text="FileNotFoundError: /data/in/target.csv",
+            extracted_info={"input_path": "/data/in/target.csv"},
+            tool_results=tools,
+        )
+        is False
+    )
+    v2 = _load_v2("F-02")
+
+    def critic_fn(*_a, **_k):
+        return CriticLLMDraft(
+            evidence_consistent=False,
+            issues=[
+                _issue(CriticIssueType.EVIDENCE_CONFLICT, []),
+                _issue(CriticIssueType.BETTER_SUPPORTED_CAUSE, []),
+            ],
+            recommended_cause_code="INVALID_FILE_PATH",
+        )
+
+    result = _run(
+        "F-02",
+        critic_fn,
+        revise_fn=lambda _log, producer, _critic: _revision_draft(
+            producer, "INVALID_FILE_PATH"
+        ),
+        v2=v2,
+    )
+    assert result.critic_result.verdict == "REVISE"
+    assert result.final_cause_code == "FILE_NOT_RECEIVED"
+
+
+def test_related_evidence_in_observable_payload_allows_cause_revision():
+    token = "observed_sibling.csv"
+    tools = [_success_tool(token)]
+    assert (
+        cause_revision_allowed(
+            _gate_critic([token]),
+            current_cause="FILE_NOT_RECEIVED",
+            log_text="FileNotFoundError: /data/in/target.csv",
+            extracted_info={"input_path": "/data/in/target.csv"},
+            tool_results=tools,
+        )
+        is True
+    )
+
+
+def test_success_tool_presence_alone_does_not_pass_gate():
+    tools = [_success_tool("observed_sibling.csv")]
+    assert (
+        alternative_supported_by_observable(
+            "INVALID_FILE_PATH",
+            log_text="FileNotFoundError: /data/in/target.csv",
+            extracted_info={"input_path": "/data/in/target.csv"},
+            tool_results=tools,
+            related_evidence=[],
+        )
+        is False
+    )
+    assert (
+        alternative_supported_by_observable(
+            "INVALID_FILE_PATH",
+            log_text="FileNotFoundError: /data/in/target.csv",
+            extracted_info={"input_path": "/data/in/target.csv"},
+            tool_results=tools,
+            related_evidence=["   "],
+        )
+        is False
+    )
+    assert (
+        alternative_supported_by_observable(
+            "INVALID_FILE_PATH",
+            log_text="FileNotFoundError: /data/in/target.csv",
+            extracted_info={"input_path": "/data/in/target.csv"},
+            tool_results=tools,
+            related_evidence=["not_in_observable_payload"],
+        )
+        is False
+    )
+    assert (
+        alternative_supported_by_observable(
+            "INVALID_FILE_PATH",
+            log_text="FileNotFoundError: /data/in/target.csv",
+            extracted_info={"input_path": "/data/in/target.csv"},
+            tool_results=tools,
+            related_evidence=["observed_sibling.csv"],
+        )
+        is True
+    )
+
+
+def test_revision_draft_uses_field_default_factory():
+    draft = RevisionDraft(
+        final_cause_code="FILE_NOT_RECEIVED",
+        evidence=["log"],
+        limitations=[],
+    )
+    assert draft.recommended_actions == []
+    first = RevisionDraft(
+        final_cause_code="FILE_NOT_RECEIVED",
+        evidence=["log"],
+        limitations=[],
+    )
+    second = RevisionDraft(
+        final_cause_code="INVALID_FILE_PATH",
+        evidence=["log"],
+        limitations=[],
+    )
+    first.recommended_actions.append("do-not-share")
+    assert second.recommended_actions == []
 
 
 def test_ambiguous_defaults_to_pass():

@@ -160,10 +160,10 @@ def alternative_supported_by_observable(
         },
         ensure_ascii=False,
     )
-    tokens = [str(item) for item in related_evidence if item]
-    if tokens:
-        return any(token in haystack for token in tokens)
-    return bool(success)
+    tokens = [str(item).strip() for item in related_evidence if str(item).strip()]
+    if not tokens:
+        return False
+    return any(token in haystack for token in tokens)
 
 
 def cause_revision_allowed(

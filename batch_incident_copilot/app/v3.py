@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import Callable
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.cause_codes import CAUSE_CODE_NAMES, validate_cause_code, vocabulary_prompt_block
 from app.critic import (
@@ -34,7 +34,7 @@ class RevisionDraft(BaseModel):
     owner: str = ""
     evidence: list[str]
     limitations: list[str]
-    recommended_actions: list[str] = []
+    recommended_actions: list[str] = Field(default_factory=list)
 
     @field_validator("final_cause_code")
     @classmethod
