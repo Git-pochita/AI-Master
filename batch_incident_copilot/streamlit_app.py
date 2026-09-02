@@ -26,6 +26,7 @@ st.caption("배치 실행 로그 기반 장애 초동 분석 및 대응 지원")
 MODE_OPTIONS = {
     "V0 Baseline": "v0",
     "V1 Tool Use": "v1",
+    "V2 Dynamic Planning": "v2",
 }
 
 mode_label = st.radio(
@@ -37,8 +38,10 @@ version = MODE_OPTIONS[mode_label]
 
 if version == "v0":
     st.info("V0: 로그만 이용해 원인을 추정하는 Baseline")
-else:
+elif version == "v1":
     st.info("V1: LLM이 필요한 점검 Tool을 선택하고 Tool Evidence를 반영해 최종 진단")
+else:
+    st.info("V2: 조사 계획을 세우고 evidence가 부족하면 Re-plan하여 추가 Tool을 실행")
 
 uploaded = st.file_uploader("로그 파일 업로드 (.log, .txt)", type=["log", "txt"])
 pasted = st.text_area("로그 직접 입력", height=220, placeholder="배치 실행 로그를 붙여넣으십시오.")
@@ -228,6 +231,95 @@ def _render_tools(payload: dict) -> None:
                         )
 
 
+def _render_v2_trace(payload: dict) -> None:
+    st.subheader("Agent Execution Trace")
+    st.caption(
+        "시스템에서 발생한 관찰 가능한 이벤트만 단계별로 표시합니다. "
+        "LLM 내부 Chain-of-Thought는 출력하지 않습니다."
+    )
+    with st.container(border=True):
+        st.markdown("**Log Analysis**")
+        _render_extracted(payload)
+    with st.container(border=True):
+        st.markdown("**Initial Hypotheses**")
+        _render_hypotheses(payload)
+
+    rounds = payload.get("planning_trace") or []
+    if not rounds:
+        st.info("planning_trace가 없습니다.")
+    for item in rounds:
+        round_index = item.get("round_index")
+        title = f"Plan Round {round_index}"
+        if item.get("replanned"):
+            title = f"Re-plan / {title}"
+        with st.container(border=True):
+            st.markdown(f"**{title}**")
+            st.write(f"**goal:** {item.get('goal') or '-'}")
+            st.write(f"**reason:** {item.get('reason') or '-'}")
+            questions = item.get("unresolved_questions") or []
+            if questions:
+                st.markdown("**unresolved_questions**")
+                for question in questions:
+                    st.write(f"- {question}")
+            plan_steps = item.get("investigation_plan") or []
+            if plan_steps:
+                st.markdown("**investigation_plan**")
+                for step in plan_steps:
+                    tool = step.get("candidate_tool") or "none"
+                    st.write(
+                        f"- {step.get('goal') or ''} / {tool} / {step.get('status')}"
+                    )
+
+        if item.get("selected_tool"):
+            with st.container(border=True):
+                st.markdown(f"**Tool Call (round {round_index})**")
+                st.write(f"**tool:** `{item.get('selected_tool')}`")
+                arguments = item.get("arguments") or {}
+                for key, value in arguments.items():
+                    st.write(f"- {key}: {value}")
+            result = item.get("tool_result") or {}
+            with st.container(border=True):
+                st.markdown(f"**Tool Result (round {round_index})**")
+                status = result.get("status")
+                st.write(f"**status:** {status or '-'}")
+                if status == "FAILED":
+                    st.error(result.get("error") or "Tool 실행 실패")
+                    st.caption("FAILED Tool 결과는 최종 근거의 일부로 사용하지 않습니다.")
+                else:
+                    summary = item.get("evidence_summary") or summarize_tool_data(
+                        result.get("data") or {}
+                    )
+                    for key, value in summary.items():
+                        st.write(f"- {key}: {value}")
+
+        with st.container(border=True):
+            st.markdown(f"**Evidence / Hypothesis Update (round {round_index})**")
+            states = item.get("hypothesis_states") or []
+            if not states:
+                st.caption("가설 상태 갱신이 없습니다.")
+            for state in states:
+                st.write(
+                    f"- `{state.get('cause_code')}` ({state.get('origin')}): "
+                    f"{state.get('status')}"
+                )
+                for signal in state.get("signals") or []:
+                    st.caption(str(signal))
+
+        with st.container(border=True):
+            st.markdown(f"**Sufficiency Decision (round {round_index})**")
+            sufficient = item.get("evidence_sufficient")
+            st.write(f"**evidence_sufficient:** `{sufficient}`")
+            if item.get("replanned"):
+                st.write("추가 조사가 필요하여 Re-plan 했습니다.")
+            if item.get("stop_reason"):
+                st.write(f"**round stop_reason:** `{item.get('stop_reason')}`")
+
+    with st.container(border=True):
+        st.markdown("**Stop Reason**")
+        st.write(f"**stop_reason:** `{payload.get('stop_reason')}`")
+        st.write(f"**current_round:** {payload.get('current_round')}")
+
+
 if started:
     log_text, filename, decode_error = _load_log()
     if decode_error:
@@ -249,13 +341,16 @@ if started:
             st.error(outcome.error)
             st.stop()
         payload = outcome.result or {}
-        _render_execution_trace(outcome.trace, version)
+        if version == "v2":
+            _render_v2_trace(payload)
+        else:
+            _render_execution_trace(outcome.trace, version)
         _render_final(payload)
         with st.expander("원본 진단 필드", expanded=False):
             st.markdown("추출 정보")
             _render_extracted(payload)
             st.markdown("초기 원인 가설")
             _render_hypotheses(payload)
-            if version == "v1":
+            if version in {"v1", "v2"}:
                 st.markdown("점검 Tool 원본 결과")
                 _render_tools(payload)

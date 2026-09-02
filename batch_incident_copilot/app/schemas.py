@@ -60,6 +60,139 @@ class ToolSelection(BaseModel):
         return text
 
 
+class StopReason(str, Enum):
+    EVIDENCE_SUFFICIENT = "EVIDENCE_SUFFICIENT"
+    NO_ACTIONABLE_TOOL = "NO_ACTIONABLE_TOOL"
+    MISSING_REQUIRED_ARGUMENTS = "MISSING_REQUIRED_ARGUMENTS"
+    MAX_PLANNING_ROUNDS = "MAX_PLANNING_ROUNDS"
+    MAX_TOOL_CALLS = "MAX_TOOL_CALLS"
+    DUPLICATE_TOOL_CALL_BLOCKED = "DUPLICATE_TOOL_CALL_BLOCKED"
+
+
+class InvestigationStep(BaseModel):
+    goal: str = ""
+    candidate_tool: Optional[str] = None
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    argument_status: Literal["READY", "MISSING_ARGUMENTS"] = "READY"
+    related_cause_codes: list[str] = Field(default_factory=list)
+    status: Literal[
+        "pending",
+        "executed",
+        "skipped_missing_args",
+        "blocked_duplicate",
+    ] = "pending"
+
+    @field_validator("candidate_tool", mode="before")
+    @classmethod
+    def empty_candidate_to_none(cls, value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        text = str(value).strip()
+        if not text or text.lower() in {"null", "none"}:
+            return None
+        return text
+
+    @field_validator("related_cause_codes")
+    @classmethod
+    def canonical_related_codes(cls, value: list[str]) -> list[str]:
+        codes: list[str] = []
+        for item in value or []:
+            try:
+                codes.append(validate_cause_code(str(item).strip()))
+            except ValueError:
+                continue
+        return codes
+
+
+class HypothesisState(BaseModel):
+    cause_code: str
+    cause_name: str = ""
+    origin: Literal["initial", "planner"] = "initial"
+    status: Literal[
+        "active",
+        "strengthened",
+        "weakened",
+        "eliminated",
+        "adopted",
+    ] = "active"
+    signals: list[str] = Field(default_factory=list)
+
+    @field_validator("cause_code")
+    @classmethod
+    def canonical_working_code(cls, value: str) -> str:
+        return validate_cause_code(value.strip())
+
+
+class PlanningRound(BaseModel):
+    round_index: int
+    goal: str = ""
+    investigation_plan: list[InvestigationStep] = Field(default_factory=list)
+    hypothesis_states: list[HypothesisState] = Field(default_factory=list)
+    unresolved_questions: list[str] = Field(default_factory=list)
+    evidence_sufficient: bool = False
+    selected_tool: Optional[str] = None
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    reason: str = ""
+    evidence_summary: dict[str, Any] = Field(default_factory=dict)
+    replanned: bool = False
+    stop_reason: Optional[StopReason] = None
+    tool_result: Optional[ToolResult] = None
+
+
+class PlannerDecision(BaseModel):
+    investigation_plan: list[InvestigationStep] = Field(default_factory=list)
+    hypothesis_states: list[HypothesisState] = Field(default_factory=list)
+    unresolved_questions: list[str] = Field(default_factory=list)
+    evidence_sufficient: bool = False
+    selected_tool: Optional[str] = None
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    reason: str = ""
+    stop_reason: Optional[StopReason] = None
+
+    @field_validator("selected_tool", mode="before")
+    @classmethod
+    def empty_tool_to_none(cls, value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        text = str(value).strip()
+        if not text or text.lower() in {"null", "none"}:
+            return None
+        return text
+
+
+class V2DiagnosisResult(BaseModel):
+    version: Literal["v2"] = "v2"
+    case_id: Optional[str] = None
+    summary: str = ""
+    extracted_info: dict[str, Any] = Field(default_factory=dict)
+    initial_hypotheses: list[Hypothesis]
+    working_hypotheses: list[HypothesisState] = Field(default_factory=list)
+    investigation_plan: list[InvestigationStep] = Field(default_factory=list)
+    unresolved_questions: list[str] = Field(default_factory=list)
+    current_round: int = 0
+    stop_reason: StopReason
+    planning_trace: list[PlanningRound] = Field(default_factory=list)
+    selected_tools: list[ToolSelection] = Field(default_factory=list)
+    tool_results: list[ToolResult] = Field(default_factory=list)
+    final_cause_code: str
+    final_cause_name: str
+    diagnosis_level: Literal["추정", "가능성 높음", "확인됨"]
+    owner: str
+    evidence: list[str]
+    limitations: list[str]
+    recommended_actions: list[str] = Field(default_factory=list)
+
+    @field_validator("final_cause_code")
+    @classmethod
+    def final_cause_code_canonical(cls, value: str) -> str:
+        code = value.strip()
+        if not CAUSE_CODE_PATTERN.fullmatch(code):
+            raise ValueError(
+                "final_cause_code는 UPPER_SNAKE_CASE여야 합니다. 예: INVALID_BUSINESS_DATE"
+            )
+        return validate_cause_code(code)
+
+
 class V1DiagnosisResult(BaseModel):
     case_id: Optional[str] = None
     summary: str = ""

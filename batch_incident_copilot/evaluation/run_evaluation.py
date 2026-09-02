@@ -51,7 +51,12 @@ def evaluate_one_case(version: str, case_id: str, ground_truth: dict) -> dict:
         log_text = log_path.read_text(encoding="utf-8")
         result = _retry_diagnosis(version, log_text, case_id)
         payload = result.model_dump()
-        results_dir = settings.V1_RESULTS_DIR if version == "v1" else settings.V0_RESULTS_DIR
+        if version == "v2":
+            results_dir = settings.V2_RESULTS_DIR
+        elif version == "v1":
+            results_dir = settings.V1_RESULTS_DIR
+        else:
+            results_dir = settings.V0_RESULTS_DIR
         save_result(case_id, payload, results_dir)
         metrics = evaluate_payload(payload, ground_truth)
         metrics["case_id"] = case_id
@@ -89,7 +94,7 @@ def main() -> int:
         "--versions",
         nargs="+",
         default=["v0", "v1"],
-        choices=["v0", "v1"],
+        choices=["v0", "v1", "v2"],
         help="실행할 버전",
     )
     parser.add_argument(
@@ -109,24 +114,32 @@ def main() -> int:
 
     reports_dir = settings.REPORTS_DIR
     summaries: dict[str, dict] = {}
+    official_reports = {"v0_summary.json", "v1_summary.json", "v0_vs_v1.md"}
     for version in args.versions:
         summary = run_version(version, ground_truth, case_ids)
         summaries[version] = summary
-        out_path = write_json(reports_dir / f"{version}_summary.json", summary)
-        print(f"saved: {out_path}", flush=True)
+        out_path = reports_dir / f"{version}_summary.json"
+        if out_path.name in official_reports and out_path.is_file():
+            print(f"kept official baseline: {out_path}", flush=True)
+        else:
+            write_json(out_path, summary)
+            print(f"saved: {out_path}", flush=True)
         print(json.dumps({k: v for k, v in summary.items() if k != "cases"}, ensure_ascii=False, indent=2))
 
-    markdown = render_comparison_markdown(
-        v0=summaries.get("v0"),
-        v1=summaries.get("v1"),
-        ground_truth={case_id: ground_truth[case_id] for case_id in case_ids},
-        model=settings.AZURE_OPENAI_MODEL,
-        notes=[],
-    )
     md_path = reports_dir / "v0_vs_v1.md"
-    md_path.parent.mkdir(parents=True, exist_ok=True)
-    md_path.write_text(markdown, encoding="utf-8")
-    print(f"saved: {md_path}", flush=True)
+    if md_path.is_file():
+        print(f"kept official baseline: {md_path}", flush=True)
+    elif "v0" in summaries and "v1" in summaries:
+        markdown = render_comparison_markdown(
+            v0=summaries.get("v0"),
+            v1=summaries.get("v1"),
+            ground_truth={case_id: ground_truth[case_id] for case_id in case_ids},
+            model=settings.AZURE_OPENAI_MODEL,
+            notes=[],
+        )
+        md_path.parent.mkdir(parents=True, exist_ok=True)
+        md_path.write_text(markdown, encoding="utf-8")
+        print(f"saved: {md_path}", flush=True)
     return 0
 
 

@@ -5,11 +5,12 @@
 V0/V1/V2/V3는 별도 프로젝트가 아니라 같은 코드베이스의 개발 단계입니다.
 
 - V0: 로그만 보고 단일 LLM이 진단
-- V1: Function Tool Use (현재)
-- V2: Dynamic Planning / Re-planning (미구현)
+- V1: Function Tool Use
+- V2: Dynamic Planning / Re-planning (구현, 공식 30건 평가는 아직)
 - V3: Critic / Reflection (미구현)
 
-현재 평가 결과 및 다음 단계: [`docs/next_steps_v2.md`](docs/next_steps_v2.md)
+현재 평가 결과 및 다음 단계: [`docs/next_steps_v2.md`](docs/next_steps_v2.md)  
+V2 설계: [`docs/v2_dynamic_planning_design.md`](docs/v2_dynamic_planning_design.md)
 
 ## 요구 사항
 
@@ -64,6 +65,13 @@ python main.py --version v1 --log data/sample_logs/S-01.log --case-id S-01
 
 - V0 결과: `results/v0_baseline/<case_id>.json`
 - V1 결과: `results/v1_tool_use/<case_id>.json`
+- V2 결과: `results/v2_planning/<case_id>.json`
+
+V2 Dynamic Planning:
+
+```bash
+python main.py --version v2 --log data/sample_logs/F-05.log --case-id F-05
+````
 
 ## 평가
 

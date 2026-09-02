@@ -38,6 +38,10 @@ def run_diagnosis(version: str, log_text: str, case_id: str):
         from app.tool_use import diagnose_v1
 
         return diagnose_v1(log_text, case_id=case_id)
+    if version == "v2":
+        from app.planning import diagnose_v2
+
+        return diagnose_v2(log_text, case_id=case_id)
     return diagnose(log_text, case_id=case_id)
 
 
@@ -47,9 +51,9 @@ def main() -> int:
     parser.add_argument("--case-id", default=None, help="평가/저장용 case_id")
     parser.add_argument(
         "--version",
-        choices=["v0", "v1"],
+        choices=["v0", "v1", "v2"],
         default="v0",
-        help="v0: 단일 LLM baseline, v1: Tool Use",
+        help="v0: 단일 LLM baseline, v1: Tool Use, v2: Dynamic Planning",
     )
     args = parser.parse_args()
 
@@ -80,7 +84,12 @@ def main() -> int:
     result = run_diagnosis(args.version, log_text, case_id)
     payload = result.model_dump()
     print(json.dumps(payload, ensure_ascii=False, indent=2))
-    results_dir = settings.V1_RESULTS_DIR if args.version == "v1" else settings.V0_RESULTS_DIR
+    if args.version == "v2":
+        results_dir = settings.V2_RESULTS_DIR
+    elif args.version == "v1":
+        results_dir = settings.V1_RESULTS_DIR
+    else:
+        results_dir = settings.V0_RESULTS_DIR
     out_path = save_result(case_id, payload, results_dir)
     print(f"saved: {out_path}", file=sys.stderr)
     return 0
