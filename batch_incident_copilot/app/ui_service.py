@@ -88,6 +88,10 @@ def run_backend(version: str, log_text: str, case_id: str):
         from app.tool_use import diagnose_v1
 
         return diagnose_v1(log_text, case_id=case_id)
+    if version == "v2":
+        from app.planning import diagnose_v2
+
+        return diagnose_v2(log_text, case_id=case_id)
     return diagnose(log_text, case_id=case_id)
 
 
@@ -167,7 +171,12 @@ def analyze(
         payload = result.model_dump()
         from app.trace import build_execution_trace
 
-        trace = build_execution_trace(version, payload).model_dump()
+        trace_version = "v1" if version == "v2" else version
+        trace = build_execution_trace(trace_version, payload).model_dump()
+        if version == "v2":
+            trace["version"] = "v2"
+            trace["planning_trace"] = payload.get("planning_trace") or []
+            trace["stop_reason"] = payload.get("stop_reason")
         return AnalysisOutcome(
             ok=True,
             version=version,

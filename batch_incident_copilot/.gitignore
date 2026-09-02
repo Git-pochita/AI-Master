@@ -10,4 +10,6 @@ results/v0_baseline/*.json
 !results/v0_baseline/.gitkeep
 results/v1_tool_use/*.json
 !results/v1_tool_use/.gitkeep
+results/v2_planning/*.json
+!results/v2_planning/.gitkeep
 .streamlit/secrets.toml
