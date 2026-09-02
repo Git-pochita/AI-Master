@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Callable
 
 from app.baseline import diagnose
@@ -46,6 +47,17 @@ EXTRACTED_ALIASES: dict[str, tuple[str, ...]] = {
     "table": ("table",),
     "column": ("column",),
 }
+
+_LOG_TIMESTAMP_DATE = re.compile(r"(?m)^(\d{4})-(\d{2})-(\d{2})(?:[ T])")
+_COMPACT_DATE = re.compile(r"^\d{8}$")
+_NAMED_DATE = re.compile(
+    r"\b(?:business_date|actual_business_date|parameter_value)=(\d{8})\b"
+)
+_PARAMETER_ERROR_SIGNAL = re.compile(
+    r"parameter rejected|parameter format invalid|mismatch|"
+    r"expected_business_date|actual_business_date|expected\s*=|actual\s*=",
+    re.IGNORECASE,
+)
 
 
 def tool_fingerprint(tool_name: str, arguments: dict[str, Any] | None) -> str:
@@ -99,6 +111,71 @@ def complete_v2_arguments(
         if not _blank(extracted.get("business_date")) or not _blank(args.get("parameter_value")):
             args["parameter_name"] = "business_date"
     return args
+
+
+def _compact_dates_from_log_timestamps(log_text: str) -> set[str]:
+    return {
+        f"{year}{month}{day}"
+        for year, month, day in _LOG_TIMESTAMP_DATE.findall(log_text or "")
+    }
+
+
+def _candidate_parameter_dates(
+    extracted_info: dict[str, Any] | None,
+    log_text: str,
+) -> set[str]:
+    dates: set[str] = set()
+    extracted = extracted_info or {}
+    for key in ("business_date", "parameter_value", "actual_business_date"):
+        value = extracted.get(key)
+        if isinstance(value, str) and _COMPACT_DATE.fullmatch(value.strip()):
+            dates.add(value.strip())
+    for match in _NAMED_DATE.finditer(log_text or ""):
+        dates.add(match.group(1))
+    return dates
+
+
+def has_parameter_anomaly_signal(
+    log_text: str,
+    extracted_info: dict[str, Any] | None,
+) -> bool:
+    """파라미터 이상을 지지하는 관찰 가능한 신호가 있는지 본다.
+
+    job_name/business_date 필드가 있다는 것만으로는 True가 되지 않는다.
+    """
+    extracted = extracted_info or {}
+    if _PARAMETER_ERROR_SIGNAL.search(log_text or ""):
+        return True
+    expected = extracted.get("expected_business_date")
+    actual = extracted.get("actual_business_date") or extracted.get("business_date")
+    if (
+        isinstance(expected, str)
+        and isinstance(actual, str)
+        and _COMPACT_DATE.fullmatch(expected.strip())
+        and _COMPACT_DATE.fullmatch(actual.strip())
+        and expected.strip() != actual.strip()
+    ):
+        return True
+    run_dates = _compact_dates_from_log_timestamps(log_text or "")
+    param_dates = _candidate_parameter_dates(extracted, log_text or "")
+    return bool(run_dates and param_dates and param_dates.isdisjoint(run_dates))
+
+
+def additional_investigation_justified(
+    tool_name: str,
+    log_text: str,
+    extracted_info: dict[str, Any] | None,
+    tool_results: list[ToolResult],
+) -> bool:
+    """이미 Tool을 실행한 뒤 추가 Tool을 호출해도 되는지 가드한다.
+
+    첫 Tool은 막지 않는다. validate_parameter 추가 호출만 concrete signal을 요구한다.
+    """
+    if not tool_results:
+        return True
+    if tool_name != "validate_parameter":
+        return True
+    return has_parameter_anomaly_signal(log_text, extracted_info)
 
 
 def _initial_working_hypotheses(hypotheses: list[Hypothesis]) -> list[HypothesisState]:
@@ -272,6 +349,21 @@ def diagnose_v2(
             initial.extracted_info,
             results,
         ) if planner_tool else dict(decision.arguments or {})
+        if (
+            planner_tool
+            and results
+            and not additional_investigation_justified(
+                planner_tool,
+                log_text,
+                initial.extracted_info,
+                results,
+            )
+        ):
+            decision.reason = (
+                decision.reason
+                + " (추가 조사 조건 미충족: 해당 가설을 지지하는 concrete signal이 없어 Tool 선택을 취소했습니다.)"
+            ).strip()
+            planner_tool = None
         replanned = round_index > 1
         round_stop: StopReason | None = None
         tool_result: ToolResult | None = None
