@@ -113,13 +113,14 @@ FAILED Tool은 Action SUCCESS로 보이지 않는다. Governance / tool_failure 
 
 ## V3 확장 (미구현)
 
-이번 계층은 아래 step을 받을 수 있게 component enum만 열어 둔다. 코드는 추가하지 않는다.
+이벤트 step 예약은 [`v3_critic_reflection_design.md`](v3_critic_reflection_design.md) 8절.
 
 - Feedback / critic_check
 - Feedback / revision_requested
 - Feedback / reflection
 - Evaluation / evidence_consistency
-- Governance / human_review_requested
+- Reasoning / final_revision (cause/level이 바뀐 경우)
+- Governance / human_review_requested (이번 PoC out of scope)
 
-V2 Planner Prompt, `has_parameter_anomaly_signal()`, F-02/F-04, GT, evaluator,
+V2 Planner Prompt, `has_parameter_anomaly_signal()`, F-02/F-04 하드코딩, GT, evaluator,
 공식 30건 평가는 이 문서의 범위가 아니다.

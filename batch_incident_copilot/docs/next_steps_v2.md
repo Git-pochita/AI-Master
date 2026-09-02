@@ -21,7 +21,7 @@ V2 refined 리포트: `evaluation/reports/v1_vs_v2_refined.md`
 - V2 1차 공식 30건 평가 완료 (`v2_summary.json`, `v1_vs_v2.md`) — 보존
 - V2 refined 평가 완료 (`v2_refined_summary.json`, `v1_vs_v2_refined.md`)
 - failed_runs = 0 (V0/V1/V2 1차/V2 refined)
-- pytest 108 passed (V2 refined merge 시점)
+- pytest 125 passed (Agent Event Log merge 시점, PR #14)
 
 ## 공식 30건 평가 결과
 
@@ -69,12 +69,14 @@ V2 1차에서 FILE 케이스에 붙었던 불필요 `validate_parameter`는 refi
 2. V2 구현 — 완료 (PR #10)
 3. V2 1차 30건 평가 — 완료, 리포트 보존 (PR #11)
 4. V2 refined (concrete-signal 추가 조사 가드) — 완료 (PR #12)
-5. **다음 작업: V3 Critic / Reflection 설계** — 미착수
+5. V3 Critic / Reflection 설계 — 완료 ([`v3_critic_reflection_design.md`](v3_critic_reflection_design.md))
+6. **다음 작업: V3 Critic / Reflection 구현** — 미착수
 
-V3에서 다룰 후보:
+V3에서 다룰 것:
 
-- F-02, F-04: `check_file_status` SUCCESS의 `same_directory_files` 등 FILE evidence 해석
-- 최종 진단 자기검증 / Critic. V2 Planner에 case_id 분기나 F-04 special rule을 넣지 말 것
+- F-02, F-04: `check_file_status` SUCCESS의 sibling/`same_directory_files` 등 FILE evidence 해석
+- Producer=`diagnose_v2()` 동결, Critic이 최종 진단만 검증. case_id 분기·F-04 special rule 금지
+- 구현 전에 설계 문서를 따른다. 이 단계에서 V3 코드를 넣지 않는다.
 
 V3 LangGraph, Multi-Agent, RAG는 이 문서의 범위가 아닙니다.
 
