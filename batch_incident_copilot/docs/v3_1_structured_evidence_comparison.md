@@ -22,6 +22,13 @@ V2 result
 
 결정적 레이어는 원인 코드를 고르지 않는다. `same_directory_files → INVALID_FILE_PATH` 규칙은 없다.
 
+File Tool의 `potentially_conflicting_observations`는 received sibling 전부가 아니다. 같은 디렉터리 + received=true만으로는 conflict로 올리지 않는다. 요청 파일과 sibling이 아래 **관찰 가능한 관계**를 모두 가질 때만 review 후보다.
+
+- 날짜 토큰 겹침: 파일명 날짜 또는 extracted_info의 `business_date`/`job_run_date`
+- 파일명 body prefix 공유: 확장자·8자리 날짜를 뺀 body가 서로 접두어를 공유
+
+이 관계가 없으면 received sibling은 supporting observation으로만 남긴다. edit-distance 임계값이나 cause 확정 규칙은 쓰지 않는다.
+
 ## 모듈
 
 - `app/evidence_comparison.py`: `StructuredObservation`, `EvidenceComparison`, `build_evidence_comparison()`

@@ -58,6 +58,61 @@ def _date_tokens(text: str) -> set[str]:
     return set(_DATE_TOKEN.findall(text or ""))
 
 
+def _filename_body(name: str) -> str:
+    """확장자와 8자리 날짜 토큰을 뺀 파일명 body. 원인 판정용이 아니다."""
+    stem = PurePosixPath(name or "").stem
+    body = _DATE_TOKEN.sub("", stem)
+    return re.sub(r"[^A-Za-z0-9]+", "", body).lower()
+
+
+def _shared_prefix(left: str, right: str) -> str:
+    chars: list[str] = []
+    for one, two in zip(left, right):
+        if one != two:
+            break
+        chars.append(one)
+    return "".join(chars)
+
+
+def _extracted_date_tokens(extracted_info: dict[str, Any] | None) -> set[str]:
+    dates: set[str] = set()
+    payload = extracted_info or {}
+    for key in ("business_date", "job_run_date"):
+        dates |= _date_tokens(str(payload.get(key) or ""))
+    return dates
+
+
+def _date_token_overlap(
+    requested_name: str,
+    sibling_name: str,
+    extracted_info: dict[str, Any] | None,
+) -> bool:
+    requested_dates = _date_tokens(requested_name) | _extracted_date_tokens(extracted_info)
+    sibling_dates = _date_tokens(sibling_name)
+    return bool(requested_dates & sibling_dates)
+
+
+def _filename_body_prefix_shared(requested_name: str, sibling_name: str) -> bool:
+    left = _filename_body(requested_name)
+    right = _filename_body(sibling_name)
+    if not left or not right:
+        return False
+    return bool(_shared_prefix(left, right))
+
+
+def _shares_review_context(
+    requested_name: str,
+    sibling_name: str,
+    extracted_info: dict[str, Any] | None,
+) -> bool:
+    """요청 파일과 sibling이 같은 운영 맥락을 갖는지. cause를 고르지 않는다."""
+    if not requested_name or not sibling_name:
+        return False
+    return _date_token_overlap(
+        requested_name, sibling_name, extracted_info
+    ) and _filename_body_prefix_shared(requested_name, sibling_name)
+
+
 def _observation(
     *,
     source: str,
@@ -83,6 +138,7 @@ def _append_unique(bucket: list[StructuredObservation], item: StructuredObservat
 def _normalize_file(
     data: dict[str, Any],
     comparison: EvidenceComparison,
+    extracted_info: dict[str, Any] | None = None,
 ) -> None:
     source = "check_file_status"
     path = str(data.get("path") or "")
@@ -149,11 +205,21 @@ def _normalize_file(
             continue
         sibling_received = raw.get("received")
         sibling_exists = raw.get("exists")
-        if sibling_received is True:
-            requested_dates = _date_tokens(filename)
-            observed_dates = _date_tokens(sibling_name)
-            shared_dates = requested_dates & observed_dates
-            date_same = "true" if shared_dates else "false"
+        ordinary = _observation(
+            source=source,
+            fact_type="same_directory_file",
+            description=(
+                f"same_directory_file:name={sibling_name},"
+                f"exists={_bool_text(sibling_exists)},"
+                f"received={_bool_text(sibling_received)}"
+            ),
+            raw_reference=sibling_name or sibling_path,
+        )
+        if sibling_received is True and _shares_review_context(
+            filename, sibling_name, extracted_info
+        ):
+            date_overlap = _date_token_overlap(filename, sibling_name, extracted_info)
+            prefix_shared = _filename_body_prefix_shared(filename, sibling_name)
             _append_unique(
                 comparison.potentially_conflicting_observations,
                 _observation(
@@ -161,25 +227,16 @@ def _normalize_file(
                     fact_type="received_other_file",
                     description=(
                         f"same_directory_file:name={sibling_name},received=true,"
-                        f"exact_name_match=false,date_token_same={date_same}"
+                        f"exact_name_match=false,"
+                        f"date_token_overlap={_bool_text(date_overlap)},"
+                        f"filename_body_prefix_shared={_bool_text(prefix_shared)}"
                     ),
                     raw_reference=sibling_name,
                 ),
             )
+            _append_unique(comparison.supporting_observations, ordinary)
             continue
-        _append_unique(
-            comparison.supporting_observations,
-            _observation(
-                source=source,
-                fact_type="same_directory_file",
-                description=(
-                    f"same_directory_file:name={sibling_name},"
-                    f"exists={_bool_text(sibling_exists)},"
-                    f"received={_bool_text(sibling_received)}"
-                ),
-                raw_reference=sibling_name or sibling_path,
-            ),
-        )
+        _append_unique(comparison.supporting_observations, ordinary)
 
 
 def _normalize_parameter(
@@ -366,15 +423,19 @@ def build_evidence_comparison(
     extracted_info: dict[str, Any] | None = None,
 ) -> EvidenceComparison:
     comparison = EvidenceComparison(current_cause_code=current_cause_code)
+    context = extracted_info or {}
     for item in supporting_tool_results(list(tool_results or [])):
         data = item.data if isinstance(item.data, dict) else None
         if not data:
+            continue
+        if item.tool == "check_file_status":
+            _normalize_file(data, comparison, context)
             continue
         normalizer = _TOOL_NORMALIZERS.get(item.tool)
         if normalizer is None:
             continue
         normalizer(data, comparison)
-    _normalize_log(log_text, extracted_info or {}, comparison)
+    _normalize_log(log_text, context, comparison)
     return comparison
 
 

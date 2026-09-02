@@ -128,9 +128,14 @@ def test_f01_type_has_no_received_sibling_conflict():
 def test_f02_type_marks_received_sibling_for_review():
     comparison = _compare_v2("F-02")
     conflicting = _texts(comparison.potentially_conflicting_observations)
+    supporting = _texts(comparison.supporting_observations)
     assert "sales_20260901.csv" in conflicting
     assert "received=true" in conflicting
     assert "exact_name_match=false" in conflicting
+    assert "date_token_overlap=true" in conflicting
+    assert "filename_body_prefix_shared=true" in conflicting
+    assert "ledger_20260901.csv" not in conflicting
+    assert "ledger_20260901.csv" in supporting
     _assert_no_cause_verdict(comparison)
     assert comparison.current_cause_code == "FILE_NOT_RECEIVED"
 
@@ -219,13 +224,13 @@ def test_empty_tool_results_are_safe():
 
 def test_nested_same_directory_files_flatten():
     tool = _file_success(
-        "/data/in/sale.csv",
+        "/data/in/sale_20260901.csv",
         exists=False,
         received=False,
         siblings=[
             {
-                "path": "/data/in/sales.csv",
-                "filename": "sales.csv",
+                "path": "/data/in/sales_20260901.csv",
+                "filename": "sales_20260901.csv",
                 "exists": True,
                 "received": True,
             }
@@ -236,8 +241,12 @@ def test_nested_same_directory_files_flatten():
         tool_results=[tool],
     )
     assert any(
-        "same_directory_file:name=sales.csv,received=true" in item.description
+        "same_directory_file:name=sales_20260901.csv,received=true" in item.description
         for item in comparison.potentially_conflicting_observations
+    )
+    assert any(
+        "sales_20260901.csv" in item.description
+        for item in comparison.supporting_observations
     )
 
 
@@ -268,13 +277,13 @@ def test_received_false_sibling_is_not_conflict():
 
 def test_received_true_sibling_creates_reviewable_observation():
     tool = _file_success(
-        "/data/in/partnr.csv",
+        "/data/in/partnr_20260901.csv",
         exists=False,
         received=False,
         siblings=[
             {
-                "name": "partner.csv",
-                "path": "/data/in/partner.csv",
+                "name": "partner_20260901.csv",
+                "path": "/data/in/partner/partner_20260901.csv",
                 "exists": True,
                 "received": True,
             }
@@ -285,8 +294,61 @@ def test_received_true_sibling_creates_reviewable_observation():
         tool_results=[tool],
     )
     assert any(
-        "partner.csv" in item.description
+        "partner_20260901.csv" in item.description
         for item in comparison.potentially_conflicting_observations
+    )
+
+
+def test_unrelated_received_sibling_is_observable_but_not_conflict():
+    tool = _file_success(
+        "/data/in/sale_20260901.csv",
+        exists=False,
+        received=False,
+        siblings=[
+            {
+                "path": "/data/in/ledger_20260901.csv",
+                "filename": "ledger_20260901.csv",
+                "exists": True,
+                "received": True,
+            }
+        ],
+    )
+    comparison = build_evidence_comparison(
+        current_cause_code="FILE_NOT_RECEIVED",
+        tool_results=[tool],
+        extracted_info={"business_date": "20260901"},
+    )
+    supporting = _texts(comparison.supporting_observations)
+    conflicting = _texts(comparison.potentially_conflicting_observations)
+    assert "ledger_20260901.csv" in supporting
+    assert "received=true" in supporting
+    assert "ledger_20260901.csv" not in conflicting
+    assert comparison.potentially_conflicting_observations == []
+    _assert_no_cause_verdict(comparison)
+
+
+def test_same_directory_received_true_alone_is_not_conflict():
+    tool = _file_success(
+        "/data/in/target_20260901.csv",
+        exists=False,
+        received=False,
+        siblings=[
+            {
+                "path": "/data/in/other_20260901.csv",
+                "filename": "other_20260901.csv",
+                "exists": True,
+                "received": True,
+            }
+        ],
+    )
+    comparison = build_evidence_comparison(
+        current_cause_code="FILE_NOT_RECEIVED",
+        tool_results=[tool],
+    )
+    assert comparison.potentially_conflicting_observations == []
+    assert any(
+        "other_20260901.csv" in item.description and "received=true" in item.description
+        for item in comparison.supporting_observations
     )
 
 
