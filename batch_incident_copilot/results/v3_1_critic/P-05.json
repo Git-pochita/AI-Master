@@ -1,0 +1,254 @@
+{
+  "version": "v3",
+  "case_id": "P-05",
+  "summary": "DAILY_SALES_LOAD 배치 잡 실행 시 business_date 파라미터가 잡 실행일(20260901)과 일치하지 않아 오류(return_code=12)가 발생하였습니다. validate_parameter Tool의 SUCCESS 결과에 따르면 business_date 값(20260831)이 제공되었으나, 기대값(20260901)과 달라 is_valid=false로 판정되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_LOAD",
+    "expected_business_date": "20260901",
+    "actual_business_date": "20260831",
+    "error_messages": [
+      "business_date mismatch: expected=20260901 actual=20260831",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "evidence": [
+        "expected_business_date=20260901",
+        "actual_business_date=20260831",
+        "ERROR business_date mismatch: expected=20260901 actual=20260831"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "expected_business_date=20260901",
+        "actual_business_date=20260831",
+        "ERROR business_date mismatch: expected=20260901 actual=20260831",
+        "validate_parameter 결과 is_valid=false, expected_value=20260901, parameter_value=20260831"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "business_date 파라미터의 값이 잡 실행일과 일치하지 않는지 확인한다.",
+      "candidate_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831"
+      },
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "INVALID_BUSINESS_DATE"
+      ],
+      "status": "executed"
+    }
+  ],
+  "unresolved_questions": [
+    "실제 전달된 business_date 파라미터 값이 규칙상 유효한지, 형식 또는 범위 오류가 있는지 확인이 필요하다."
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "실행일자 파라미터(actual_business_date)가 기대값(expected_business_date)과 불일치한 원인이 실제 파라미터 오류인지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "실행일자 파라미터(actual_business_date)가 기대값(expected_business_date)과 불일치한 원인이 실제 파라미터 오류인지 확인한다.",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "DAILY_SALES_LOAD",
+            "parameter_name": "business_date",
+            "parameter_value": "20260831"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_BUSINESS_DATE"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_BUSINESS_DATE",
+          "cause_name": "실행일자 파라미터 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "expected_business_date=20260901",
+            "actual_business_date=20260831",
+            "ERROR business_date mismatch: expected=20260901 actual=20260831"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "실제 전달된 business_date 파라미터 값이 규칙상 유효한지, 형식 또는 범위 오류가 있는지 확인이 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831"
+      },
+      "reason": "로그에 business_date mismatch와 expected/actual 값이 명시되어 있어 파라미터 오류 신호가 명확하므로, 실제 파라미터 값의 유효성(형식/범위/expected value)을 validate_parameter로 점검해야 한다.",
+      "evidence_summary": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "expected_value": "20260901",
+        "is_valid": false,
+        "format_valid": true,
+        "range_valid": null,
+        "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901",
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "validate_parameter",
+        "status": "SUCCESS",
+        "data": {
+          "job_name": "DAILY_SALES_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260831",
+          "required": true,
+          "provided": true,
+          "format_valid": true,
+          "range_valid": null,
+          "expected_value": "20260901",
+          "allowed_values": null,
+          "min": null,
+          "max": null,
+          "is_valid": false,
+          "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+          "job_run_date": "20260901"
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "business_date 파라미터의 값이 잡 실행일과 일치하지 않는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "business_date 파라미터의 값이 잡 실행일과 일치하지 않는지 확인한다.",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "DAILY_SALES_LOAD",
+            "parameter_name": "business_date",
+            "parameter_value": "20260831"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_BUSINESS_DATE"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_BUSINESS_DATE",
+          "cause_name": "실행일자 파라미터 오류",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "expected_business_date=20260901",
+            "actual_business_date=20260831",
+            "ERROR business_date mismatch: expected=20260901 actual=20260831",
+            "validate_parameter 결과 is_valid=false, expected_value=20260901, parameter_value=20260831"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "실제 전달된 business_date 파라미터 값이 규칙상 유효한지, 형식 또는 범위 오류가 있는지 확인이 필요하다."
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "로그와 validate_parameter SUCCESS evidence에서 business_date 파라미터가 잡 실행일과 불일치함이 명확히 확인되어 추가 조사가 불필요합니다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "로그에 business_date mismatch와 expected/actual 값이 명시되어 있어 파라미터 오류 신호가 명확하므로, 실제 파라미터 값의 유효성(형식/범위/expected value)을 validate_parameter로 점검해야 한다.",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "required": true,
+        "provided": true,
+        "format_valid": true,
+        "range_valid": null,
+        "expected_value": "20260901",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901"
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "INVALID_BUSINESS_DATE",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과: business_date 값(20260831)이 제공되었으나 기대값(20260901)과 달라 is_valid=false",
+    "로그: ERROR business_date mismatch: expected=20260901 actual=20260831",
+    "로그: job failed with return_code=12"
+  ],
+  "limitations": [
+    "business_date 불일치의 근본 원인(예: 파라미터 전달 과정, 스케줄링 오류 등)은 추가 확인이 필요함",
+    "입력 파일 경로 생성 등 후속 영향은 Tool 결과에 직접적으로 확인되지 않음"
+  ],
+  "recommended_actions": [
+    "잡 실행 시 business_date 파라미터가 잡 실행일과 일치하도록 입력값 검증 및 전달 프로세스 점검",
+    "스케줄링 시스템 또는 파라미터 전달 로직에서 business_date 자동 설정 여부 확인",
+    "관련 운영 프로세스 개선 및 재발 방지 대책 마련"
+  ]
+}

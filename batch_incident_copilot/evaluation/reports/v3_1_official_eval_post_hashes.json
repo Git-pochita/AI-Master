@@ -1,11 +1,10 @@
 {
   "base_main_sha": "75adc968467af04a1979f443c65f63241d7fbf37",
-  "recorded_at": "2026-09-02T23:38:00Z",
+  "recorded_at": "2026-09-02T23:50:35Z",
   "pytest": "199 passed",
   "model": "gpt-4.1",
-  "azure_endpoint": "https://skax.ai-talentlab.com",
-  "azure_api_version": "2024-12-01-preview",
-  "ground_truth_case_count": 30,
+  "matches_pre_hashes": true,
+  "mismatch": {},
   "sha256": {
     "app/evidence_comparison.py": "ced8b9fa400fe3d4dd407610bbecd7ecce88816f518128c01359c1be1eec46f9",
     "app/critic.py": "abfc3b52b1b29bacbc8f1315111fee07bb7cbf08751189bc699e3055682febc9",

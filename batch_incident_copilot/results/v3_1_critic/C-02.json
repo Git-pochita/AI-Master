@@ -1,0 +1,437 @@
+{
+  "version": "v3",
+  "case_id": "C-02",
+  "summary": "DAILY_ORDERS_LOAD 잡이 실행일(2026-09-01)과 다른 business_date(20260831) 파라미터로 실행되어, 해당 날짜의 입력 파일(/data/in/orders/orders_20260831.csv)이 존재하지 않아 FileNotFoundError로 실패하였습니다. 파라미터 검증 결과 business_date가 잡 실행일과 일치하지 않아 유효하지 않은 것으로 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_ORDERS_LOAD",
+    "business_date": "20260831",
+    "input_path": "/data/in/orders/orders_20260831.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/orders/orders_20260831.csv",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+        "입력 파일 경로(/data/in/orders/orders_20260831.csv)가 로그에 명시되어 있음",
+        "잡이 파일 미존재로 실패(return_code=12)함"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+        "입력 파일 경로가 잘못 지정되었을 가능성도 있음"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+        "check_file_status 결과: exists=false, received=false"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "origin": "initial",
+      "status": "weakened",
+      "signals": [
+        "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+        "check_file_status 결과: exists=false, received=false",
+        "동일 디렉터리 내 다른 날짜 파일도 없음"
+      ]
+    },
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "origin": "planner",
+      "status": "adopted",
+      "signals": [
+        "validate_parameter 결과: is_valid=false, expected_value=20260901, parameter_value=20260831, job_run_date=20260901"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "파일 미수신과 파일 경로 오류 중 근본 원인이 무엇인지 확인한다.",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH",
+        "INVALID_BUSINESS_DATE"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "입력 파일 /data/in/orders/orders_20260831.csv이 실제로 존재하지 않는 것인지, 아니면 경로 지정이 잘못된 것인지 구분이 필요하다."
+  ],
+  "current_round": 3,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "입력 파일 /data/in/orders/orders_20260831.csv의 실제 수신/존재 여부를 확인하여 파일 미수신과 경로 오류 중 무엇이 원인인지 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "입력 파일 /data/in/orders/orders_20260831.csv의 실제 수신/존재 여부를 확인하여 파일 미수신과 경로 오류 중 무엇이 원인인지 구분한다.",
+          "candidate_tool": "check_file_status",
+          "arguments": {
+            "path": "/data/in/orders/orders_20260831.csv"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+            "입력 파일 경로(/data/in/orders/orders_20260831.csv)가 로그에 명시되어 있음",
+            "잡이 파일 미존재로 실패(return_code=12)함"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+            "입력 파일 경로가 잘못 지정되었을 가능성도 있음"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "입력 파일 /data/in/orders/orders_20260831.csv이 실제로 존재하지 않는 것인지, 아니면 경로 지정이 잘못된 것인지 구분이 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_file_status",
+      "arguments": {
+        "path": "/data/in/orders/orders_20260831.csv",
+        "job_name": "DAILY_ORDERS_LOAD",
+        "parameter_value": "20260831"
+      },
+      "reason": "로그에 FileNotFoundError가 발생했으나, 파일 미수신과 경로 오류 중 무엇이 원인인지 구분할 수 없으므로 check_file_status로 실제 파일 존재 여부를 확인해야 한다.",
+      "evidence_summary": {
+        "path": "/data/in/orders/orders_20260831.csv",
+        "filename": "orders_20260831.csv",
+        "exists": false,
+        "received": false,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_file_status",
+        "status": "SUCCESS",
+        "data": {
+          "path": "/data/in/orders/orders_20260831.csv",
+          "exists": false,
+          "received": false,
+          "size_bytes": null,
+          "last_modified": null,
+          "filename": "orders_20260831.csv",
+          "same_directory_files": [
+            {
+              "path": "/data/in/orders/orders_20260831.csv",
+              "exists": false,
+              "received": false,
+              "size_bytes": null,
+              "last_modified": null,
+              "filename": "orders_20260831.csv"
+            },
+            {
+              "path": "/data/in/orders/orders_20260901.csv",
+              "exists": false,
+              "received": false,
+              "size_bytes": null,
+              "last_modified": null,
+              "filename": "orders_20260901.csv"
+            }
+          ]
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "input_path(/data/in/orders/orders_20260831.csv) 파일 미수신과 경로 오류 중 무엇이 근본 원인인지 구분",
+      "investigation_plan": [
+        {
+          "goal": "input_path(/data/in/orders/orders_20260831.csv) 파일 미수신과 경로 오류 중 무엇이 근본 원인인지 구분",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+            "check_file_status 결과: exists=false, received=false"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "weakened",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+            "check_file_status 결과: exists=false, received=false",
+            "동일 디렉터리 내 다른 날짜 파일도 없음"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "입력 파일 /data/in/orders/orders_20260831.csv이 실제로 존재하지 않는 것인지, 아니면 경로 지정이 잘못된 것인지 구분이 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_ORDERS_LOAD",
+        "path": "/data/in/orders/orders_20260831.csv",
+        "parameter_value": "20260831",
+        "parameter_name": "business_date"
+      },
+      "reason": "check_file_status 결과로 input_path 파일이 존재하지 않고, 동일 디렉터리 내 다른 날짜 파일도 없어 경로 오타 가능성이 낮으므로 파일 미수신이 근본 원인임을 충분히 뒷받침합니다. (로그/extracted_info에 파라미터 이상 concrete signal이 남아 있어 validate_parameter를 추가합니다.)",
+      "evidence_summary": {
+        "job_name": "DAILY_ORDERS_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "expected_value": "20260901",
+        "is_valid": false,
+        "format_valid": true,
+        "range_valid": null,
+        "rule": "DAILY_ORDERS_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901",
+        "status": "SUCCESS"
+      },
+      "replanned": true,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "validate_parameter",
+        "status": "SUCCESS",
+        "data": {
+          "job_name": "DAILY_ORDERS_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260831",
+          "required": true,
+          "provided": true,
+          "format_valid": true,
+          "range_valid": null,
+          "expected_value": "20260901",
+          "allowed_values": null,
+          "min": null,
+          "max": null,
+          "is_valid": false,
+          "rule": "DAILY_ORDERS_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+          "job_run_date": "20260901"
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 3,
+      "goal": "파일 미수신과 파일 경로 오류 중 근본 원인이 무엇인지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "파일 미수신과 파일 경로 오류 중 근본 원인이 무엇인지 확인한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH",
+            "INVALID_BUSINESS_DATE"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+            "check_file_status 결과: exists=false, received=false"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "weakened",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+            "check_file_status 결과: exists=false, received=false",
+            "동일 디렉터리 내 다른 날짜 파일도 없음"
+          ]
+        },
+        {
+          "cause_code": "INVALID_BUSINESS_DATE",
+          "cause_name": "실행일자 파라미터 오류",
+          "origin": "planner",
+          "status": "adopted",
+          "signals": [
+            "validate_parameter 결과: is_valid=false, expected_value=20260901, parameter_value=20260831, job_run_date=20260901"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "입력 파일 /data/in/orders/orders_20260831.csv이 실제로 존재하지 않는 것인지, 아니면 경로 지정이 잘못된 것인지 구분이 필요하다."
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "check_file_status와 validate_parameter의 SUCCESS 결과로 파일 미수신, 경로 오류, 실행일자 파라미터 오류에 대한 근거가 모두 확보되어 있어 추가 Tool 실행 없이 근본 원인을 판별할 수 있다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "로그에 FileNotFoundError가 발생했으나, 파일 미수신과 경로 오류 중 무엇이 원인인지 구분할 수 없으므로 check_file_status로 실제 파일 존재 여부를 확인해야 한다.",
+      "arguments": {
+        "path": "/data/in/orders/orders_20260831.csv",
+        "job_name": "DAILY_ORDERS_LOAD",
+        "parameter_value": "20260831"
+      }
+    },
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "check_file_status 결과로 input_path 파일이 존재하지 않고, 동일 디렉터리 내 다른 날짜 파일도 없어 경로 오타 가능성이 낮으므로 파일 미수신이 근본 원인임을 충분히 뒷받침합니다. (로그/extracted_info에 파라미터 이상 concrete signal이 남아 있어 validate_parameter를 추가합니다.)",
+      "arguments": {
+        "job_name": "DAILY_ORDERS_LOAD",
+        "path": "/data/in/orders/orders_20260831.csv",
+        "parameter_value": "20260831",
+        "parameter_name": "business_date"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "SUCCESS",
+      "data": {
+        "path": "/data/in/orders/orders_20260831.csv",
+        "exists": false,
+        "received": false,
+        "size_bytes": null,
+        "last_modified": null,
+        "filename": "orders_20260831.csv",
+        "same_directory_files": [
+          {
+            "path": "/data/in/orders/orders_20260831.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "orders_20260831.csv"
+          },
+          {
+            "path": "/data/in/orders/orders_20260901.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "orders_20260901.csv"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_ORDERS_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "required": true,
+        "provided": true,
+        "format_valid": true,
+        "range_valid": null,
+        "expected_value": "20260901",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "DAILY_ORDERS_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901"
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "INVALID_BUSINESS_DATE",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과: business_date=20260831, expected_value=20260901, is_valid=false",
+    "check_file_status SUCCESS 결과: /data/in/orders/orders_20260831.csv 파일 존재하지 않음 (exists=false, received=false)",
+    "로그: FileNotFoundError: /data/in/orders/orders_20260831.csv",
+    "로그: business_date=20260831, 잡 실행일=20260901"
+  ],
+  "limitations": [
+    "입력 파일 미수신이 근본 원인일 가능성도 있으나, 파라미터 오류로 잘못된 경로가 생성된 것이 확인되어 파일 미수신을 단정할 수 없음",
+    "파일 경로가 business_date에 따라 동적으로 생성되는 구조임을 전제로 함"
+  ],
+  "recommended_actions": [
+    "잡 실행일과 일치하는 business_date 파라미터(20260901)로 재실행",
+    "파라미터 검증 로직 강화 및 사전 체크",
+    "운영자에게 business_date 입력 실수 방지 안내"
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "version": "v3",
+  "case_id": "D-02",
+  "summary": "배치 잡 실행 시 DB 인증 오류(ORA-01017)가 발생했으나, check_db_status SUCCESS 결과에 따르면 계정(batch_rpt)이 잠겨 있음(account_locked=true)으로 확인되었습니다. credential_status는 VALID로 인증 정보 자체는 올바르나, 계정 잠김 상태로 인해 로그인 실패가 발생한 것으로 보입니다.",
+  "extracted_info": {
+    "job_name": "DAILY_REPORT_DB_LOAD",
+    "connection_name": "SALES_DB",
+    "account": "batch_rpt",
+    "error_messages": [
+      "ORA-01017: invalid username/password; logon denied",
+      "DB authentication/login failure for account=batch_rpt connection=SALES_DB"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "evidence": [
+        "2026-09-01 03:40:03 ERROR ORA-01017: invalid username/password; logon denied",
+        "2026-09-01 03:40:03 ERROR DB authentication/login failure for account=batch_rpt connection=SALES_DB"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "origin": "initial",
+      "status": "weakened",
+      "signals": [
+        "로그의 ORA-01017 에러",
+        "check_db_status 결과: credential_status=VALID, account_locked=true"
+      ]
+    },
+    {
+      "cause_code": "DB_ACCOUNT_LOCKED",
+      "cause_name": "DB 계정 잠김",
+      "origin": "planner",
+      "status": "adopted",
+      "signals": [
+        "check_db_status 결과: account_locked=true"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "DB 인증 실패의 근본 원인이 계정 잠금 때문인지, 자격 증명 불일치 때문인지 구분한다.",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "DB_CREDENTIAL_MISMATCH",
+        "DB_ACCOUNT_LOCKED"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "DB 인증 정보 불일치 외에 DB 계정 잠금이나 접속 설정 오류가 근본 원인일 가능성이 있는가?"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "DB 인증 정보 불일치(credential mismatch) 외에 DB 계정 잠금(account locked)이나 접속 설정 오류(connection config error) 신호가 있는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "DB 인증 정보 불일치(credential mismatch) 외에 DB 계정 잠금(account locked)이나 접속 설정 오류(connection config error) 신호가 있는지 확인한다.",
+          "candidate_tool": "check_db_status",
+          "arguments": {
+            "connection_name": "SALES_DB",
+            "account": "batch_rpt"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "DB_CREDENTIAL_MISMATCH",
+            "DB_ACCOUNT_LOCKED",
+            "DB_CONNECTION_CONFIG_ERROR"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "DB_CREDENTIAL_MISMATCH",
+          "cause_name": "DB 인증 정보 불일치",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 03:40:03 ERROR ORA-01017: invalid username/password; logon denied",
+            "2026-09-01 03:40:03 ERROR DB authentication/login failure for account=batch_rpt connection=SALES_DB"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "DB 인증 정보 불일치 외에 DB 계정 잠금이나 접속 설정 오류가 근본 원인일 가능성이 있는가?"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_db_status",
+      "arguments": {
+        "connection_name": "SALES_DB",
+        "account": "batch_rpt",
+        "job_name": "DAILY_REPORT_DB_LOAD"
+      },
+      "reason": "로그에 ORA-01017 오류와 인증 실패 메시지가 있어 DB 인증 정보 불일치가 가장 유력하지만, DB 계정 잠금이나 접속 설정 오류도 배제할 수 없으므로 check_db_status로 추가 확인이 필요하다.",
+      "evidence_summary": {
+        "connection_name": "SALES_DB",
+        "account": "batch_rpt",
+        "account_locked": true,
+        "credential_status": "VALID",
+        "connection_config_valid": true,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_db_status",
+        "status": "SUCCESS",
+        "data": {
+          "connection_name": "SALES_DB",
+          "account": "batch_rpt",
+          "account_locked": true,
+          "credential_status": "VALID",
+          "connection_config_valid": true
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "DB 인증 실패의 근본 원인이 계정 잠금 때문인지, 자격 증명 불일치 때문인지 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "DB 인증 실패의 근본 원인이 계정 잠금 때문인지, 자격 증명 불일치 때문인지 구분한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "DB_CREDENTIAL_MISMATCH",
+            "DB_ACCOUNT_LOCKED"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "DB_CREDENTIAL_MISMATCH",
+          "cause_name": "DB 인증 정보 불일치",
+          "origin": "initial",
+          "status": "weakened",
+          "signals": [
+            "로그의 ORA-01017 에러",
+            "check_db_status 결과: credential_status=VALID, account_locked=true"
+          ]
+        },
+        {
+          "cause_code": "DB_ACCOUNT_LOCKED",
+          "cause_name": "DB 계정 잠김",
+          "origin": "planner",
+          "status": "adopted",
+          "signals": [
+            "check_db_status 결과: account_locked=true"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "DB 인증 정보 불일치 외에 DB 계정 잠금이나 접속 설정 오류가 근본 원인일 가능성이 있는가?"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "check_db_status 결과에서 계정이 잠겨(account_locked=true) 있고 credential_status는 VALID로 나타나므로, 인증 실패의 근본 원인은 계정 잠금(DB_ACCOUNT_LOCKED)임이 충분히 드러난다. 추가 Tool 호출 없이 원인 구분이 가능하다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_db_status",
+      "reason": "로그에 ORA-01017 오류와 인증 실패 메시지가 있어 DB 인증 정보 불일치가 가장 유력하지만, DB 계정 잠금이나 접속 설정 오류도 배제할 수 없으므로 check_db_status로 추가 확인이 필요하다.",
+      "arguments": {
+        "connection_name": "SALES_DB",
+        "account": "batch_rpt",
+        "job_name": "DAILY_REPORT_DB_LOAD"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_db_status",
+      "status": "SUCCESS",
+      "data": {
+        "connection_name": "SALES_DB",
+        "account": "batch_rpt",
+        "account_locked": true,
+        "credential_status": "VALID",
+        "connection_config_valid": true
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "DB_ACCOUNT_LOCKED",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "DB_ACCOUNT_LOCKED",
+  "final_cause_name": "DB 계정 잠김",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_db_status SUCCESS: account_locked=true, credential_status=VALID, connection_config_valid=true",
+    "로그: ORA-01017: invalid username/password; logon denied",
+    "로그: DB authentication/login failure for account=batch_rpt connection=SALES_DB"
+  ],
+  "limitations": [
+    "계정 잠김의 원인(예: 비밀번호 오류 반복 등)은 SUCCESS Tool 결과에 포함되어 있지 않음",
+    "DB 관리자의 추가 확인이 필요할 수 있음"
+  ],
+  "recommended_actions": [
+    "DB 관리자에게 batch_rpt 계정 잠김 해제 요청",
+    "계정 잠김 원인(비밀번호 오류 반복 등) 확인 및 재발 방지 조치"
+  ]
+}
