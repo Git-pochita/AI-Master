@@ -1,10 +1,12 @@
 # Batch Incident Copilot — V1 고정 상태와 V2 다음 단계
 
-이 문서는 2026-09-01 작업 상태를 고정한 handoff입니다. V2/V3는 아직 구현하지 않습니다.
+이 문서는 V0/V1 + 30건 Ground Truth + 공식 평가 결과를 `main`에 고정한 handoff입니다. V2 코드는 아직 구현하지 않습니다.
 
-이어갈 브랜치: `cursor/eval-30-case-gt-32d6`  
-현재 작업 PR: https://github.com/Git-pochita/AI-Master/pull/7 (draft, merge 금지)  
+기준 브랜치: `main`  
+V2 설계: [`v2_dynamic_planning_design.md`](v2_dynamic_planning_design.md)  
 공식 평가 리포트: `evaluation/reports/v0_vs_v1.md`
+
+PR #7 (`cursor/eval-30-case-gt-32d6`)은 `main`에 merge되었습니다. 그 브랜치에서 이어가지 마십시오. V2 구현은 최신 `main`에서 새 브랜치를 만들어 시작합니다.
 
 ## 확정 상태
 
@@ -62,8 +64,8 @@ GT metadata `tool_necessity` (`REQUIRED` / `NOT_NEEDED` / `NOT_CALLABLE`)는 해
 
 ## 다음 개발 순서
 
-1. V2 Dynamic Planning / Re-planning 설계
-2. V2 구현
+1. V2 Dynamic Planning / Re-planning 설계 — 완료 (`docs/v2_dynamic_planning_design.md`)
+2. V2 구현 — **다음 작업**. 최신 `main`에서 시작
 3. 동일 30건으로 V1 vs V2 평가
 4. 실패 분석
 5. V3 Critic / Reflection 설계 및 구현
@@ -79,23 +81,22 @@ GT metadata `tool_necessity` (`REQUIRED` / `NOT_NEEDED` / `NOT_CALLABLE`)는 해
 - 충분하면 종료
 - 최대 planning/tool round 제한으로 무한 루프 방지
 
-V2/V3 LangGraph, Multi-Agent, RAG는 이 문서의 범위가 아닙니다. 구현은 다음 세션에서 합니다.
+V2/V3 LangGraph, Multi-Agent, RAG는 이 문서의 범위가 아닙니다.
 
-## 내일 세션 시작 방법
+## V2 구현 시작 방법
+
+최신 `main`에서 시작합니다. PR #7 브랜치를 checkout하지 마십시오.
 
 ```bash
-git checkout cursor/eval-30-case-gt-32d6
-git pull origin cursor/eval-30-case-gt-32d6
+git checkout main
+git pull origin main
 cd batch_incident_copilot
 cp .env.example .env   # API Key는 git에 없음. 로컬/Secrets로만 설정
 python -m pytest -q
 ```
 
-재평가(필요 시):
+설계 문서를 읽고 구현합니다: `docs/v2_dynamic_planning_design.md`
 
-```bash
-cd batch_incident_copilot
-python evaluation/run_evaluation.py --versions v0 v1
-```
+공식 30건 평가 결과(`evaluation/reports/v0_summary.json`, `v1_summary.json`, `v0_vs_v1.md`)는 재실행하거나 덮어쓰지 마십시오. V2 평가는 별도 `v1_vs_v2.md`로 추가합니다.
 
 `.env`와 API Key는 커밋하지 않습니다.

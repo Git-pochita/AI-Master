@@ -2,11 +2,11 @@
 
 상태: 설계만. 이 문서 작성 시점에 V2 코드, prompt, schema, evaluator는 수정하지 않는다.
 
-기준 브랜치: `cursor/eval-30-case-gt-32d6` (draft PR #7, merge 금지)  
+기준 브랜치: `main` (PR #7 30건 baseline + PR #8 설계 문서가 merge된 상태)  
 handoff: `docs/next_steps_v2.md`  
 공식 V1 baseline 리포트: `evaluation/reports/v0_vs_v1.md`
 
-현재 워크스페이스 `main`은 10건 평가만 갖고 있다. V2 구현·평가는 30건 Ground Truth가 있는 PR #7 브랜치를 기준으로 한다. 이 설계 문서는 그 전제 위에 작성한다.
+V2 구현·평가는 최신 `main`에서 시작한다. PR #7 브랜치(`cursor/eval-30-case-gt-32d6`)에서 이어가지 않는다.
 
 ## 0. 한 줄 목표
 
@@ -410,7 +410,7 @@ V2가 F-05에서 성공으로 보는 것:
 - LangGraph, Multi-Agent, RAG, native OpenAI tool calling
 - V0/V1 prompt 케이스 튜닝, GT 수정, 채점 공식 변경
 - 실제 파일시스템/DB 접속
-- PR #7 임의 merge
+- 이미 `main`에 고정된 30건 GT와 `v0_vs_v1.md`를 재실행으로 덮어쓰기
 
 V2 공식 평가에서 F-04가 그대로 틀려도 V2 실패로 보지 않는다. 우연히 맞아도 이번 목표 달성은 아니다.
 
@@ -430,7 +430,7 @@ Planner가 매 라운드 계획을 새로 써도, 실행 여부는 fingerprint�
 
 LLM 내부 Chain-of-Thought를 생성·노출하지 않는다. 저장·표시하는 것은 JSON 필드와 Tool I/O뿐이다.
 
-PR #7의 `app/trace.py`는 V0/V1 결과를 **사후 재구성**한다. V2는 실행 중 `planning_trace`를 남긴다. PR #7 머지 여부와 무관하게 V2 결과만으로 UI를 그릴 수 있어야 한다. `trace.py`가 있으면 매핑 어댑터를 추가할 수 있으나 의존하지 않는다.
+`main`의 `app/trace.py`는 V0/V1 결과를 **사후 재구성**한다. V2는 실행 중 `planning_trace`를 남긴다. V2 결과만으로 UI를 그릴 수 있어야 한다. 기존 `trace.py`에 매핑 어댑터를 추가할 수 있으나, V2 payload가 그 모듈에 종속되면 안 된다.
 
 Streamlit에 보여야 하는 순서:
 
@@ -520,7 +520,7 @@ CLI 결과 JSON에도 `planning_trace`가 들어간다. 데모 전용 별도 채
 - `evaluation/ground_truth.json`, `evaluation/metrics.py` 채점 공식
 - `evaluation/evaluator.py` — V2가 `initial_hypotheses`/`selected_tools`를 유지하면 수정 불필요. payload 판별이 깨질 때만 최소 수정
 
-`app/trace.py`는 PR #7에만 있다. 구현 베이스가 그 브랜치면 매핑을 추가할 수 있다. main만 있으면 Streamlit이 `planning_trace`를 직접 그린다.
+`app/trace.py`는 이제 `main`에 있다. V2 `planning_trace`를 이 모듈에 매핑하거나 Streamlit이 직접 그려도 된다.
 
 ## 13. 구현 단계 제안
 
@@ -566,7 +566,7 @@ CLI 결과 JSON에도 `planning_trace`가 들어간다. 데모 전용 별도 채
 
 ### 단계 5 — 공식 30건 평가
 
-- 베이스: PR #7 30건 GT와 고정 V1 리포트
+- 베이스: `main`의 30건 GT와 고정 V1 리포트
 - `run_evaluation.py --versions v1 v2` (또는 v2만 돌리고 문서화된 V1과 비교)
 - `v1_vs_v2.md` 작성, `v0_vs_v1.md` 미변경
 - F-05와 회귀 케이스 분석. Prompt를 케이스에 맞춰 재튜닝하지 않음
@@ -589,5 +589,5 @@ CLI 결과 JSON에도 `planning_trace`가 들어간다. 데모 전용 별도 채
 1. Planner와 다음 Tool 선택은 한 LLM 호출 — latency 우선
 2. Finalizer는 V1 함수 재사용
 3. Hypothesis Recall은 V2 KPI가 아님
-4. 구현 베이스는 30건 GT 브랜치 `cursor/eval-30-case-gt-32d6`
+4. 구현 베이스는 최신 `main` (30건 GT와 공식 V0/V1 평가가 이미 포함됨)
 5. `MAX_PLANNING_ROUNDS=3`, `MAX_TOOL_CALLS=3`
