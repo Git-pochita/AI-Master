@@ -364,6 +364,26 @@ def diagnose_v2(
                 + " (추가 조사 조건 미충족: 해당 가설을 지지하는 concrete signal이 없어 Tool 선택을 취소했습니다.)"
             ).strip()
             planner_tool = None
+        if (
+            (decision.evidence_sufficient or not planner_tool)
+            and results
+            and not any(item.tool == "validate_parameter" for item in results)
+            and has_parameter_anomaly_signal(log_text, initial.extracted_info)
+        ):
+            param_args = complete_v2_arguments(
+                "validate_parameter",
+                {},
+                initial.extracted_info,
+                results,
+            )
+            if not missing_required_arguments("validate_parameter", param_args):
+                planner_tool = "validate_parameter"
+                arguments = param_args
+                decision.evidence_sufficient = False
+                decision.reason = (
+                    (decision.reason or "")
+                    + " (로그/extracted_info에 파라미터 이상 concrete signal이 남아 있어 validate_parameter를 추가합니다.)"
+                ).strip()
         replanned = round_index > 1
         round_stop: StopReason | None = None
         tool_result: ToolResult | None = None

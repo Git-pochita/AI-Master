@@ -567,6 +567,32 @@ def test_additional_validate_parameter_allowed_with_date_mismatch(monkeypatch):
     )
 
 
+def test_injects_validate_parameter_when_planner_stops_despite_mismatch(monkeypatch):
+    monkeypatch.setattr("app.planning.diagnose", lambda *_a, **_k: _v0_result())
+    calls = {"n": 0}
+
+    def planner(**_kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _plan(
+                "check_file_status",
+                {"path": "/data/in/sales_20260831.csv"},
+                goal="파일 확인",
+            )
+        return _plan(sufficient=True, goal="조기 종료")
+
+    result = diagnose_v2(
+        F05_LOG,
+        case_id="unit",
+        plan_fn=planner,
+        finalize_fn=lambda *_a, **_k: _final_payload("INVALID_BUSINESS_DATE"),
+    )
+    tools = [item.selected_tool for item in result.selected_tools]
+    assert tools == ["check_file_status", "validate_parameter"]
+    assert result.tool_results[1].status == "SUCCESS"
+    assert result.tool_results[1].data["is_valid"] is False
+
+
 def test_complete_v2_arguments_uses_extracted_aliases():
     args = complete_v2_arguments(
         "check_file_status",
