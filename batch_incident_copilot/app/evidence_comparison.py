@@ -16,6 +16,9 @@ from app.schemas import ToolResult
 from app.tools.evidence import supporting_tool_results
 
 _DATE_TOKEN = re.compile(r"(?<!\d)\d{8}(?!\d)")
+# 1글자 prefix(sales/summary)를 제외하기 위한 일반 기준. cause를 고르지 않는다.
+_MIN_SHARED_PREFIX_LEN = 3
+_MIN_SHARED_PREFIX_RATIO = 0.5
 
 
 class StructuredObservation(BaseModel):
@@ -97,7 +100,11 @@ def _filename_body_prefix_shared(requested_name: str, sibling_name: str) -> bool
     right = _filename_body(sibling_name)
     if not left or not right:
         return False
-    return bool(_shared_prefix(left, right))
+    shared = _shared_prefix(left, right)
+    if len(shared) < _MIN_SHARED_PREFIX_LEN:
+        return False
+    shorter = min(len(left), len(right))
+    return (len(shared) / shorter) >= _MIN_SHARED_PREFIX_RATIO
 
 
 def _shares_review_context(

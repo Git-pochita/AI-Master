@@ -25,7 +25,7 @@ V2 result
 File Tool의 `potentially_conflicting_observations`는 received sibling 전부가 아니다. 같은 디렉터리 + received=true만으로는 conflict로 올리지 않는다. 요청 파일과 sibling이 아래 **관찰 가능한 관계**를 모두 가질 때만 review 후보다.
 
 - 날짜 토큰 겹침: 파일명 날짜 또는 extracted_info의 `business_date`/`job_run_date`
-- 파일명 body prefix 공유: 확장자·8자리 날짜를 뺀 body가 서로 접두어를 공유
+- 파일명 body prefix 공유: 확장자·8자리 날짜를 뺀 body의 공통 prefix가 3글자 이상이고, 더 짧은 body의 50% 이상일 때만. 1글자(`s`)만 겹치면 False
 
 이 관계가 없으면 received sibling은 supporting observation으로만 남긴다. edit-distance 임계값이나 cause 확정 규칙은 쓰지 않는다.
 

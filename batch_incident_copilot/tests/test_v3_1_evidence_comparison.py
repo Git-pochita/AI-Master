@@ -14,6 +14,8 @@ from app.critic import (
 )
 from app.evidence_comparison import (
     EvidenceComparison,
+    _filename_body_prefix_shared,
+    _shares_review_context,
     build_evidence_comparison,
     comparison_payload,
 )
@@ -152,6 +154,62 @@ def test_f04_type_marks_other_received_filename():
     assert "partner_20260901.csv" in conflicting
     assert "received=true" in conflicting
     _assert_no_cause_verdict(comparison)
+
+
+def test_filename_body_prefix_sale_sales_is_shared():
+    assert _filename_body_prefix_shared("sale_20260901.csv", "sales_20260901.csv") is True
+    assert _shares_review_context("sale_20260901.csv", "sales_20260901.csv", {}) is True
+
+
+def test_filename_body_prefix_partnr_partner_is_shared():
+    assert _filename_body_prefix_shared("partnr_20260901.csv", "partner_20260901.csv") is True
+    assert _shares_review_context("partnr_20260901.csv", "partner_20260901.csv", {}) is True
+
+
+def test_filename_body_prefix_sales_summary_is_not_shared():
+    assert _filename_body_prefix_shared("sales_20260901.csv", "summary_20260901.csv") is False
+    assert _shares_review_context("sales_20260901.csv", "summary_20260901.csv", {}) is False
+    tool = _file_success(
+        "/data/in/sales_20260901.csv",
+        exists=False,
+        received=False,
+        siblings=[
+            {
+                "path": "/data/in/summary_20260901.csv",
+                "filename": "summary_20260901.csv",
+                "exists": True,
+                "received": True,
+            }
+        ],
+    )
+    comparison = build_evidence_comparison(
+        current_cause_code="FILE_NOT_RECEIVED",
+        tool_results=[tool],
+    )
+    assert comparison.potentially_conflicting_observations == []
+    assert any(
+        "summary_20260901.csv" in item.description
+        for item in comparison.supporting_observations
+    )
+
+
+def test_filename_body_prefix_single_letter_is_not_shared():
+    assert _filename_body_prefix_shared("sales_20260901.csv", "status_20260901.csv") is False
+    assert _shares_review_context("sales_20260901.csv", "status_20260901.csv", {}) is False
+
+
+def test_filename_body_prefix_ledger_sale_is_not_shared():
+    assert _filename_body_prefix_shared("ledger_20260901.csv", "sale_20260901.csv") is False
+    assert _shares_review_context("ledger_20260901.csv", "sale_20260901.csv", {}) is False
+
+
+def test_f05_has_no_file_conflict_and_keeps_strong_causal():
+    comparison = _compare_v2("F-05")
+    assert comparison.potentially_conflicting_observations == []
+    assert any(
+        item.fact_type == "parameter_invalid"
+        for item in comparison.strong_causal_observations
+    )
 
 
 def test_f05_type_parameter_is_strong_causal_file_is_surface():
