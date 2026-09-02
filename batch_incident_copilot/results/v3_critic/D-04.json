@@ -1,0 +1,258 @@
+{
+  "version": "v3",
+  "case_id": "D-04",
+  "summary": "배치 잡 DAILY_LOCKED_DB_LOAD 실행 시 SALES_DB 연결의 locked_user 계정으로 DB 인증/로그인 실패가 발생하였으며, check_db_status SUCCESS 결과에서 해당 계정이 잠금 상태임(account_locked=true)이 확인되었습니다. credential_status는 VALID로 인증 정보 자체는 올바르나, 계정 잠금으로 인해 로그인 거부가 발생한 것으로 판단됩니다.",
+  "extracted_info": {
+    "job_name": "DAILY_LOCKED_DB_LOAD",
+    "connection_name": "SALES_DB",
+    "account": "locked_user",
+    "error_messages": [
+      "ORA-01017: invalid username/password; logon denied",
+      "DB authentication/login failure for account=locked_user connection=SALES_DB"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "evidence": [
+        "2026-09-01 04:05:03 ERROR ORA-01017: invalid username/password; logon denied",
+        "2026-09-01 04:05:03 ERROR DB authentication/login failure for account=locked_user connection=SALES_DB"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "origin": "initial",
+      "status": "weakened",
+      "signals": [
+        "로그: ORA-01017",
+        "check_db_status 결과: credential_status=VALID, account_locked=true"
+      ]
+    },
+    {
+      "cause_code": "DB_ACCOUNT_LOCKED",
+      "cause_name": "DB 계정 잠김",
+      "origin": "planner",
+      "status": "strengthened",
+      "signals": [
+        "로그: DB authentication/login failure",
+        "check_db_status 결과: account_locked=true"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "DB 인증 실패의 근본 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 인증 정보 불일치(DB_CREDENTIAL_MISMATCH)인지 확인한다.",
+      "candidate_tool": "check_db_status",
+      "arguments": {
+        "connection_name": "SALES_DB",
+        "account": "locked_user",
+        "job_name": "DAILY_LOCKED_DB_LOAD"
+      },
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "DB_CREDENTIAL_MISMATCH",
+        "DB_ACCOUNT_LOCKED"
+      ],
+      "status": "executed"
+    }
+  ],
+  "unresolved_questions": [
+    "DB 인증 실패의 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 단순 credential mismatch(DB_CREDENTIAL_MISMATCH)인지?"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "DB 인증 실패의 근본 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 단순 credential mismatch(DB_CREDENTIAL_MISMATCH)인지 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "DB 인증 실패의 근본 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 단순 credential mismatch(DB_CREDENTIAL_MISMATCH)인지 구분한다.",
+          "candidate_tool": "check_db_status",
+          "arguments": {
+            "connection_name": "SALES_DB",
+            "account": "locked_user"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "DB_CREDENTIAL_MISMATCH",
+            "DB_ACCOUNT_LOCKED"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "DB_CREDENTIAL_MISMATCH",
+          "cause_name": "DB 인증 정보 불일치",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 04:05:03 ERROR ORA-01017: invalid username/password; logon denied",
+            "2026-09-01 04:05:03 ERROR DB authentication/login failure for account=locked_user connection=SALES_DB"
+          ]
+        },
+        {
+          "cause_code": "DB_ACCOUNT_LOCKED",
+          "cause_name": "DB 계정 잠김",
+          "origin": "planner",
+          "status": "adopted",
+          "signals": [
+            "DB authentication/login failure for account=locked_user connection=SALES_DB",
+            "ORA-01017: invalid username/password; logon denied"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "DB 인증 실패의 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 단순 credential mismatch(DB_CREDENTIAL_MISMATCH)인지?"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_db_status",
+      "arguments": {
+        "connection_name": "SALES_DB",
+        "account": "locked_user",
+        "job_name": "DAILY_LOCKED_DB_LOAD"
+      },
+      "reason": "로그에 ORA-01017과 인증 실패 메시지가 있으나, 계정 잠금(DB_ACCOUNT_LOCKED)과 단순 credential mismatch(DB_CREDENTIAL_MISMATCH)를 구분할 수 있는 직접적 증거가 없어 check_db_status Tool로 계정 상태를 확인해야 함.",
+      "evidence_summary": {
+        "connection_name": "SALES_DB",
+        "account": "locked_user",
+        "account_locked": true,
+        "credential_status": "VALID",
+        "connection_config_valid": true,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_db_status",
+        "status": "SUCCESS",
+        "data": {
+          "connection_name": "SALES_DB",
+          "account": "locked_user",
+          "account_locked": true,
+          "credential_status": "VALID",
+          "connection_config_valid": true
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "DB 인증 실패의 근본 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 인증 정보 불일치(DB_CREDENTIAL_MISMATCH)인지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "DB 인증 실패의 근본 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 인증 정보 불일치(DB_CREDENTIAL_MISMATCH)인지 확인한다.",
+          "candidate_tool": "check_db_status",
+          "arguments": {
+            "connection_name": "SALES_DB",
+            "account": "locked_user",
+            "job_name": "DAILY_LOCKED_DB_LOAD"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "DB_CREDENTIAL_MISMATCH",
+            "DB_ACCOUNT_LOCKED"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "DB_CREDENTIAL_MISMATCH",
+          "cause_name": "DB 인증 정보 불일치",
+          "origin": "initial",
+          "status": "weakened",
+          "signals": [
+            "로그: ORA-01017",
+            "check_db_status 결과: credential_status=VALID, account_locked=true"
+          ]
+        },
+        {
+          "cause_code": "DB_ACCOUNT_LOCKED",
+          "cause_name": "DB 계정 잠김",
+          "origin": "planner",
+          "status": "strengthened",
+          "signals": [
+            "로그: DB authentication/login failure",
+            "check_db_status 결과: account_locked=true"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "DB 인증 실패의 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 단순 credential mismatch(DB_CREDENTIAL_MISMATCH)인지?"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "check_db_status 결과에서 계정이 잠겨 있고 credential_status가 VALID로 확인되어, DB 계정 잠김(DB_ACCOUNT_LOCKED)이 근본 원인임을 충분히 알 수 있다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_db_status",
+      "reason": "로그에 ORA-01017과 인증 실패 메시지가 있으나, 계정 잠금(DB_ACCOUNT_LOCKED)과 단순 credential mismatch(DB_CREDENTIAL_MISMATCH)를 구분할 수 있는 직접적 증거가 없어 check_db_status Tool로 계정 상태를 확인해야 함.",
+      "arguments": {
+        "connection_name": "SALES_DB",
+        "account": "locked_user",
+        "job_name": "DAILY_LOCKED_DB_LOAD"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_db_status",
+      "status": "SUCCESS",
+      "data": {
+        "connection_name": "SALES_DB",
+        "account": "locked_user",
+        "account_locked": true,
+        "credential_status": "VALID",
+        "connection_config_valid": true
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "DB_ACCOUNT_LOCKED",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "DB_ACCOUNT_LOCKED",
+  "final_cause_name": "DB 계정 잠김",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_db_status SUCCESS 결과: account_locked=true, credential_status=VALID, connection_config_valid=true",
+    "로그: ORA-01017: invalid username/password; logon denied",
+    "로그: DB authentication/login failure for account=locked_user connection=SALES_DB"
+  ],
+  "limitations": [
+    "계정 잠금의 원인(예: 비밀번호 오류 반복, 정책 등)은 확인되지 않음",
+    "계정 잠금 해제 여부 및 정책은 추가 확인 필요"
+  ],
+  "recommended_actions": [
+    "SALES_DB의 locked_user 계정 잠금 해제 요청 또는 잠금 해제 후 재시도",
+    "계정 잠금 정책 및 원인(비밀번호 오류 등) 점검",
+    "배치 잡 실행 전 계정 상태 사전 점검 프로세스 마련"
+  ]
+}

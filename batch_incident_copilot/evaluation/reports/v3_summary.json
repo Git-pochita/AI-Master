@@ -1,0 +1,1516 @@
+{
+  "version": "v3",
+  "total_cases": 30,
+  "evaluated_cases": 30,
+  "failed_runs": 0,
+  "final_diagnosis_accuracy": 0.9333333333333333,
+  "hypothesis_recall": 0.8333333333333334,
+  "diagnosis_level_accuracy": 1.0,
+  "owner_accuracy": 1.0,
+  "cases": [
+    {
+      "case_id": "F-01",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "FILE_NOT_RECEIVED",
+      "actual_cause_code": "FILE_NOT_RECEIVED",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "FILE_NOT_RECEIVED"
+      ],
+      "predicted_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "expected_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_BUSINESS_DATE",
+        "INVALID_FILE_PATH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_file_status"
+      ],
+      "expected_unnecessary_tools": [
+        "validate_parameter",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_file_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "FILE_NOT_RECEIVED",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 20.251,
+      "incident_domain": "FILE"
+    },
+    {
+      "case_id": "F-02",
+      "final_diagnosis_correct": false,
+      "predicted_final_cause_code": "FILE_NOT_RECEIVED",
+      "actual_cause_code": "INVALID_FILE_PATH",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "INVALID_FILE_PATH"
+      ],
+      "predicted_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "expected_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_BUSINESS_DATE",
+        "INVALID_FILE_PATH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_file_status"
+      ],
+      "expected_unnecessary_tools": [
+        "validate_parameter",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_file_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "FILE_NOT_RECEIVED",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 24.133,
+      "incident_domain": "FILE"
+    },
+    {
+      "case_id": "F-03",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "FILE_NOT_RECEIVED",
+      "actual_cause_code": "FILE_NOT_RECEIVED",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "FILE_NOT_RECEIVED"
+      ],
+      "predicted_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "expected_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_BUSINESS_DATE",
+        "INVALID_FILE_PATH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_file_status"
+      ],
+      "expected_unnecessary_tools": [
+        "validate_parameter",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_file_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "FILE_NOT_RECEIVED",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 18.632,
+      "incident_domain": "FILE"
+    },
+    {
+      "case_id": "F-04",
+      "final_diagnosis_correct": false,
+      "predicted_final_cause_code": "FILE_NOT_RECEIVED",
+      "actual_cause_code": "INVALID_FILE_PATH",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "INVALID_FILE_PATH"
+      ],
+      "predicted_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "expected_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_BUSINESS_DATE",
+        "INVALID_FILE_PATH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_file_status"
+      ],
+      "expected_unnecessary_tools": [
+        "validate_parameter",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_file_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "FILE_NOT_RECEIVED",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 21.0,
+      "incident_domain": "FILE"
+    },
+    {
+      "case_id": "F-05",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_BUSINESS_DATE",
+      "actual_cause_code": "INVALID_BUSINESS_DATE",
+      "hypothesis_recall_hit": false,
+      "recalled_hypothesis_codes": [],
+      "predicted_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "expected_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_BUSINESS_DATE",
+        "INVALID_FILE_PATH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_file_status",
+        "validate_parameter"
+      ],
+      "expected_unnecessary_tools": [
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_file_status",
+        "validate_parameter"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 2,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_BUSINESS_DATE",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "REVISE",
+      "run_status": "success",
+      "elapsed_seconds": 37.568,
+      "incident_domain": "FILE"
+    },
+    {
+      "case_id": "F-06",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "FILE_NOT_RECEIVED",
+      "actual_cause_code": "FILE_NOT_RECEIVED",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "FILE_NOT_RECEIVED"
+      ],
+      "predicted_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "expected_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_BUSINESS_DATE",
+        "INVALID_FILE_PATH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "추정",
+      "expected_diagnosis_level_v1": "추정",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_file_status"
+      ],
+      "expected_unnecessary_tools": [
+        "validate_parameter",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_file_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 1,
+      "revised": false,
+      "original_v2_cause_code": "FILE_NOT_RECEIVED",
+      "original_v2_diagnosis_level": "추정",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 20.575,
+      "incident_domain": "FILE"
+    },
+    {
+      "case_id": "P-01",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_BUSINESS_DATE",
+      "actual_cause_code": "INVALID_BUSINESS_DATE",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "INVALID_BUSINESS_DATE"
+      ],
+      "predicted_hypothesis_codes": [
+        "INVALID_BUSINESS_DATE",
+        "INVALID_PARAMETER_FORMAT"
+      ],
+      "expected_hypothesis_codes": [
+        "INVALID_BUSINESS_DATE",
+        "INVALID_PARAMETER_FORMAT",
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "validate_parameter"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "validate_parameter"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_BUSINESS_DATE",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 18.513,
+      "incident_domain": "PARAMETER"
+    },
+    {
+      "case_id": "P-02",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "MISSING_REQUIRED_PARAMETER",
+      "actual_cause_code": "MISSING_REQUIRED_PARAMETER",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "predicted_hypothesis_codes": [
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "expected_hypothesis_codes": [
+        "INVALID_PARAMETER_FORMAT",
+        "INVALID_PARAMETER_RANGE",
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "validate_parameter"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "validate_parameter"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "MISSING_REQUIRED_PARAMETER",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 19.649,
+      "incident_domain": "PARAMETER"
+    },
+    {
+      "case_id": "P-03",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_PARAMETER_FORMAT",
+      "actual_cause_code": "INVALID_PARAMETER_FORMAT",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "INVALID_PARAMETER_FORMAT"
+      ],
+      "predicted_hypothesis_codes": [
+        "INVALID_PARAMETER_FORMAT",
+        "INVALID_PARAMETER_RANGE"
+      ],
+      "expected_hypothesis_codes": [
+        "INVALID_PARAMETER_FORMAT",
+        "INVALID_PARAMETER_RANGE",
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "validate_parameter"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "validate_parameter"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_PARAMETER_FORMAT",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 19.257,
+      "incident_domain": "PARAMETER"
+    },
+    {
+      "case_id": "P-04",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_PARAMETER_RANGE",
+      "actual_cause_code": "INVALID_PARAMETER_RANGE",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "INVALID_PARAMETER_RANGE"
+      ],
+      "predicted_hypothesis_codes": [
+        "INVALID_PARAMETER_RANGE"
+      ],
+      "expected_hypothesis_codes": [
+        "INVALID_PARAMETER_FORMAT",
+        "INVALID_PARAMETER_RANGE",
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "validate_parameter"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "validate_parameter"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_PARAMETER_RANGE",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 17.603,
+      "incident_domain": "PARAMETER"
+    },
+    {
+      "case_id": "P-05",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_BUSINESS_DATE",
+      "actual_cause_code": "INVALID_BUSINESS_DATE",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "INVALID_BUSINESS_DATE"
+      ],
+      "predicted_hypothesis_codes": [
+        "INVALID_BUSINESS_DATE"
+      ],
+      "expected_hypothesis_codes": [
+        "INVALID_BUSINESS_DATE",
+        "INVALID_PARAMETER_FORMAT",
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "NOT_NEEDED",
+      "required_tools": [],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "validate_parameter"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 1,
+      "unnecessary_tool_rate": 1.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_BUSINESS_DATE",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 21.024,
+      "incident_domain": "PARAMETER"
+    },
+    {
+      "case_id": "P-06",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_PARAMETER_FORMAT",
+      "actual_cause_code": "INVALID_PARAMETER_FORMAT",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "INVALID_PARAMETER_FORMAT"
+      ],
+      "predicted_hypothesis_codes": [
+        "INVALID_PARAMETER_FORMAT"
+      ],
+      "expected_hypothesis_codes": [
+        "INVALID_PARAMETER_FORMAT",
+        "INVALID_PARAMETER_RANGE",
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "추정",
+      "expected_diagnosis_level_v1": "추정",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "validate_parameter"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "validate_parameter"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 1,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_PARAMETER_FORMAT",
+      "original_v2_diagnosis_level": "추정",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 17.176,
+      "incident_domain": "PARAMETER"
+    },
+    {
+      "case_id": "D-01",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "DB_CREDENTIAL_MISMATCH",
+      "actual_cause_code": "DB_CREDENTIAL_MISMATCH",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "predicted_hypothesis_codes": [
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "expected_hypothesis_codes": [
+        "DB_ACCOUNT_LOCKED",
+        "DB_CONNECTION_CONFIG_ERROR",
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_db_status"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_db_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "DB_CREDENTIAL_MISMATCH",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 18.623,
+      "incident_domain": "DB"
+    },
+    {
+      "case_id": "D-02",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "DB_ACCOUNT_LOCKED",
+      "actual_cause_code": "DB_ACCOUNT_LOCKED",
+      "hypothesis_recall_hit": false,
+      "recalled_hypothesis_codes": [],
+      "predicted_hypothesis_codes": [
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "expected_hypothesis_codes": [
+        "DB_ACCOUNT_LOCKED",
+        "DB_CONNECTION_CONFIG_ERROR",
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_db_status"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_db_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "DB_ACCOUNT_LOCKED",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 18.268,
+      "incident_domain": "DB"
+    },
+    {
+      "case_id": "D-03",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "actual_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "DB_CONNECTION_CONFIG_ERROR"
+      ],
+      "predicted_hypothesis_codes": [
+        "DB_CONNECTION_CONFIG_ERROR"
+      ],
+      "expected_hypothesis_codes": [
+        "DB_ACCOUNT_LOCKED",
+        "DB_CONNECTION_CONFIG_ERROR",
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_db_status"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_db_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 17.307,
+      "incident_domain": "DB"
+    },
+    {
+      "case_id": "D-04",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "DB_ACCOUNT_LOCKED",
+      "actual_cause_code": "DB_ACCOUNT_LOCKED",
+      "hypothesis_recall_hit": false,
+      "recalled_hypothesis_codes": [],
+      "predicted_hypothesis_codes": [
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "expected_hypothesis_codes": [
+        "DB_ACCOUNT_LOCKED",
+        "DB_CONNECTION_CONFIG_ERROR",
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_db_status"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_db_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "DB_ACCOUNT_LOCKED",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 22.862,
+      "incident_domain": "DB"
+    },
+    {
+      "case_id": "D-05",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "DB_CREDENTIAL_MISMATCH",
+      "actual_cause_code": "DB_CREDENTIAL_MISMATCH",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "predicted_hypothesis_codes": [
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "expected_hypothesis_codes": [
+        "DB_ACCOUNT_LOCKED",
+        "DB_CONNECTION_CONFIG_ERROR",
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "추정",
+      "expected_diagnosis_level_v1": "추정",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "NOT_CALLABLE",
+      "required_tools": [],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 0,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "DB_CREDENTIAL_MISMATCH",
+      "original_v2_diagnosis_level": "추정",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 13.269,
+      "incident_domain": "DB"
+    },
+    {
+      "case_id": "D-06",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "actual_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "DB_CONNECTION_CONFIG_ERROR"
+      ],
+      "predicted_hypothesis_codes": [
+        "DB_CONNECTION_CONFIG_ERROR"
+      ],
+      "expected_hypothesis_codes": [
+        "DB_ACCOUNT_LOCKED",
+        "DB_CONNECTION_CONFIG_ERROR",
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "추정",
+      "expected_diagnosis_level_v1": "추정",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_db_status"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_db_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 1,
+      "revised": false,
+      "original_v2_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "original_v2_diagnosis_level": "추정",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 17.926,
+      "incident_domain": "DB"
+    },
+    {
+      "case_id": "S-01",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "TABLE_NOT_FOUND",
+      "actual_cause_code": "TABLE_NOT_FOUND",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "TABLE_NOT_FOUND"
+      ],
+      "predicted_hypothesis_codes": [
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "expected_hypothesis_codes": [
+        "COLUMN_NOT_FOUND",
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_sql_metadata"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status"
+      ],
+      "selected_tools": [
+        "check_sql_metadata"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "TABLE_NOT_FOUND",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 20.179,
+      "incident_domain": "SQL"
+    },
+    {
+      "case_id": "S-02",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "COLUMN_NOT_FOUND",
+      "actual_cause_code": "COLUMN_NOT_FOUND",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "COLUMN_NOT_FOUND"
+      ],
+      "predicted_hypothesis_codes": [
+        "COLUMN_NOT_FOUND"
+      ],
+      "expected_hypothesis_codes": [
+        "COLUMN_NOT_FOUND",
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_sql_metadata"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status"
+      ],
+      "selected_tools": [
+        "check_sql_metadata"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "COLUMN_NOT_FOUND",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 20.939,
+      "incident_domain": "SQL"
+    },
+    {
+      "case_id": "S-03",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_SCHEMA",
+      "actual_cause_code": "INVALID_SCHEMA",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "predicted_hypothesis_codes": [
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "expected_hypothesis_codes": [
+        "COLUMN_NOT_FOUND",
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_sql_metadata"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status"
+      ],
+      "selected_tools": [
+        "check_sql_metadata"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_SCHEMA",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 19.459,
+      "incident_domain": "SQL"
+    },
+    {
+      "case_id": "S-04",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "TABLE_NOT_FOUND",
+      "actual_cause_code": "TABLE_NOT_FOUND",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "TABLE_NOT_FOUND"
+      ],
+      "predicted_hypothesis_codes": [
+        "TABLE_NOT_FOUND"
+      ],
+      "expected_hypothesis_codes": [
+        "COLUMN_NOT_FOUND",
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_sql_metadata"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status"
+      ],
+      "selected_tools": [
+        "check_sql_metadata"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "TABLE_NOT_FOUND",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 19.492,
+      "incident_domain": "SQL"
+    },
+    {
+      "case_id": "S-05",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "COLUMN_NOT_FOUND",
+      "actual_cause_code": "COLUMN_NOT_FOUND",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "COLUMN_NOT_FOUND"
+      ],
+      "predicted_hypothesis_codes": [
+        "COLUMN_NOT_FOUND",
+        "INVALID_SCHEMA"
+      ],
+      "expected_hypothesis_codes": [
+        "COLUMN_NOT_FOUND",
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_sql_metadata"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status"
+      ],
+      "selected_tools": [
+        "check_sql_metadata"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "COLUMN_NOT_FOUND",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 19.575,
+      "incident_domain": "SQL"
+    },
+    {
+      "case_id": "S-06",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_SCHEMA",
+      "actual_cause_code": "INVALID_SCHEMA",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "predicted_hypothesis_codes": [
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "expected_hypothesis_codes": [
+        "COLUMN_NOT_FOUND",
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "추정",
+      "expected_diagnosis_level_v1": "추정",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_sql_metadata"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status"
+      ],
+      "selected_tools": [
+        "check_sql_metadata"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 1,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_SCHEMA",
+      "original_v2_diagnosis_level": "추정",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 17.913,
+      "incident_domain": "SQL"
+    },
+    {
+      "case_id": "C-01",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "DB_ACCOUNT_LOCKED",
+      "actual_cause_code": "DB_ACCOUNT_LOCKED",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "DB_ACCOUNT_LOCKED"
+      ],
+      "predicted_hypothesis_codes": [
+        "DB_ACCOUNT_LOCKED"
+      ],
+      "expected_hypothesis_codes": [
+        "DB_ACCOUNT_LOCKED",
+        "DB_CONNECTION_CONFIG_ERROR",
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "NOT_NEEDED",
+      "required_tools": [],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_db_status"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 1,
+      "unnecessary_tool_rate": 1.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "DB_ACCOUNT_LOCKED",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 16.285,
+      "incident_domain": "COMPOSITE"
+    },
+    {
+      "case_id": "C-02",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_BUSINESS_DATE",
+      "actual_cause_code": "INVALID_BUSINESS_DATE",
+      "hypothesis_recall_hit": false,
+      "recalled_hypothesis_codes": [],
+      "predicted_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "expected_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_BUSINESS_DATE",
+        "INVALID_FILE_PATH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_file_status",
+        "validate_parameter"
+      ],
+      "expected_unnecessary_tools": [
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_file_status",
+        "validate_parameter"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 2,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_BUSINESS_DATE",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 29.493,
+      "incident_domain": "COMPOSITE"
+    },
+    {
+      "case_id": "C-03",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "TABLE_NOT_FOUND",
+      "actual_cause_code": "TABLE_NOT_FOUND",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "TABLE_NOT_FOUND"
+      ],
+      "predicted_hypothesis_codes": [
+        "TABLE_NOT_FOUND"
+      ],
+      "expected_hypothesis_codes": [
+        "DB_CREDENTIAL_MISMATCH",
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter"
+      ],
+      "selected_tools": [
+        "check_sql_metadata"
+      ],
+      "required_tool_recall": 0.5,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "TABLE_NOT_FOUND",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 21.192,
+      "incident_domain": "COMPOSITE"
+    },
+    {
+      "case_id": "C-04",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "TABLE_NOT_FOUND",
+      "actual_cause_code": "TABLE_NOT_FOUND",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "TABLE_NOT_FOUND"
+      ],
+      "predicted_hypothesis_codes": [
+        "TABLE_NOT_FOUND"
+      ],
+      "expected_hypothesis_codes": [
+        "DB_CREDENTIAL_MISMATCH",
+        "INVALID_SCHEMA",
+        "TABLE_NOT_FOUND"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter"
+      ],
+      "selected_tools": [
+        "check_sql_metadata"
+      ],
+      "required_tool_recall": 0.5,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 1,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "TABLE_NOT_FOUND",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 17.915,
+      "incident_domain": "COMPOSITE"
+    },
+    {
+      "case_id": "C-05",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "FILE_NOT_RECEIVED",
+      "actual_cause_code": "FILE_NOT_RECEIVED",
+      "hypothesis_recall_hit": true,
+      "recalled_hypothesis_codes": [
+        "FILE_NOT_RECEIVED"
+      ],
+      "predicted_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH",
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "expected_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_BUSINESS_DATE",
+        "INVALID_FILE_PATH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "추정",
+      "expected_diagnosis_level_v1": "추정",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "NOT_CALLABLE",
+      "required_tools": [],
+      "expected_unnecessary_tools": [
+        "check_file_status",
+        "validate_parameter",
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 0,
+      "tool_failure_count": 0,
+      "revised": false,
+      "original_v2_cause_code": "FILE_NOT_RECEIVED",
+      "original_v2_diagnosis_level": "추정",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 17.499,
+      "incident_domain": "COMPOSITE"
+    },
+    {
+      "case_id": "C-06",
+      "final_diagnosis_correct": true,
+      "predicted_final_cause_code": "INVALID_BUSINESS_DATE",
+      "actual_cause_code": "INVALID_BUSINESS_DATE",
+      "hypothesis_recall_hit": false,
+      "recalled_hypothesis_codes": [],
+      "predicted_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "expected_hypothesis_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_BUSINESS_DATE",
+        "INVALID_FILE_PATH"
+      ],
+      "diagnosis_level_correct": true,
+      "predicted_diagnosis_level": "확인됨",
+      "expected_diagnosis_level_v1": "확인됨",
+      "owner_correct": true,
+      "predicted_owner": "BATCH_OPERATION",
+      "expected_owner": "BATCH_OPERATION",
+      "tool_necessity": "REQUIRED",
+      "required_tools": [
+        "check_file_status",
+        "validate_parameter"
+      ],
+      "expected_unnecessary_tools": [
+        "check_db_status",
+        "check_sql_metadata"
+      ],
+      "selected_tools": [
+        "check_file_status",
+        "validate_parameter"
+      ],
+      "required_tool_recall": 1.0,
+      "unnecessary_tool_count": 0,
+      "unnecessary_tool_rate": 0.0,
+      "tool_call_count": 2,
+      "tool_failure_count": 1,
+      "revised": false,
+      "original_v2_cause_code": "INVALID_BUSINESS_DATE",
+      "original_v2_diagnosis_level": "확인됨",
+      "original_v2_owner": "BATCH_OPERATION",
+      "critic_verdict": "PASS",
+      "run_status": "success",
+      "elapsed_seconds": 22.447,
+      "incident_domain": "COMPOSITE"
+    }
+  ],
+  "required_tool_recall": 0.9666666666666667,
+  "unnecessary_tool_rate": 0.06666666666666667,
+  "average_tool_calls": 1.0333333333333334,
+  "tool_failure_count": 5,
+  "critic_revision_count": 1,
+  "unnecessary_revision_rate": 0.0,
+  "critic_revision_precision": 0.0,
+  "average_elapsed_seconds": 20.201,
+  "timing_note": "local/mock PoC 측정값이며 운영 장애 분석 시간 절감을 의미하지 않습니다.",
+  "model": "gpt-4.1",
+  "official_analysis": {
+    "base_main_sha": "93704782f1dc03035e7c2e59db50577572618def",
+    "command": "python3 evaluation/run_evaluation.py --versions v3",
+    "net_corrected_cases": 0,
+    "regression_cases": 0,
+    "failed_evidence_misuse": 0,
+    "critic_behavior": {
+      "PASS + V2 correct": 27,
+      "PASS + V2 wrong": 2,
+      "REVISE + corrected": 0,
+      "REVISE + unchanged": 1,
+      "REVISE + regression": 0,
+      "REVISE + still wrong": 0
+    },
+    "revise_cases": [
+      "F-05"
+    ],
+    "pass_and_v2_wrong": [
+      "F-02",
+      "F-04"
+    ],
+    "note": "official_analysis는 저장된 30건 결과에서 후집계했다. 기존 metric 키 값은 run_evaluation 산출을 그대로 둔다."
+  }
+}

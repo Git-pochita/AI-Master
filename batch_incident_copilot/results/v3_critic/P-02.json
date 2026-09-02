@@ -1,0 +1,243 @@
+{
+  "version": "v3",
+  "case_id": "P-02",
+  "summary": "DAILY_STORE_CLOSE 배치 잡 실행 시 필수 파라미터인 store_id가 제공되지 않아 작업이 실패하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_STORE_CLOSE",
+    "error_messages": [
+      "required parameter was not supplied: store_id"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "MISSING_REQUIRED_PARAMETER",
+      "cause_name": "필수 파라미터 누락",
+      "evidence": [
+        "2026-09-01 06:10:02 ERROR required parameter was not supplied: store_id",
+        "2026-09-01 06:10:03 ERROR job failed with return_code=12"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "MISSING_REQUIRED_PARAMETER",
+      "cause_name": "필수 파라미터 누락",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "2026-09-01 06:10:02 ERROR required parameter was not supplied: store_id",
+        "validate_parameter 결과: provided=false, is_valid=false"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "필수 파라미터 store_id가 누락되었는지 확인한다.",
+      "candidate_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_STORE_CLOSE",
+        "parameter_name": "store_id",
+        "parameter_value": ""
+      },
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "MISSING_REQUIRED_PARAMETER"
+      ],
+      "status": "executed"
+    }
+  ],
+  "unresolved_questions": [
+    "store_id 파라미터가 실제로 누락되었는지 확인이 필요하다."
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "DAILY_STORE_CLOSE 잡 실행 시 store_id 파라미터가 누락되었는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "DAILY_STORE_CLOSE 잡 실행 시 store_id 파라미터가 누락되었는지 확인한다.",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "DAILY_STORE_CLOSE",
+            "parameter_name": "store_id",
+            "parameter_value": ""
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "MISSING_REQUIRED_PARAMETER"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "MISSING_REQUIRED_PARAMETER",
+          "cause_name": "필수 파라미터 누락",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 06:10:02 ERROR required parameter was not supplied: store_id",
+            "2026-09-01 06:10:03 ERROR job failed with return_code=12"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "store_id 파라미터가 실제로 누락되었는지 확인이 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_STORE_CLOSE",
+        "parameter_name": "store_id",
+        "parameter_value": ""
+      },
+      "reason": "로그에 'required parameter was not supplied: store_id'라는 명확한 신호가 있으므로, store_id 파라미터 누락 여부를 validate_parameter Tool로 확인해야 한다.",
+      "evidence_summary": {
+        "job_name": "DAILY_STORE_CLOSE",
+        "parameter_name": "store_id",
+        "parameter_value": null,
+        "expected_value": "ST001",
+        "is_valid": false,
+        "format_valid": null,
+        "range_valid": null,
+        "rule": "DAILY_STORE_CLOSE의 store_id는 필수이며 ST### 형식이어야 한다.",
+        "job_run_date": null,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "validate_parameter",
+        "status": "SUCCESS",
+        "data": {
+          "job_name": "DAILY_STORE_CLOSE",
+          "parameter_name": "store_id",
+          "parameter_value": null,
+          "required": true,
+          "provided": false,
+          "format_valid": null,
+          "range_valid": null,
+          "expected_value": "ST001",
+          "allowed_values": null,
+          "min": null,
+          "max": null,
+          "is_valid": false,
+          "rule": "DAILY_STORE_CLOSE의 store_id는 필수이며 ST### 형식이어야 한다.",
+          "job_run_date": null
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "필수 파라미터 store_id가 누락되었는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "필수 파라미터 store_id가 누락되었는지 확인한다.",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "DAILY_STORE_CLOSE",
+            "parameter_name": "store_id",
+            "parameter_value": ""
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "MISSING_REQUIRED_PARAMETER"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "MISSING_REQUIRED_PARAMETER",
+          "cause_name": "필수 파라미터 누락",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "2026-09-01 06:10:02 ERROR required parameter was not supplied: store_id",
+            "validate_parameter 결과: provided=false, is_valid=false"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "store_id 파라미터가 실제로 누락되었는지 확인이 필요하다."
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "로그와 validate_parameter Tool 결과로 store_id 필수 파라미터가 제공되지 않아 실패한 것이 명확히 확인되어 추가 조사가 불필요합니다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "로그에 'required parameter was not supplied: store_id'라는 명확한 신호가 있으므로, store_id 파라미터 누락 여부를 validate_parameter Tool로 확인해야 한다.",
+      "arguments": {
+        "job_name": "DAILY_STORE_CLOSE",
+        "parameter_name": "store_id",
+        "parameter_value": ""
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_STORE_CLOSE",
+        "parameter_name": "store_id",
+        "parameter_value": null,
+        "required": true,
+        "provided": false,
+        "format_valid": null,
+        "range_valid": null,
+        "expected_value": "ST001",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "DAILY_STORE_CLOSE의 store_id는 필수이며 ST### 형식이어야 한다.",
+        "job_run_date": null
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "MISSING_REQUIRED_PARAMETER",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "MISSING_REQUIRED_PARAMETER",
+  "final_cause_name": "필수 파라미터 누락",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과에서 store_id 파라미터가 required=true, provided=false, is_valid=false로 확인됨",
+    "로그에서 'required parameter was not supplied: store_id' 메시지 확인",
+    "로그에서 return_code=12로 작업 실패 확인"
+  ],
+  "limitations": [
+    "store_id 파라미터가 누락된 원인(스케줄러 설정, 사용자 입력 등)은 추가 확인이 필요함"
+  ],
+  "recommended_actions": [
+    "DAILY_STORE_CLOSE 잡 실행 시 store_id 파라미터가 반드시 제공되도록 스케줄러 또는 호출 시스템 설정을 점검하십시오.",
+    "파라미터 누락 시 사전 검증 및 알림 기능을 추가하여 유사 오류를 예방하십시오."
+  ]
+}

@@ -20,8 +20,10 @@ V2 refined 리포트: `evaluation/reports/v1_vs_v2_refined.md`
 - V2 Dynamic Planning / Re-planning 완료 (`app/planning.py`, `diagnose_v2()`, `--version v2`)
 - V2 1차 공식 30건 평가 완료 (`v2_summary.json`, `v1_vs_v2.md`) — 보존
 - V2 refined 평가 완료 (`v2_refined_summary.json`, `v1_vs_v2_refined.md`)
-- failed_runs = 0 (V0/V1/V2 1차/V2 refined)
-- pytest 125 passed (Agent Event Log merge 시점, PR #14)
+- V3 Critic / Reflection 구현 완료 및 freeze (PR #16)
+- V3 official 30-case 평가 완료 (`v3_summary.json`, `v2_refined_vs_v3.md`) — Accuracy 93.3% (28/30), F-02/F-04 미교정, Regression 0
+- failed_runs = 0 (V0/V1/V2 1차/V2 refined/V3)
+- pytest 164 passed (V3 implementation merge 시점, PR #16)
 
 ## 공식 30건 평가 결과
 
@@ -30,6 +32,7 @@ V2 refined 리포트: `evaluation/reports/v1_vs_v2_refined.md`
 - V0/V1: `evaluation/reports/v0_summary.json`, `v1_summary.json`, `v0_vs_v1.md`
 - V2 1차: `evaluation/reports/v2_summary.json`, `v1_vs_v2.md`
 - V2 refined: `evaluation/reports/v2_refined_summary.json`, `v1_vs_v2_refined.md`
+- V3 official: `evaluation/reports/v3_summary.json`, `v2_refined_vs_v3.md`
 
 모델: Azure OpenAI `gpt-4.1`
 
@@ -70,7 +73,8 @@ V2 1차에서 FILE 케이스에 붙었던 불필요 `validate_parameter`는 refi
 3. V2 1차 30건 평가 — 완료, 리포트 보존 (PR #11)
 4. V2 refined (concrete-signal 추가 조사 가드) — 완료 (PR #12)
 5. V3 Critic / Reflection 설계 — 완료 ([`v3_critic_reflection_design.md`](v3_critic_reflection_design.md))
-6. **다음 작업: V3 Critic / Reflection 구현** — 미착수
+6. V3 Critic / Reflection 구현 — 완료 (PR #16)
+7. V3 official 30-case 평가 — 완료 (`v3_summary.json`, `v2_refined_vs_v3.md`)
 
 V3에서 다룰 것:
 

@@ -1,0 +1,244 @@
+{
+  "version": "v3",
+  "case_id": "C-03",
+  "summary": "배치 잡 DAILY_SALES_FACT_LOAD 실행 중 SALES.SALES_FACT 테이블이 존재하지 않아 ORA-00942 오류가 발생하였고, 잡이 실패(return_code=12)하였습니다. check_sql_metadata SUCCESS 결과에서 SALES 스키마는 존재하지만 SALES_FACT 테이블은 존재하지 않음이 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_FACT_LOAD",
+    "connection_name": "SALES_DB",
+    "account": "etl_user",
+    "schema": "SALES",
+    "table": "SALES_FACT",
+    "sql": "SELECT STORE_CD FROM SALES.SALES_FACT",
+    "error_messages": [
+      "ORA-00942: table or view does not exist",
+      "table not found: SALES.SALES_FACT"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 08:20:05 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 08:20:05 ERROR table not found: SALES.SALES_FACT"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "2026-09-01 08:20:05 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 08:20:05 ERROR table not found: SALES.SALES_FACT",
+        "check_sql_metadata 결과: schema_exists=true, table_exists=false"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "테이블 SALES.SALES_FACT의 존재 여부를 확인하여 '테이블 없음' 오류의 근거를 확보한다.",
+      "candidate_tool": "check_sql_metadata",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_FACT",
+        "column": null,
+        "job_name": "DAILY_SALES_FACT_LOAD",
+        "connection_name": "SALES_DB",
+        "account": "etl_user"
+      },
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "TABLE_NOT_FOUND"
+      ],
+      "status": "executed"
+    }
+  ],
+  "unresolved_questions": [
+    "SALES.SALES_FACT 테이블이 실제로 존재하지 않는지 여부"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "SALES.SALES_FACT 테이블이 실제로 존재하지 않는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "SALES.SALES_FACT 테이블이 실제로 존재하지 않는지 확인한다.",
+          "candidate_tool": "check_sql_metadata",
+          "arguments": {
+            "schema": "SALES",
+            "table": "SALES_FACT",
+            "column": null
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "TABLE_NOT_FOUND"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 08:20:05 ERROR ORA-00942: table or view does not exist",
+            "2026-09-01 08:20:05 ERROR table not found: SALES.SALES_FACT"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "SALES.SALES_FACT 테이블이 실제로 존재하지 않는지 여부"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_sql_metadata",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_FACT",
+        "column": null,
+        "job_name": "DAILY_SALES_FACT_LOAD",
+        "connection_name": "SALES_DB",
+        "account": "etl_user"
+      },
+      "reason": "로그에 테이블 없음 오류가 명시되어 있으므로, 실제로 해당 테이블이 존재하지 않는지 check_sql_metadata로 확인이 필요하다.",
+      "evidence_summary": {
+        "schema": "SALES",
+        "table": "SALES_FACT",
+        "column": null,
+        "schema_exists": true,
+        "table_exists": false,
+        "column_exists": null,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_sql_metadata",
+        "status": "SUCCESS",
+        "data": {
+          "schema": "SALES",
+          "table": "SALES_FACT",
+          "column": null,
+          "schema_exists": true,
+          "table_exists": false,
+          "column_exists": null
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "테이블 SALES.SALES_FACT의 존재 여부를 확인하여 '테이블 없음' 오류의 근거를 확보한다.",
+      "investigation_plan": [
+        {
+          "goal": "테이블 SALES.SALES_FACT의 존재 여부를 확인하여 '테이블 없음' 오류의 근거를 확보한다.",
+          "candidate_tool": "check_sql_metadata",
+          "arguments": {
+            "schema": "SALES",
+            "table": "SALES_FACT",
+            "column": null,
+            "job_name": "DAILY_SALES_FACT_LOAD",
+            "connection_name": "SALES_DB",
+            "account": "etl_user"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "TABLE_NOT_FOUND"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "2026-09-01 08:20:05 ERROR ORA-00942: table or view does not exist",
+            "2026-09-01 08:20:05 ERROR table not found: SALES.SALES_FACT",
+            "check_sql_metadata 결과: schema_exists=true, table_exists=false"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "SALES.SALES_FACT 테이블이 실제로 존재하지 않는지 여부"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "로그의 ORA-00942 오류와 check_sql_metadata에서 해당 테이블이 존재하지 않음이 확인되어 근본 원인 판단에 충분한 증거가 확보되었습니다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그에 테이블 없음 오류가 명시되어 있으므로, 실제로 해당 테이블이 존재하지 않는지 check_sql_metadata로 확인이 필요하다.",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_FACT",
+        "column": null,
+        "job_name": "DAILY_SALES_FACT_LOAD",
+        "connection_name": "SALES_DB",
+        "account": "etl_user"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "SALES",
+        "table": "SALES_FACT",
+        "column": null,
+        "schema_exists": true,
+        "table_exists": false,
+        "column_exists": null
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "TABLE_NOT_FOUND",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "TABLE_NOT_FOUND",
+  "final_cause_name": "테이블 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 08:20:05 ERROR ORA-00942: table or view does not exist",
+    "2026-09-01 08:20:05 ERROR table not found: SALES.SALES_FACT",
+    "check_sql_metadata SUCCESS 결과: schema_exists=true, table_exists=false"
+  ],
+  "limitations": [
+    "테이블이 왜 존재하지 않는지(삭제, 미생성, 권한 문제 등)에 대한 추가 정보는 없음"
+  ],
+  "recommended_actions": [
+    "SALES 스키마 내 SALES_FACT 테이블 생성 여부를 확인하고, 필요시 테이블을 생성하거나 테이블명/스키마명을 재검토하십시오.",
+    "테이블 생성/복구 작업 후 배치 잡을 재실행하십시오."
+  ]
+}
