@@ -26,15 +26,21 @@
 
 조사 원칙:
 1. 초기 가설을 우선 점검하되, 초기 가설에 없는 Canonical Cause Code도 로그 또는 SUCCESS evidence 신호가 있으면 working hypothesis로 채택(adopted)할 수 있습니다.
-2. 표면 증상과 근본 원인을 구분하십시오. 파일 미존재 SUCCESS(exists=false, received=false)만으로는 미수신/경로 오류/실행일자 오류를 가르지 못합니다. 그 경우 evidence_sufficient는 false입니다.
-3. 로그에 job 이름, business_date, 날짜가 들어간 입력 파일 경로가 함께 있으면, 파일 점검 이후에도 파라미터 값이 검증되지 않았다면 validate_parameter 추가 조사를 고려하십시오.
-4. 로그만으로 원인 근거가 이미 충분하면 Tool을 고르지 말고 evidence_sufficient=true로 두십시오.
-5. 필수 인자가 로그/extracted_info/SUCCESS data에 없으면 그 Tool을 고르지 마십시오.
-6. check_db_status는 connection_name과 account가 모두 필요합니다.
-7. 이미 실행한 (tool + arguments) 조합은 다시 고르지 마십시오. 같은 Tool이어도 인자가 다르면 허용됩니다.
-8. 한 번에 Tool 하나만 선택합니다.
-9. 현재 SUCCESS evidence로 근본 원인을 가를 수 있으면 selected_tool은 null, evidence_sufficient는 true입니다.
-10. FAILED Tool은 조사 실패일 뿐 원인 근거가 아닙니다. 다른 호출 가능한 점검이 있으면 그것을 고르십시오.
+2. 표면 증상과 근본 원인을 구분하십시오. 추가 Tool은 "호출할 수 있다"는 이유만으로 고르지 마십시오.
+3. 이미 Tool을 실행한 뒤 추가 Tool을 고르려면 아래를 모두 충족해야 합니다.
+   (a) 현재 SUCCESS evidence만으로 남아 있는 주요 가설을 구분할 수 없다.
+   (b) 실제 unresolved question이 남아 있다. 근거 없는 가설을 배제하기 위한 탐색적 호출은 unresolved가 아니다.
+   (c) 그 추가 Tool 결과가 해당 unresolved question을 판별할 수 있다.
+   (d) 로그 또는 extracted_info에 그 추가 가설을 지지하는 concrete signal이 있다. 필드가 존재한다는 것만으로는 signal이 아니다.
+4. validate_parameter를 추가 호출하려면 파라미터 이상 concrete signal이 있어야 합니다. 로그 타임스탬프의 실행일(YYYY-MM-DD)을 YYYYMMDD로 바꾼 값과 business_date(또는 동등한 일자 값)가 서로 다르면 그 자체가 signal입니다. 로그가 파라미터 거부/형식 오류/expected와 actual 불일치를 명시한 경우도 signal입니다. 이 signal이 있고 아직 validate_parameter를 실행하지 않았다면 evidence_sufficient는 false로 두고 validate_parameter를 고르십시오. job 이름과 일자 필드가 함께 있다는 것만으로는 부족합니다.
+5. 파일 점검 이후 남은 질문이 파일 미수신과 경로 오류의 해석뿐이고 파라미터 이상 concrete signal이 없으면 추가 Tool을 고르지 마십시오. FILE SUCCESS data는 Finalizer가 보므로, 그 해석을 위해 파라미터 Tool로 넘어가지 마십시오.
+6. 로그만으로 원인 근거가 이미 충분하면 Tool을 고르지 말고 evidence_sufficient=true로 두십시오.
+7. 필수 인자가 로그/extracted_info/SUCCESS data에 없으면 그 Tool을 고르지 마십시오.
+8. check_db_status는 connection_name과 account가 모두 필요합니다.
+9. 이미 실행한 (tool + arguments) 조합은 다시 고르지 마십시오. 같은 Tool이어도 인자가 다르면 허용됩니다.
+10. 한 번에 Tool 하나만 선택합니다.
+11. 현재 SUCCESS evidence로 근본 원인을 가를 수 있으면 selected_tool은 null, evidence_sufficient는 true입니다. 가를 수 없어도 추가 조사 조건이 안 되면 selected_tool은 null입니다.
+12. FAILED Tool은 원인 근거가 아닙니다. 다른 Tool을 고르려면 그 가설을 지지하는 concrete signal이 있어야 합니다. 단순히 다른 Tool이 호출 가능하다는 이유만으로 고르지 마십시오.
 
 cause_code는 Canonical Cause Code Vocabulary 중 하나만 사용합니다.
 

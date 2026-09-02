@@ -12,8 +12,10 @@ if str(PROJECT_ROOT) not in sys.path:
 from app.planning import (
     MAX_PLANNING_ROUNDS,
     MAX_TOOL_CALLS,
+    additional_investigation_justified,
     complete_v2_arguments,
     diagnose_v2,
+    has_parameter_anomaly_signal,
     tool_fingerprint,
 )
 from app.schemas import (
@@ -458,6 +460,137 @@ def test_v2_analyze_builds_planning_events(monkeypatch):
     assert outcome.trace["planning_trace"][0]["round_index"] == 1
     assert outcome.trace["stop_reason"] == "EVIDENCE_SUFFICIENT"
     assert outcome.result["selected_tools"][0]["selected_tool"] == "check_file_status"
+
+
+def test_parameter_anomaly_signal_requires_mismatch_not_field_presence():
+    mismatch_log = (PROJECT_ROOT / "data" / "sample_logs" / "F-05.log").read_text(
+        encoding="utf-8"
+    )
+    matched_log = (PROJECT_ROOT / "data" / "sample_logs" / "F-01.log").read_text(
+        encoding="utf-8"
+    )
+    assert has_parameter_anomaly_signal(
+        mismatch_log,
+        {"job_name": "DAILY_SALES_LOAD", "business_date": "20260831"},
+    )
+    assert not has_parameter_anomaly_signal(
+        matched_log,
+        {"job_name": "DAILY_ORDERS_LOAD", "business_date": "20260901"},
+    )
+    assert has_parameter_anomaly_signal(
+        "ERROR parameter rejected: business_date=20260831\n",
+        {"business_date": "20260831"},
+    )
+
+
+def test_additional_validate_parameter_blocked_without_signal(monkeypatch):
+    log_text = (PROJECT_ROOT / "data" / "sample_logs" / "F-01.log").read_text(
+        encoding="utf-8"
+    )
+    monkeypatch.setattr(
+        "app.planning.diagnose",
+        lambda *_a, **_k: _v0_result(
+            extracted={
+                "job_name": "DAILY_ORDERS_LOAD",
+                "business_date": "20260901",
+                "input_path": "/data/in/orders/orders_20260901.csv",
+            }
+        ),
+    )
+    calls = {"n": 0}
+
+    def planner(**_kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _plan(
+                "check_file_status",
+                {"path": "/data/in/orders/orders_20260901.csv"},
+                goal="파일 확인",
+            )
+        return _plan(
+            "validate_parameter",
+            {
+                "job_name": "DAILY_ORDERS_LOAD",
+                "parameter_name": "business_date",
+                "parameter_value": "20260901",
+            },
+            goal="파라미터 추가 점검",
+        )
+
+    result = diagnose_v2(
+        log_text,
+        case_id="unit",
+        plan_fn=planner,
+        finalize_fn=lambda *_a, **_k: _final_payload(),
+    )
+    tools = [item.selected_tool for item in result.selected_tools]
+    assert tools == ["check_file_status"]
+    assert all(item.tool != "validate_parameter" for item in result.tool_results)
+    assert "concrete signal" in result.planning_trace[-1].reason
+
+
+def test_additional_validate_parameter_allowed_with_date_mismatch(monkeypatch):
+    monkeypatch.setattr("app.planning.diagnose", lambda *_a, **_k: _v0_result())
+    calls = {"n": 0}
+
+    def planner(**_kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _plan(
+                "check_file_status",
+                {"path": "/data/in/sales_20260831.csv"},
+                goal="파일 확인",
+            )
+        return _plan(
+            "validate_parameter",
+            {
+                "job_name": "DAILY_SALES_LOAD",
+                "parameter_name": "business_date",
+                "parameter_value": "20260831",
+            },
+            goal="실행일자 검증",
+        )
+
+    result = diagnose_v2(
+        F05_LOG,
+        case_id="unit",
+        plan_fn=planner,
+        finalize_fn=lambda *_a, **_k: _final_payload("INVALID_BUSINESS_DATE"),
+    )
+    tools = [item.selected_tool for item in result.selected_tools]
+    assert tools == ["check_file_status", "validate_parameter"]
+    assert additional_investigation_justified(
+        "validate_parameter",
+        F05_LOG,
+        {"business_date": "20260831"},
+        result.tool_results[:1],
+    )
+
+
+def test_injects_validate_parameter_when_planner_stops_despite_mismatch(monkeypatch):
+    monkeypatch.setattr("app.planning.diagnose", lambda *_a, **_k: _v0_result())
+    calls = {"n": 0}
+
+    def planner(**_kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _plan(
+                "check_file_status",
+                {"path": "/data/in/sales_20260831.csv"},
+                goal="파일 확인",
+            )
+        return _plan(sufficient=True, goal="조기 종료")
+
+    result = diagnose_v2(
+        F05_LOG,
+        case_id="unit",
+        plan_fn=planner,
+        finalize_fn=lambda *_a, **_k: _final_payload("INVALID_BUSINESS_DATE"),
+    )
+    tools = [item.selected_tool for item in result.selected_tools]
+    assert tools == ["check_file_status", "validate_parameter"]
+    assert result.tool_results[1].status == "SUCCESS"
+    assert result.tool_results[1].data["is_valid"] is False
 
 
 def test_complete_v2_arguments_uses_extracted_aliases():
