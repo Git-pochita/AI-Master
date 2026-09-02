@@ -1,5 +1,7 @@
 """V3 Critic: V2 최종 진단을 관찰 가능한 evidence로 독립 검증한다.
 
+V3.1: Structured Evidence Comparison으로 SUCCESS 필드를 비교하기 쉽게 정리한다.
+원인 코드는 이 레이어가 결정하지 않는다.
 추가 Tool을 실행하지 않는다. GT/case_id/planner rationale을 입력하지 않는다.
 """
 
@@ -11,6 +13,7 @@ from typing import Any, Callable
 from pydantic import BaseModel, Field
 
 from app.cause_codes import CANONICAL_CAUSE_CODES, validate_cause_code, vocabulary_prompt_block
+from app.evidence_comparison import build_evidence_comparison, comparison_payload
 from app.schemas import (
     CriticIssue,
     CriticIssueType,
@@ -41,6 +44,7 @@ CRITIC_ALLOWED_KEYS = (
     "owner",
     "evidence",
     "success_tool_results",
+    "evidence_comparison",
     "canonical_causes",
     "log",
 )
@@ -63,6 +67,12 @@ def build_critic_input(
     v2: V2DiagnosisResult,
 ) -> dict[str, Any]:
     """Allowlist only. denylist 키가 있으면 안 된다."""
+    comparison = build_evidence_comparison(
+        current_cause_code=v2.final_cause_code,
+        tool_results=v2.tool_results,
+        log_text=log_text,
+        extracted_info=v2.extracted_info,
+    )
     payload = {
         "extracted_info": v2.extracted_info,
         "final_cause_code": v2.final_cause_code,
@@ -70,6 +80,7 @@ def build_critic_input(
         "owner": v2.owner,
         "evidence": list(v2.evidence or []),
         "success_tool_results": success_tool_payloads(v2.tool_results),
+        "evidence_comparison": comparison_payload(comparison),
         "canonical_causes": sorted(CANONICAL_CAUSE_CODES),
         "log": log_text,
     }
@@ -146,17 +157,25 @@ def alternative_supported_by_observable(
     extracted_info: dict[str, Any],
     tool_results: list[ToolResult],
     related_evidence: list[str],
+    current_cause: str | None = None,
 ) -> bool:
     try:
         validate_cause_code(recommended_cause)
     except ValueError:
         return False
     success = supporting_tool_results(tool_results)
+    comparison = build_evidence_comparison(
+        current_cause_code=current_cause or recommended_cause,
+        tool_results=tool_results,
+        log_text=log_text,
+        extracted_info=extracted_info,
+    )
     haystack = json.dumps(
         {
             "log": log_text,
             "extracted_info": extracted_info,
             "success_tool_results": [item.model_dump() for item in success],
+            "evidence_comparison": comparison_payload(comparison),
         },
         ensure_ascii=False,
     )
@@ -194,6 +213,7 @@ def cause_revision_allowed(
         extracted_info=extracted_info,
         tool_results=tool_results,
         related_evidence=related,
+        current_cause=current_cause,
     )
 
 

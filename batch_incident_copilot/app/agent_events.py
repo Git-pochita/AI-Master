@@ -51,6 +51,7 @@ STEP_LABELS: dict[str, str] = {
     "tool_call_limit": "Tool Call Limit",
     "duplicate_tool_blocked": "Duplicate Tool Blocked",
     "critic_check": "Critic Check",
+    "evidence_comparison": "Evidence Comparison",
     "evidence_consistency": "Evidence Consistency",
     "revision_requested": "Revision Requested",
     "reflection": "Reflection",
@@ -625,6 +626,34 @@ def _issue_types(issues: list) -> list[str]:
     return names
 
 
+def _comparison_counts(payload: dict[str, Any]) -> dict[str, int]:
+    from app.evidence_comparison import build_evidence_comparison
+    from app.schemas import ToolResult
+
+    tools: list[ToolResult] = []
+    for item in payload.get("tool_results") or []:
+        if isinstance(item, ToolResult):
+            tools.append(item)
+        elif isinstance(item, dict):
+            tools.append(ToolResult.model_validate(item))
+    current = str(
+        payload.get("original_v2_cause_code") or payload.get("final_cause_code") or ""
+    )
+    comparison = build_evidence_comparison(
+        current_cause_code=current,
+        tool_results=tools,
+        extracted_info=payload.get("extracted_info") or {},
+    )
+    return {
+        "supporting_count": len(comparison.supporting_observations),
+        "potentially_conflicting_count": len(
+            comparison.potentially_conflicting_observations
+        ),
+        "strong_causal_count": len(comparison.strong_causal_observations),
+        "surface_symptom_count": len(comparison.surface_symptoms),
+    }
+
+
 def _v3_critic_events(payload: dict[str, Any]) -> list[AgentEvent]:
     source = "v3"
     critic = _critic_payload(payload)
@@ -632,6 +661,13 @@ def _v3_critic_events(payload: dict[str, Any]) -> list[AgentEvent]:
     issues = critic.get("issues") or []
     issue_types = _issue_types(issues)
     events = [
+        _event(
+            component="Evaluation",
+            step="evidence_comparison",
+            summary="관찰 가능한 evidence를 비교용 구조로 정리했습니다.",
+            metadata=_comparison_counts(payload),
+            source=source,
+        ),
         _event(
             component="Feedback",
             step="critic_check",
