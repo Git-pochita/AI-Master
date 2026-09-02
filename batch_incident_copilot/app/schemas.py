@@ -285,3 +285,76 @@ class AgentEvent(BaseModel):
     round: Optional[int] = None
     status: Optional[str] = None
     source: Optional[str] = None
+
+
+class CriticIssueType(str, Enum):
+    EVIDENCE_CONFLICT = "EVIDENCE_CONFLICT"
+    BETTER_SUPPORTED_CAUSE = "BETTER_SUPPORTED_CAUSE"
+    FAILED_EVIDENCE_USED = "FAILED_EVIDENCE_USED"
+    DIAGNOSIS_LEVEL_TOO_HIGH = "DIAGNOSIS_LEVEL_TOO_HIGH"
+    DIAGNOSIS_LEVEL_TOO_LOW = "DIAGNOSIS_LEVEL_TOO_LOW"
+    OWNER_MISMATCH = "OWNER_MISMATCH"
+
+
+class CriticIssue(BaseModel):
+    issue_type: CriticIssueType
+    description: str
+    related_evidence: list[str] = Field(default_factory=list)
+    blocking: bool = True
+
+
+class CriticResult(BaseModel):
+    verdict: Literal["PASS", "REVISE"]
+    evidence_consistent: bool
+    diagnosis_level_appropriate: bool
+    owner_consistent: bool
+    issues: list[CriticIssue] = Field(default_factory=list)
+    recommended_cause_code: Optional[str] = None
+    recommended_diagnosis_level: Optional[Literal["추정", "가능성 높음", "확인됨"]] = None
+    recommended_owner: Optional[str] = None
+    revision_reason: str = ""
+
+    @field_validator("recommended_cause_code")
+    @classmethod
+    def recommended_cause_canonical(cls, value: Optional[str]) -> Optional[str]:
+        if value is None or str(value).strip() == "":
+            return None
+        return validate_cause_code(value.strip())
+
+
+class V3DiagnosisResult(BaseModel):
+    version: Literal["v3"] = "v3"
+    case_id: Optional[str] = None
+    summary: str = ""
+    extracted_info: dict[str, Any] = Field(default_factory=dict)
+    initial_hypotheses: list[Hypothesis]
+    working_hypotheses: list[HypothesisState] = Field(default_factory=list)
+    investigation_plan: list[InvestigationStep] = Field(default_factory=list)
+    unresolved_questions: list[str] = Field(default_factory=list)
+    current_round: int = 0
+    stop_reason: StopReason
+    planning_trace: list[PlanningRound] = Field(default_factory=list)
+    selected_tools: list[ToolSelection] = Field(default_factory=list)
+    tool_results: list[ToolResult] = Field(default_factory=list)
+    critic_result: CriticResult
+    revised: bool
+    original_v2_cause_code: str
+    original_v2_diagnosis_level: str
+    original_v2_owner: str
+    final_cause_code: str
+    final_cause_name: str
+    diagnosis_level: Literal["추정", "가능성 높음", "확인됨"]
+    owner: str
+    evidence: list[str]
+    limitations: list[str]
+    recommended_actions: list[str] = Field(default_factory=list)
+
+    @field_validator("final_cause_code", "original_v2_cause_code")
+    @classmethod
+    def v3_cause_canonical(cls, value: str) -> str:
+        code = value.strip()
+        if not CAUSE_CODE_PATTERN.fullmatch(code):
+            raise ValueError(
+                "cause_code는 UPPER_SNAKE_CASE여야 합니다. 예: INVALID_FILE_PATH"
+            )
+        return validate_cause_code(code)

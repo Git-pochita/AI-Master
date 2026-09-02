@@ -28,6 +28,7 @@ MODE_OPTIONS = {
     "V0 Baseline": "v0",
     "V1 Tool Use": "v1",
     "V2 Dynamic Planning": "v2",
+    "V3 Critic / Reflection": "v3",
 }
 
 mode_label = st.radio(
@@ -41,8 +42,10 @@ if version == "v0":
     st.info("V0: 로그만 이용해 원인을 추정하는 Baseline")
 elif version == "v1":
     st.info("V1: LLM이 필요한 점검 Tool을 선택하고 Tool Evidence를 반영해 최종 진단")
-else:
+elif version == "v2":
     st.info("V2: 조사 계획을 세우고 evidence가 부족하면 Re-plan하여 추가 Tool을 실행")
+else:
+    st.info("V3: 동결된 V2 진단을 Critic이 검증하고, 필요할 때만 Reflection으로 1회 교정")
 
 uploaded = st.file_uploader("로그 파일 업로드 (.log, .txt)", type=["log", "txt"])
 pasted = st.text_area("로그 직접 입력", height=220, placeholder="배치 실행 로그를 붙여넣으십시오.")
@@ -347,6 +350,46 @@ def _render_v2_trace(payload: dict) -> None:
         st.write(f"**current_round:** {payload.get('current_round')}")
 
 
+def _render_v3_critic(payload: dict) -> None:
+    st.subheader("V3 Critic / Reflection")
+    st.caption("Critic 자유서술 reasoning은 표시하지 않습니다.")
+    critic = payload.get("critic_result") or {}
+    if not isinstance(critic, dict):
+        critic = critic.model_dump()
+    issues = critic.get("issues") or []
+    issue_types = []
+    for item in issues:
+        if isinstance(item, dict):
+            issue_types.append(item.get("issue_type"))
+        else:
+            value = getattr(item, "issue_type", None)
+            issue_types.append(value.value if hasattr(value, "value") else value)
+    with st.container(border=True):
+        st.markdown("**V2 Producer 결과**")
+        st.write(f"**Original V2 Cause:** `{payload.get('original_v2_cause_code')}`")
+        st.write(
+            f"**Original V2 Level:** `{payload.get('original_v2_diagnosis_level')}`"
+        )
+        st.write(f"**Original V2 Owner:** `{payload.get('original_v2_owner')}`")
+    with st.container(border=True):
+        st.markdown("**Critic**")
+        st.write(f"**verdict:** `{critic.get('verdict')}`")
+        st.write(f"**revised:** `{payload.get('revised')}`")
+        st.write(f"**issue types:** {issue_types or '[]'}")
+        st.write(f"**evidence_consistent:** `{critic.get('evidence_consistent')}`")
+        if issues:
+            for item in issues:
+                row = item if isinstance(item, dict) else item.model_dump()
+                st.write(
+                    f"- `{row.get('issue_type')}` blocking={row.get('blocking')}"
+                )
+    with st.container(border=True):
+        st.markdown("**Final V3 Cause**")
+        st.write(f"**Final V3 Cause:** `{payload.get('final_cause_code')}`")
+        st.write(f"**Final V3 Level:** `{payload.get('diagnosis_level')}`")
+        st.write(f"**owner:** `{payload.get('owner')}`")
+
+
 if started:
     log_text, filename, decode_error = _load_log()
     if decode_error:
@@ -368,8 +411,10 @@ if started:
             st.error(outcome.error)
             st.stop()
         payload = outcome.result or {}
-        if version == "v2":
+        if version in {"v2", "v3"}:
             _render_v2_trace(payload)
+            if version == "v3":
+                _render_v3_critic(payload)
         else:
             _render_execution_trace(outcome.trace, version)
         _render_agent_events(outcome.trace)
@@ -379,6 +424,6 @@ if started:
             _render_extracted(payload)
             st.markdown("초기 원인 가설")
             _render_hypotheses(payload)
-            if version in {"v1", "v2"}:
+            if version in {"v1", "v2", "v3"}:
                 st.markdown("점검 Tool 원본 결과")
                 _render_tools(payload)
