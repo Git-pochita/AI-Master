@@ -1,0 +1,281 @@
+{
+  "version": "v3",
+  "case_id": "P-03",
+  "summary": "DAILY_REGION_AGG 배치 잡 실행 시 region_code 파라미터가 'korea'로 입력되어 파라미터 형식 오류로 거절되었고, 잡이 실패(return_code=12)하였습니다. validate_parameter SUCCESS 결과에 따르면 region_code는 대문자 2자리 코드(KR/JP/US)만 허용되며, 'korea'는 형식에 맞지 않아 is_valid=false, format_valid=false로 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_REGION_AGG",
+    "region_code": "korea",
+    "error_messages": [
+      "parameter rejected: region_code=korea",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "evidence": [
+        "2026-09-01 06:20:02 ERROR parameter rejected: region_code=korea"
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_RANGE",
+      "cause_name": "파라미터 범위 오류",
+      "evidence": [
+        "2026-09-01 06:20:02 ERROR parameter rejected: region_code=korea"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "2026-09-01 06:20:02 ERROR parameter rejected: region_code=korea",
+        "validate_parameter 결과: format_valid=false, expected_value=KR, allowed_values=[KR,JP,US], rule=대문자 2자리 코드여야 함"
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_RANGE",
+      "cause_name": "파라미터 범위 오류",
+      "origin": "initial",
+      "status": "weakened",
+      "signals": [
+        "validate_parameter 결과: range_valid=null, allowed_values=[KR,JP,US], format_valid=false"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "region_code 파라미터가 거부된 원인이 형식 오류인지, 범위 오류인지 구분한다.",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "INVALID_PARAMETER_FORMAT",
+        "INVALID_PARAMETER_RANGE"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "region_code=korea 파라미터가 형식 오류로 거부된 것인지, 허용된 값의 범위를 벗어나서 거부된 것인지 확인되지 않았다."
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "region_code=korea 파라미터가 거부된 원인이 형식 오류인지 범위 오류인지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "region_code=korea 파라미터가 거부된 원인이 형식 오류인지 범위 오류인지 확인한다.",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "DAILY_REGION_AGG",
+            "parameter_name": "region_code",
+            "parameter_value": "korea"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_PARAMETER_FORMAT",
+            "INVALID_PARAMETER_RANGE"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_PARAMETER_FORMAT",
+          "cause_name": "파라미터 형식 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 06:20:02 ERROR parameter rejected: region_code=korea"
+          ]
+        },
+        {
+          "cause_code": "INVALID_PARAMETER_RANGE",
+          "cause_name": "파라미터 범위 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 06:20:02 ERROR parameter rejected: region_code=korea"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "region_code=korea 파라미터가 형식 오류로 거부된 것인지, 허용된 값의 범위를 벗어나서 거부된 것인지 확인되지 않았다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_REGION_AGG",
+        "parameter_name": "region_code",
+        "parameter_value": "korea"
+      },
+      "reason": "로그에 region_code=korea 파라미터가 거부되었다는 명확한 신호가 있으므로, 파라미터의 형식 또는 범위 오류를 validate_parameter Tool로 확인할 수 있다.",
+      "evidence_summary": {
+        "job_name": "DAILY_REGION_AGG",
+        "parameter_name": "region_code",
+        "parameter_value": "korea",
+        "expected_value": "KR",
+        "is_valid": false,
+        "format_valid": false,
+        "range_valid": null,
+        "rule": "DAILY_REGION_AGG의 region_code는 대문자 2자리 코드(KR/JP/US)여야 한다.",
+        "job_run_date": null,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "validate_parameter",
+        "status": "SUCCESS",
+        "data": {
+          "job_name": "DAILY_REGION_AGG",
+          "parameter_name": "region_code",
+          "parameter_value": "korea",
+          "required": true,
+          "provided": true,
+          "format_valid": false,
+          "range_valid": null,
+          "expected_value": "KR",
+          "allowed_values": [
+            "KR",
+            "JP",
+            "US"
+          ],
+          "min": null,
+          "max": null,
+          "is_valid": false,
+          "rule": "DAILY_REGION_AGG의 region_code는 대문자 2자리 코드(KR/JP/US)여야 한다.",
+          "job_run_date": null
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "region_code 파라미터가 거부된 원인이 형식 오류인지, 범위 오류인지 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "region_code 파라미터가 거부된 원인이 형식 오류인지, 범위 오류인지 구분한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_PARAMETER_FORMAT",
+            "INVALID_PARAMETER_RANGE"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_PARAMETER_FORMAT",
+          "cause_name": "파라미터 형식 오류",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "2026-09-01 06:20:02 ERROR parameter rejected: region_code=korea",
+            "validate_parameter 결과: format_valid=false, expected_value=KR, allowed_values=[KR,JP,US], rule=대문자 2자리 코드여야 함"
+          ]
+        },
+        {
+          "cause_code": "INVALID_PARAMETER_RANGE",
+          "cause_name": "파라미터 범위 오류",
+          "origin": "initial",
+          "status": "weakened",
+          "signals": [
+            "validate_parameter 결과: range_valid=null, allowed_values=[KR,JP,US], format_valid=false"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "region_code=korea 파라미터가 형식 오류로 거부된 것인지, 허용된 값의 범위를 벗어나서 거부된 것인지 확인되지 않았다."
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "validate_parameter 결과에서 region_code=korea가 형식 규칙(대문자 2자리) 위반으로 format_valid=false이고, range_valid는 null로 범위 검증까지 가지 않았으므로 형식 오류가 근본 원인임이 충분히 드러난다. 추가 Tool 호출 없이 원인 구분이 가능하다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "로그에 region_code=korea 파라미터가 거부되었다는 명확한 신호가 있으므로, 파라미터의 형식 또는 범위 오류를 validate_parameter Tool로 확인할 수 있다.",
+      "arguments": {
+        "job_name": "DAILY_REGION_AGG",
+        "parameter_name": "region_code",
+        "parameter_value": "korea"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_REGION_AGG",
+        "parameter_name": "region_code",
+        "parameter_value": "korea",
+        "required": true,
+        "provided": true,
+        "format_valid": false,
+        "range_valid": null,
+        "expected_value": "KR",
+        "allowed_values": [
+          "KR",
+          "JP",
+          "US"
+        ],
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "DAILY_REGION_AGG의 region_code는 대문자 2자리 코드(KR/JP/US)여야 한다.",
+        "job_run_date": null
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "INVALID_PARAMETER_FORMAT",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "INVALID_PARAMETER_FORMAT",
+  "final_cause_name": "파라미터 형식 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과: region_code='korea', format_valid=false, is_valid=false, expected_value='KR', allowed_values=['KR', 'JP', 'US'], rule='DAILY_REGION_AGG의 region_code는 대문자 2자리 코드(KR/JP/US)여야 한다.'",
+    "로그: 2026-09-01 06:20:02 ERROR parameter rejected: region_code=korea",
+    "로그: 2026-09-01 06:20:03 ERROR job failed with return_code=12"
+  ],
+  "limitations": [
+    "파라미터 값이 왜 잘못 입력되었는지(예: 사용자 실수, 자동화 오류 등)까지는 확인할 수 없습니다.",
+    "다른 파라미터나 외부 시스템 영향 여부는 SUCCESS Tool 결과에 없으므로 진단 범위에 포함하지 않았습니다."
+  ],
+  "recommended_actions": [
+    "region_code 파라미터를 대문자 2자리 코드(KR/JP/US)로 입력하도록 수정하십시오.",
+    "파라미터 입력 로직 또는 사용자 안내를 강화하여 유사 오류 재발을 방지하십시오."
+  ]
+}

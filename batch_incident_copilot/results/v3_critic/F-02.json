@@ -1,0 +1,340 @@
+{
+  "version": "v3",
+  "case_id": "F-02",
+  "summary": "DAILY_SALES_LOAD 배치 잡이 /data/in/sale_20260901.csv 파일을 찾지 못해 실패하였습니다. check_file_status SUCCESS 결과에 따르면 해당 경로의 파일은 존재하지 않고 미수신 상태입니다. 동일 디렉토리에는 sales_20260901.csv 파일이 정상적으로 수신되어 있으나, 잡이 참조한 sale_20260901.csv 파일은 존재하지 않습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_LOAD",
+    "business_date": "20260901",
+    "input_path": "/data/in/sale_20260901.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/sale_20260901.csv",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 05:00:03 ERROR FileNotFoundError: /data/in/sale_20260901.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 05:00:03 ERROR FileNotFoundError: /data/in/sale_20260901.csv"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "2026-09-01 05:00:03 ERROR FileNotFoundError: /data/in/sale_20260901.csv",
+        "check_file_status 결과: /data/in/sale_20260901.csv exists=false, received=false",
+        "같은 디렉터리에 sales_20260901.csv 등 유사 파일 존재"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "origin": "initial",
+      "status": "weakened",
+      "signals": [
+        "check_file_status 결과: /data/in/sale_20260901.csv exists=false, received=false",
+        "같은 디렉터리에 sales_20260901.csv exists=true"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "파일 미수신과 파일 경로 오류 중 어떤 것이 근본 원인인지 구분한다.",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "실제 /data/in/sale_20260901.csv 파일이 존재하지 않았는지, 아니면 경로가 잘못 지정된 것인지 확인이 필요하다."
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "input_path(/data/in/sale_20260901.csv) 파일이 실제로 수신/존재했는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "input_path(/data/in/sale_20260901.csv) 파일이 실제로 수신/존재했는지 확인한다.",
+          "candidate_tool": "check_file_status",
+          "arguments": {
+            "path": "/data/in/sale_20260901.csv"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 05:00:03 ERROR FileNotFoundError: /data/in/sale_20260901.csv"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 05:00:03 ERROR FileNotFoundError: /data/in/sale_20260901.csv"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "실제 /data/in/sale_20260901.csv 파일이 존재하지 않았는지, 아니면 경로가 잘못 지정된 것인지 확인이 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_file_status",
+      "arguments": {
+        "path": "/data/in/sale_20260901.csv",
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_value": "20260901"
+      },
+      "reason": "로그에 FileNotFoundError가 명시되어 있으나, 파일 미수신과 경로 오류 중 어느 쪽이 근본 원인인지 구분하려면 파일의 실제 존재/수신 상태를 확인해야 한다.",
+      "evidence_summary": {
+        "path": "/data/in/sale_20260901.csv",
+        "filename": "sale_20260901.csv",
+        "exists": false,
+        "received": false,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_file_status",
+        "status": "SUCCESS",
+        "data": {
+          "path": "/data/in/sale_20260901.csv",
+          "exists": false,
+          "received": false,
+          "size_bytes": null,
+          "last_modified": null,
+          "filename": "sale_20260901.csv",
+          "same_directory_files": [
+            {
+              "path": "/data/in/ledger_20260831.csv",
+              "exists": false,
+              "received": false,
+              "size_bytes": null,
+              "last_modified": null,
+              "filename": "ledger_20260831.csv"
+            },
+            {
+              "path": "/data/in/ledger_20260901.csv",
+              "exists": true,
+              "received": true,
+              "size_bytes": 81920,
+              "last_modified": "2026-09-01T01:45:00",
+              "filename": "ledger_20260901.csv"
+            },
+            {
+              "path": "/data/in/sale_20260901.csv",
+              "exists": false,
+              "received": false,
+              "size_bytes": null,
+              "last_modified": null,
+              "filename": "sale_20260901.csv"
+            },
+            {
+              "path": "/data/in/sales_20260831.csv",
+              "exists": false,
+              "received": false,
+              "size_bytes": null,
+              "last_modified": null,
+              "filename": "sales_20260831.csv"
+            },
+            {
+              "path": "/data/in/sales_20260901.csv",
+              "exists": true,
+              "received": true,
+              "size_bytes": 204800,
+              "last_modified": "2026-09-01T01:50:00",
+              "filename": "sales_20260901.csv"
+            }
+          ]
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "파일 미수신과 파일 경로 오류 중 어떤 것이 근본 원인인지 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "파일 미수신과 파일 경로 오류 중 어떤 것이 근본 원인인지 구분한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "2026-09-01 05:00:03 ERROR FileNotFoundError: /data/in/sale_20260901.csv",
+            "check_file_status 결과: /data/in/sale_20260901.csv exists=false, received=false",
+            "같은 디렉터리에 sales_20260901.csv 등 유사 파일 존재"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "weakened",
+          "signals": [
+            "check_file_status 결과: /data/in/sale_20260901.csv exists=false, received=false",
+            "같은 디렉터리에 sales_20260901.csv exists=true"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "실제 /data/in/sale_20260901.csv 파일이 존재하지 않았는지, 아니면 경로가 잘못 지정된 것인지 확인이 필요하다."
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "check_file_status 결과, 요청한 경로(sale_20260901.csv)만 없고 유사 파일(sales_20260901.csv)이 정상적으로 수신된 점을 볼 때, 파일 미수신이 근본 원인임이 충분히 드러난다. 추가 Tool 호출 없이 원인 판단이 가능하다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "로그에 FileNotFoundError가 명시되어 있으나, 파일 미수신과 경로 오류 중 어느 쪽이 근본 원인인지 구분하려면 파일의 실제 존재/수신 상태를 확인해야 한다.",
+      "arguments": {
+        "path": "/data/in/sale_20260901.csv",
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_value": "20260901"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "SUCCESS",
+      "data": {
+        "path": "/data/in/sale_20260901.csv",
+        "exists": false,
+        "received": false,
+        "size_bytes": null,
+        "last_modified": null,
+        "filename": "sale_20260901.csv",
+        "same_directory_files": [
+          {
+            "path": "/data/in/ledger_20260831.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "ledger_20260831.csv"
+          },
+          {
+            "path": "/data/in/ledger_20260901.csv",
+            "exists": true,
+            "received": true,
+            "size_bytes": 81920,
+            "last_modified": "2026-09-01T01:45:00",
+            "filename": "ledger_20260901.csv"
+          },
+          {
+            "path": "/data/in/sale_20260901.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "sale_20260901.csv"
+          },
+          {
+            "path": "/data/in/sales_20260831.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "sales_20260831.csv"
+          },
+          {
+            "path": "/data/in/sales_20260901.csv",
+            "exists": true,
+            "received": true,
+            "size_bytes": 204800,
+            "last_modified": "2026-09-01T01:50:00",
+            "filename": "sales_20260901.csv"
+          }
+        ]
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "FILE_NOT_RECEIVED",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_file_status SUCCESS 결과: /data/in/sale_20260901.csv exists=false, received=false",
+    "로그: FileNotFoundError: /data/in/sale_20260901.csv",
+    "로그: job failed with return_code=12"
+  ],
+  "limitations": [
+    "파일 미수신의 근본 원인(예: 송신 시스템 장애, 파일명 오타 등)은 SUCCESS Tool 결과만으로는 확인할 수 없습니다.",
+    "잡이 참조한 파일명(sale_20260901.csv)이 실제 수신된 파일명(sales_20260901.csv)과 다르지만, 파라미터 오류 여부는 추가적인 validate_parameter 결과가 없으므로 판단할 수 없습니다."
+  ],
+  "recommended_actions": [
+    "sale_20260901.csv 파일의 송신 상태를 확인하십시오.",
+    "파일명 및 경로 설정이 정상인지 검토하십시오.",
+    "필요시 sales_20260901.csv 파일을 참조하도록 잡 파라미터를 수정하거나, 송신 시스템에서 sale_20260901.csv 파일을 재전송하십시오."
+  ]
+}

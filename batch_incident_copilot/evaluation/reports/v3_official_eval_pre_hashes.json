@@ -1,0 +1,18 @@
+{
+  "base_main_sha": "93704782f1dc03035e7c2e59db50577572618def",
+  "recorded_at": "2026-09-02T22:37:00Z",
+  "pytest": "164 passed",
+  "model": "gpt-4.1",
+  "azure_endpoint": "https://skax.ai-talentlab.com",
+  "azure_api_version": "2024-12-01-preview",
+  "ground_truth_case_count": 30,
+  "v3_summary_existed_before": false,
+  "sha256": {
+    "app/critic.py": "78be02632b9124c8c7726ac2a66535d6893f73cc299f84d072113d083f6332a1",
+    "app/v3.py": "1ce29f1930634eada3c091d646c3451b35b0d866e34d2cbd03fcc816ad310921",
+    "prompts/v3_critic_prompt.txt": "37ec5ee8beeb9a71a3c4dd2c9be12c9af5e9a356deca77d7e89e516a75d22bb3",
+    "prompts/v3_revision_prompt.txt": "c076a1b875b4337a216af469de1a05d2a256bdaae2421351d8259963b1295fcf",
+    "app/planning.py": "4ca57c116abb2e3142e1fc08f9374e4db9640dfa3e22eefede24d37128d892dd",
+    "evaluation/ground_truth.json": "9b07d3fcbd968c7996754daf69ffc0354cf8f009f7e451f60a0565df84f0efe8"
+  }
+}

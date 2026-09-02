@@ -1,0 +1,291 @@
+{
+  "version": "v3",
+  "case_id": "F-04",
+  "summary": "배치 잡 DAILY_PARTNER_LOAD 실행 시 입력 파일 /data/in/partner/partnr_20260901.csv이 존재하지 않아 FileNotFoundError가 발생하였고, 잡이 실패(return_code=12)하였습니다. check_file_status SUCCESS 결과에 따르면 해당 경로의 파일은 실제로 존재하지 않고 미수신 상태입니다. 동일 디렉토리에는 partner_20260901.csv 파일이 정상적으로 존재합니다.",
+  "extracted_info": {
+    "job_name": "DAILY_PARTNER_LOAD",
+    "business_date": "20260901",
+    "input_path": "/data/in/partner/partnr_20260901.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv",
+        "check_file_status: exists=false, received=false"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv",
+        "check_file_status: exists=false, received=false",
+        "same_directory_files에 partner_20260901.csv 존재"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "input_path(/data/in/partner/partnr_20260901.csv) 파일 미수신과 경로 오류 중 무엇이 근본 원인인지 구분",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "파일 미수신과 경로 오류 중 어떤 것이 근본 원인인가?"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "input_path에 지정된 /data/in/partner/partnr_20260901.csv 파일이 실제로 수신/존재했는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "input_path에 지정된 /data/in/partner/partnr_20260901.csv 파일이 실제로 수신/존재했는지 확인한다.",
+          "candidate_tool": "check_file_status",
+          "arguments": {
+            "path": "/data/in/partner/partnr_20260901.csv"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "지정된 경로의 파일이 실제로 존재하지 않았는지, 아니면 경로 자체가 잘못되었는지 구분할 수 있는가?"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_file_status",
+      "arguments": {
+        "path": "/data/in/partner/partnr_20260901.csv",
+        "job_name": "DAILY_PARTNER_LOAD",
+        "parameter_value": "20260901"
+      },
+      "reason": "로그에 FileNotFoundError가 발생한 경로가 명확히 제시되어 있으므로, 해당 파일의 실제 수신/존재 여부를 확인하는 것이 두 주요 가설(파일 미수신, 경로 오류)을 구분하는 데 필요하다.",
+      "evidence_summary": {
+        "path": "/data/in/partner/partnr_20260901.csv",
+        "filename": "partnr_20260901.csv",
+        "exists": false,
+        "received": false,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_file_status",
+        "status": "SUCCESS",
+        "data": {
+          "path": "/data/in/partner/partnr_20260901.csv",
+          "exists": false,
+          "received": false,
+          "size_bytes": null,
+          "last_modified": null,
+          "filename": "partnr_20260901.csv",
+          "same_directory_files": [
+            {
+              "path": "/data/in/partner/partner_20260901.csv",
+              "exists": true,
+              "received": true,
+              "size_bytes": 102400,
+              "last_modified": "2026-09-01T01:40:00",
+              "filename": "partner_20260901.csv"
+            },
+            {
+              "path": "/data/in/partner/partnr_20260901.csv",
+              "exists": false,
+              "received": false,
+              "size_bytes": null,
+              "last_modified": null,
+              "filename": "partnr_20260901.csv"
+            }
+          ]
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "input_path(/data/in/partner/partnr_20260901.csv) 파일 미수신과 경로 오류 중 무엇이 근본 원인인지 구분",
+      "investigation_plan": [
+        {
+          "goal": "input_path(/data/in/partner/partnr_20260901.csv) 파일 미수신과 경로 오류 중 무엇이 근본 원인인지 구분",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv",
+            "check_file_status: exists=false, received=false"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv",
+            "check_file_status: exists=false, received=false",
+            "same_directory_files에 partner_20260901.csv 존재"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "파일 미수신과 경로 오류 중 어떤 것이 근본 원인인가?"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "check_file_status 결과로 input_path에 해당하는 파일(partnr_20260901.csv)은 존재하지 않고, 같은 디렉터리에 유사한 이름의 파일(partner_20260901.csv)이 존재함이 확인되어, 로그와 SUCCESS evidence만으로 FILE_NOT_RECEIVED와 INVALID_FILE_PATH 중 근본 원인을 구분할 수 있다. 추가 Tool 호출 없이 Finalizer가 원인 확정 가능.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "로그에 FileNotFoundError가 발생한 경로가 명확히 제시되어 있으므로, 해당 파일의 실제 수신/존재 여부를 확인하는 것이 두 주요 가설(파일 미수신, 경로 오류)을 구분하는 데 필요하다.",
+      "arguments": {
+        "path": "/data/in/partner/partnr_20260901.csv",
+        "job_name": "DAILY_PARTNER_LOAD",
+        "parameter_value": "20260901"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "SUCCESS",
+      "data": {
+        "path": "/data/in/partner/partnr_20260901.csv",
+        "exists": false,
+        "received": false,
+        "size_bytes": null,
+        "last_modified": null,
+        "filename": "partnr_20260901.csv",
+        "same_directory_files": [
+          {
+            "path": "/data/in/partner/partner_20260901.csv",
+            "exists": true,
+            "received": true,
+            "size_bytes": 102400,
+            "last_modified": "2026-09-01T01:40:00",
+            "filename": "partner_20260901.csv"
+          },
+          {
+            "path": "/data/in/partner/partnr_20260901.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "partnr_20260901.csv"
+          }
+        ]
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "FILE_NOT_RECEIVED",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_file_status SUCCESS 결과: /data/in/partner/partnr_20260901.csv exists=false, received=false",
+    "로그: FileNotFoundError: /data/in/partner/partnr_20260901.csv",
+    "로그: job failed with return_code=12"
+  ],
+  "limitations": [
+    "파일 미수신의 근본 원인(예: 송신 시스템 오류, 파일명 오타 등)은 추가적인 송신 시스템 로그나 파일 생성 프로세스 확인 없이는 알 수 없습니다.",
+    "파일명(partnr_20260901.csv)과 정상 파일명(partner_20260901.csv) 간 오타 가능성은 있으나, 파라미터 검증 Tool 결과가 없으므로 경로 생성 오류 여부는 확정할 수 없습니다."
+  ],
+  "recommended_actions": [
+    "송신 시스템 또는 파일 생성 프로세스에서 partnr_20260901.csv 파일이 정상적으로 생성 및 전송되었는지 확인하십시오.",
+    "입력 파일명(partnr_20260901.csv)이 정상 파일명(partner_20260901.csv)과 다르므로, 파일명 오타 여부를 검토하고 배치 잡 파라미터 또는 경로 생성 로직을 점검하십시오.",
+    "필요시 파일명 및 경로 규칙을 재확인하여 향후 유사 오류를 방지하십시오."
+  ]
+}

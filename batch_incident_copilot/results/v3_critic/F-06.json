@@ -1,0 +1,245 @@
+{
+  "version": "v3",
+  "case_id": "F-06",
+  "summary": "DAILY_GHOST_LOAD 배치 잡이 /data/in/untracked/ghost_20260901.csv 파일을 찾지 못해 FileNotFoundError로 실패(return_code=12)하였습니다. SUCCESS Tool 결과가 없으므로, 파일 미수신과 파일 경로 오류 모두 원인 후보로 남아 있습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_GHOST_LOAD",
+    "business_date": "20260901",
+    "input_path": "/data/in/untracked/ghost_20260901.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+        "입력 파일 경로(/data/in/untracked/ghost_20260901.csv)가 로그에 명시되어 있음",
+        "잡이 파일 미존재로 실패(return_code=12)함"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+        "입력 파일 경로가 잘못 지정되었을 가능성 있음"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+        "입력 파일 경로(/data/in/untracked/ghost_20260901.csv)가 로그에 명시되어 있음",
+        "잡이 파일 미존재로 실패(return_code=12)함"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+        "입력 파일 경로가 잘못 지정되었을 가능성 있음"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "파일 미수신과 파일 경로 오류 중 어떤 것이 근본 원인인지 구분한다.",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "파일이 실제로 미수신된 것인지, 아니면 경로 지정 오류로 인한 것인지 구분할 수 있는 추가 evidence가 있는가?"
+  ],
+  "current_round": 2,
+  "stop_reason": "NO_ACTIONABLE_TOOL",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "입력 파일(/data/in/untracked/ghost_20260901.csv)이 실제로 수신/존재하지 않았는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "입력 파일(/data/in/untracked/ghost_20260901.csv)이 실제로 수신/존재하지 않았는지 확인한다.",
+          "candidate_tool": "check_file_status",
+          "arguments": {
+            "path": "/data/in/untracked/ghost_20260901.csv"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+            "입력 파일 경로(/data/in/untracked/ghost_20260901.csv)가 로그에 명시되어 있음",
+            "잡이 파일 미존재로 실패(return_code=12)함"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+            "입력 파일 경로가 잘못 지정되었을 가능성 있음"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "입력 파일이 실제로 미수신된 것인지, 경로 지정 오류로 인한 것인지 구분되지 않았다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_file_status",
+      "arguments": {
+        "path": "/data/in/untracked/ghost_20260901.csv",
+        "job_name": "DAILY_GHOST_LOAD",
+        "parameter_value": "20260901"
+      },
+      "reason": "로그에 명시된 경로의 파일이 실제로 존재하지 않는지, 아니면 경로 지정 오류인지 구분하기 위해 check_file_status를 실행한다.",
+      "evidence_summary": {
+        "status": "FAILED",
+        "error": "카탈로그에 경로가 없습니다: /data/in/untracked/ghost_20260901.csv"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_file_status",
+        "status": "FAILED",
+        "data": null,
+        "error": "카탈로그에 경로가 없습니다: /data/in/untracked/ghost_20260901.csv"
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "파일 미수신과 파일 경로 오류 중 어떤 것이 근본 원인인지 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "파일 미수신과 파일 경로 오류 중 어떤 것이 근본 원인인지 구분한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+            "입력 파일 경로(/data/in/untracked/ghost_20260901.csv)가 로그에 명시되어 있음",
+            "잡이 파일 미존재로 실패(return_code=12)함"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+            "입력 파일 경로가 잘못 지정되었을 가능성 있음"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "파일이 실제로 미수신된 것인지, 아니면 경로 지정 오류로 인한 것인지 구분할 수 있는 추가 evidence가 있는가?"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "check_file_status를 이미 실행했고, 추가로 점검할 수 있는 Tool이 없으며, 파라미터 이상이나 DB/SQL 관련 신호가 로그 및 extracted_info에 없다. 파일 미수신과 경로 오류 중 어느 쪽이 근본 원인인지 SUCCESS evidence 없이 추가로 구분할 수 있는 방법이 없다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "NO_ACTIONABLE_TOOL",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "로그에 명시된 경로의 파일이 실제로 존재하지 않는지, 아니면 경로 지정 오류인지 구분하기 위해 check_file_status를 실행한다.",
+      "arguments": {
+        "path": "/data/in/untracked/ghost_20260901.csv",
+        "job_name": "DAILY_GHOST_LOAD",
+        "parameter_value": "20260901"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "FAILED",
+      "data": null,
+      "error": "카탈로그에 경로가 없습니다: /data/in/untracked/ghost_20260901.csv"
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "FILE_NOT_RECEIVED",
+  "original_v2_diagnosis_level": "추정",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+    "입력 파일 경로(/data/in/untracked/ghost_20260901.csv)가 로그에 명시되어 있음",
+    "잡이 파일 미존재로 실패(return_code=12)함"
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 파일 경로 오류(INVALID_FILE_PATH)와 파일 미수신(FILE_NOT_RECEIVED) 중 어느 쪽이 근본 원인인지 확정할 수 없습니다.",
+    "실제 파일 시스템 상태나 파일 수신 여부를 직접 확인하지 못했습니다."
+  ],
+  "recommended_actions": [
+    "입력 파일(/data/in/untracked/ghost_20260901.csv)이 정상적으로 수신되었는지 확인하십시오.",
+    "파일 경로가 올바르게 지정되었는지 검증하십시오.",
+    "파일 수신 프로세스와 경로 생성 로직을 점검하여 재발 방지 조치를 마련하십시오."
+  ]
+}
