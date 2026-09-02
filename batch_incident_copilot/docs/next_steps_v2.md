@@ -13,6 +13,7 @@ V2 refined 리포트: `evaluation/reports/v1_vs_v2_refined.md`
 - V0 Baseline 완료
 - V1 Function Tool Use 완료
 - Streamlit Agent Execution Trace 완료 (V0/V1/V2)
+- 고수준 Agent Event Log (observability adapter, V3 아님) — [`docs/agent_event_log.md`](agent_event_log.md)
 - File / Parameter / DB / SQL Tool 완료 (로컬 mock JSON만 조회)
 - Canonical Cause Code unique **12개** (`app/cause_codes.py`)
 - 공식 Ground Truth **30건** 고정 (`evaluation/ground_truth.json`)

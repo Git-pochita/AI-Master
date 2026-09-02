@@ -169,6 +169,7 @@ def analyze(
     try:
         result = run_backend(version, log_text, resolved_case_id)
         payload = result.model_dump()
+        from app.agent_events import build_agent_events
         from app.trace import build_execution_trace
 
         trace_version = "v1" if version == "v2" else version
@@ -177,6 +178,9 @@ def analyze(
             trace["version"] = "v2"
             trace["planning_trace"] = payload.get("planning_trace") or []
             trace["stop_reason"] = payload.get("stop_reason")
+        trace["agent_events"] = [
+            event.model_dump() for event in build_agent_events(version, payload)
+        ]
         return AnalysisOutcome(
             ok=True,
             version=version,

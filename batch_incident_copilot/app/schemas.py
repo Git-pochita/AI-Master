@@ -254,3 +254,34 @@ class DiagnosisResult(BaseModel):
         if self.final_cause_name != matched.cause_name:
             self.final_cause_name = matched.cause_name
         return self
+
+
+AgentComponent = Literal[
+    "Perception",
+    "Reasoning",
+    "Memory",
+    "Action",
+    "Feedback",
+    "Evaluation",
+    "Governance",
+]
+
+
+def utc_timestamp() -> str:
+    from datetime import datetime, timezone
+
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+
+class AgentEvent(BaseModel):
+    """관찰 가능한 실행 이벤트. LLM 내부 Chain-of-Thought를 담지 않는다."""
+
+    component: AgentComponent
+    step: str
+    summary: str
+    detail: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    timestamp: str = Field(default_factory=utc_timestamp)
+    round: Optional[int] = None
+    status: Optional[str] = None
+    source: Optional[str] = None
