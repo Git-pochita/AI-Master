@@ -94,7 +94,7 @@ def aggregate_case_metrics(version: str, case_rows: list[dict[str, Any]]) -> dic
         summary["tool_failure_count"] = sum(
             int(_field(row, "tool_failure_count", 0) or 0) for row in case_rows
         )
-    if version == "v3":
+    if version in {"v3", "v3_1"}:
         summary["required_tool_recall"] = mean(
             float(_field(row, "required_tool_recall", 0.0) or 0.0) for row in case_rows
         )

@@ -23,6 +23,7 @@ V0_RESULTS_DIR = RESULTS_DIR
 V1_RESULTS_DIR = PROJECT_ROOT / "results" / "v1_tool_use"
 V2_RESULTS_DIR = PROJECT_ROOT / "results" / "v2_planning"
 V3_RESULTS_DIR = PROJECT_ROOT / "results" / "v3_critic"
+V3_1_RESULTS_DIR = PROJECT_ROOT / "results" / "v3_1_critic"
 GROUND_TRUTH_PATH = PROJECT_ROOT / "evaluation" / "ground_truth.json"
 SAMPLE_LOGS_DIR = PROJECT_ROOT / "data" / "sample_logs"
 REPORTS_DIR = PROJECT_ROOT / "evaluation" / "reports"
