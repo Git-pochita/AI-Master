@@ -16,6 +16,7 @@ from app.ui_service import (
     hypotheses_from_result,
     summarize_tool_data,
 )
+from app.agent_events import build_agent_event_views
 from app.trace import AgentExecutionTrace, build_trace_view
 
 st.set_page_config(page_title="Batch Incident Copilot", layout="wide")
@@ -231,6 +232,32 @@ def _render_tools(payload: dict) -> None:
                         )
 
 
+def _render_agent_events(trace: dict | None) -> None:
+    st.subheader("고수준 Agent Trace")
+    st.caption(
+        "공통 AgentEvent로 정규화한 관찰 가능 실행 단계입니다. "
+        "LLM 내부 Chain-of-Thought는 출력하지 않습니다."
+    )
+    events = (trace or {}).get("agent_events") or []
+    if not events:
+        st.info("표시할 AgentEvent가 없습니다.")
+        return
+    for view in build_agent_event_views(events):
+        with st.container(border=True):
+            st.markdown(f"**{view['title']}**")
+            if view.get("detail"):
+                st.caption(view["detail"])
+            extra = {
+                key: view[key]
+                for key in ("timestamp", "round", "status", "source")
+                if view.get(key) not in (None, "")
+            }
+            with st.expander("detail / metadata", expanded=False):
+                if extra:
+                    st.json(extra)
+                st.json(view.get("metadata") or {})
+
+
 def _render_v2_trace(payload: dict) -> None:
     st.subheader("Agent Execution Trace")
     st.caption(
@@ -345,6 +372,7 @@ if started:
             _render_v2_trace(payload)
         else:
             _render_execution_trace(outcome.trace, version)
+        _render_agent_events(outcome.trace)
         _render_final(payload)
         with st.expander("원본 진단 필드", expanded=False):
             st.markdown("추출 정보")
