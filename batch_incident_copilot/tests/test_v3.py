@@ -456,8 +456,12 @@ def test_pass_does_not_call_revision():
 def test_no_additional_tool_execution_in_v3_modules():
     critic_src = (PROJECT_ROOT / "app" / "critic.py").read_text(encoding="utf-8")
     v3_src = (PROJECT_ROOT / "app" / "v3.py").read_text(encoding="utf-8")
+    comparison_src = (PROJECT_ROOT / "app" / "evidence_comparison.py").read_text(
+        encoding="utf-8"
+    )
     assert "execute_tool" not in critic_src
     assert "execute_tool" not in v3_src
+    assert "execute_tool" not in comparison_src
 
 
 def test_v2_result_is_not_mutated():
@@ -585,6 +589,7 @@ def test_agent_events_pass_has_no_reflection():
     payload = _run("F-01", _pass_draft).model_dump()
     events = build_agent_events("v3", payload)
     steps = [item.step for item in events]
+    assert "evidence_comparison" in steps
     assert "critic_check" in steps
     assert "evidence_consistency" in steps
     assert "revision_requested" not in steps
@@ -642,7 +647,7 @@ def test_v3_prompts_have_no_case_specific_answers():
 
 
 def test_v3_modules_have_no_case_id_hardcoding():
-    for rel in ("app/critic.py", "app/v3.py"):
+    for rel in ("app/critic.py", "app/v3.py", "app/evidence_comparison.py"):
         source = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
         assert "if case_id" not in source
         assert "F-02" not in source
