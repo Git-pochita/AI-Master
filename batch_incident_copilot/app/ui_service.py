@@ -83,7 +83,7 @@ def validate_input(log_text: str, filename: str | None = None) -> ValidationResu
     return validate_log_content(log_text)
 
 
-def run_backend(version: str, log_text: str, case_id: str):
+def run_backend(version: str, log_text: str, case_id: str | None = None):
     if version == "v1":
         from app.tool_use import diagnose_v1
 
@@ -158,7 +158,8 @@ def analyze(
     case_id: str | None = None,
     filename: str | None = None,
 ) -> AnalysisOutcome:
-    resolved_case_id = case_id or (Path(filename).stem if filename else "ui_case")
+    # UI/메타데이터용. 업로드 파일명(F-01.log 등)을 진단 case_id로 쓰지 않는다.
+    resolved_case_id = case_id or "ui_case"
     validation = validate_input(log_text, filename=filename)
     if validation.decision == ValidationDecision.ABORT:
         return AnalysisOutcome(
@@ -171,7 +172,7 @@ def analyze(
             trace=None,
         )
     try:
-        result = run_backend(version, log_text, resolved_case_id)
+        result = run_backend(version, log_text, case_id)
         payload = result.model_dump()
         from app.agent_events import build_agent_events
         from app.trace import build_execution_trace

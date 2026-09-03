@@ -15,6 +15,8 @@ from app.ui_service import (
     validate_input,
 )
 
+STREAMLIT_SRC = (PROJECT_ROOT / "streamlit_app.py").read_text(encoding="utf-8")
+
 
 SAMPLE = """2026-09-01 02:00:00 INFO  JOB=DAILY_SALES_LOAD START
 2026-09-01 02:00:01 INFO  business_date=20260831
@@ -172,6 +174,43 @@ def test_extract_and_summarize_helpers():
     )
     assert sql_summary["table_exists"] is False
     assert sql_summary["schema_exists"] is True
+
+
+def test_streamlit_has_no_case_id_input():
+    assert "case_id (선택)" not in STREAMLIT_SRC
+    assert "st.text_input" not in STREAMLIT_SRC
+    assert "case_id=case_id" not in STREAMLIT_SRC
+    assert "filename=filename" in STREAMLIT_SRC
+
+
+def test_analyze_without_case_id_does_not_use_filename_as_hint(monkeypatch):
+    captured = {}
+
+    def fake_backend(version, log_text, case_id=None):
+        captured["case_id"] = case_id
+        return DiagnosisResult(
+            summary="V0",
+            extracted_info={"job_name": "DAILY_SALES_LOAD"},
+            hypotheses=[
+                Hypothesis(
+                    cause_code="FILE_NOT_RECEIVED",
+                    cause_name="파일 미수신",
+                    evidence=["FileNotFoundError"],
+                )
+            ],
+            final_cause_code="FILE_NOT_RECEIVED",
+            final_cause_name="파일 미수신",
+            diagnosis_level="추정",
+            owner="BATCH_OPERATION",
+            recommended_actions=["확인"],
+            limitations=["로그만 사용"],
+        )
+
+    monkeypatch.setattr("app.ui_service.run_backend", fake_backend)
+    outcome = analyze("v0", SAMPLE, filename="F-01.log")
+    assert captured["case_id"] is None
+    assert outcome.ok is True
+    assert outcome.case_id == "ui_case"
 
 
 def test_hypotheses_from_v1_payload():
