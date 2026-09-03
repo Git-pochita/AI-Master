@@ -1,7 +1,7 @@
 {
   "version": "v2",
   "case_id": "F-05",
-  "summary": "잡 실행 시 지정된 input 파일(/data/in/sales_20260831.csv)이 존재하지 않아 FileNotFoundError가 발생하였고, check_file_status Tool 결과 해당 파일이 실제로 존재하지 않음이 확인되었습니다. business_date 파라미터 값이 잡 실행일과 달라 파라미터 오류도 있으나, 직접적인 실패 원인은 파일 미수신입니다. Critic의 EVIDENCE_CONFLICT 및 BETTER_SUPPORTED_CAUSE 조건이 모두 충족되어 FILE_NOT_RECEIVED로 원인 변경이 필요합니다.",
+  "summary": "DAILY_SALES_LOAD. FileNotFoundError: /data/in/sales_20260831.csv. job failed with return_code=12. check_file_status SUCCESS: exists=false, received=false. validate_parameter SUCCESS: business_date=20260831, expected_value=20260901, is_valid=false. final_cause_code=INVALID_BUSINESS_DATE.",
   "extracted_info": {
     "job_name": "DAILY_SALES_LOAD",
     "business_date": "20260831",
@@ -483,15 +483,13 @@
   "diagnosis_level": "확인됨",
   "owner": "BATCH_OPERATION",
   "evidence": [
-    "check_file_status SUCCESS 결과: /data/in/sales_20260831.csv 파일 존재하지 않음 (exists=false, received=false)",
-    "로그: FileNotFoundError: /data/in/sales_20260831.csv",
-    "로그: job failed with return_code=12"
+    "validate_parameter SUCCESS: parameter_name=business_date, parameter_value=20260831, expected_value=20260901, is_valid=false, job_run_date=20260901",
+    "check_file_status SUCCESS: path=/data/in/sales_20260831.csv, exists=false, received=false",
+    "FileNotFoundError: /data/in/sales_20260831.csv",
+    "job failed with return_code=12"
   ],
   "limitations": [
-    "파일 미수신의 근본 원인이 외부 시스템의 전송 실패인지, 파라미터 오류로 잘못된 경로가 생성된 것인지 추가 확인이 필요할 수 있음. 그러나 관찰된 증상은 파일 미수신에 의해 직접적으로 설명됨."
+    "/data/in/sales_20260831.csv 파일이 실제로 존재하지 않았는지, 아니면 경로가 잘못 지정된 것인지 확인이 필요하다."
   ],
-  "recommended_actions": [
-    "input 파일(/data/in/sales_20260831.csv)이 정상적으로 도착했는지 전송 시스템을 확인하십시오.",
-    "business_date 파라미터 값이 잡 실행일과 일치하는지 점검하여, 향후 파일 경로 오류를 방지하십시오."
-  ]
+  "recommended_actions": []
 }
