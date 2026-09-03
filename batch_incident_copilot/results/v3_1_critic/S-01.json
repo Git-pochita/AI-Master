@@ -1,0 +1,225 @@
+{
+  "version": "v3",
+  "case_id": "S-01",
+  "summary": "배치 잡 DAILY_SALES_AGG 실행 중 SALES.SALES_SUMMARY 테이블이 존재하지 않아 ORA-00942 오류가 발생하였고, 잡이 실패(return_code=12)하였습니다. check_sql_metadata SUCCESS 결과에서 SALES 스키마는 존재하지만 SALES_SUMMARY 테이블은 존재하지 않는 것으로 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_AGG",
+    "schema": "SALES",
+    "table": "SALES_SUMMARY",
+    "sql": "SELECT STORE_CD, SUM(TOTAL_AMT) FROM SALES.SALES_SUMMARY GROUP BY STORE_CD",
+    "error_messages": [
+      "ORA-00942: table or view does not exist",
+      "table not found: SALES.SALES_SUMMARY"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 04:20:03 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 04:20:03 ERROR table not found: SALES.SALES_SUMMARY"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "2026-09-01 04:20:03 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 04:20:03 ERROR table not found: SALES.SALES_SUMMARY",
+        "check_sql_metadata 결과: schema_exists=true, table_exists=false"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "SALES.SALES_SUMMARY 테이블이 존재하지 않는 것이 실제 원인인지 확인",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "TABLE_NOT_FOUND"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "SALES.SALES_SUMMARY 테이블이 실제로 존재하지 않는지 확인이 필요하다."
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "SALES.SALES_SUMMARY 테이블이 실제로 존재하는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "SALES.SALES_SUMMARY 테이블이 실제로 존재하는지 확인한다.",
+          "candidate_tool": "check_sql_metadata",
+          "arguments": {
+            "schema": "SALES",
+            "table": "SALES_SUMMARY",
+            "column": null
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "TABLE_NOT_FOUND"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 04:20:03 ERROR ORA-00942: table or view does not exist",
+            "2026-09-01 04:20:03 ERROR table not found: SALES.SALES_SUMMARY"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "SALES.SALES_SUMMARY 테이블이 실제로 존재하지 않는지 확인이 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_sql_metadata",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_SUMMARY",
+        "column": null,
+        "job_name": "DAILY_SALES_AGG"
+      },
+      "reason": "로그에 테이블 존재 오류가 명시되어 있으므로, 실제로 해당 테이블이 존재하는지 check_sql_metadata로 확인해야 한다.",
+      "evidence_summary": {
+        "schema": "SALES",
+        "table": "SALES_SUMMARY",
+        "column": null,
+        "schema_exists": true,
+        "table_exists": false,
+        "column_exists": null,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_sql_metadata",
+        "status": "SUCCESS",
+        "data": {
+          "schema": "SALES",
+          "table": "SALES_SUMMARY",
+          "column": null,
+          "schema_exists": true,
+          "table_exists": false,
+          "column_exists": null
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "SALES.SALES_SUMMARY 테이블이 존재하지 않는 것이 실제 원인인지 확인",
+      "investigation_plan": [
+        {
+          "goal": "SALES.SALES_SUMMARY 테이블이 존재하지 않는 것이 실제 원인인지 확인",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "TABLE_NOT_FOUND"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "2026-09-01 04:20:03 ERROR ORA-00942: table or view does not exist",
+            "2026-09-01 04:20:03 ERROR table not found: SALES.SALES_SUMMARY",
+            "check_sql_metadata 결과: schema_exists=true, table_exists=false"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "SALES.SALES_SUMMARY 테이블이 실제로 존재하지 않는지 확인이 필요하다."
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "로그의 에러 메시지와 check_sql_metadata의 table_exists=false 결과로 테이블 없음이 근본 원인임이 충분히 확인되었습니다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그에 테이블 존재 오류가 명시되어 있으므로, 실제로 해당 테이블이 존재하는지 check_sql_metadata로 확인해야 한다.",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_SUMMARY",
+        "column": null,
+        "job_name": "DAILY_SALES_AGG"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "SALES",
+        "table": "SALES_SUMMARY",
+        "column": null,
+        "schema_exists": true,
+        "table_exists": false,
+        "column_exists": null
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "TABLE_NOT_FOUND",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "TABLE_NOT_FOUND",
+  "final_cause_name": "테이블 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 04:20:03 ERROR ORA-00942: table or view does not exist",
+    "2026-09-01 04:20:03 ERROR table not found: SALES.SALES_SUMMARY",
+    "check_sql_metadata SUCCESS 결과: schema_exists=true, table_exists=false"
+  ],
+  "limitations": [
+    "테이블이 왜 존재하지 않는지(예: 삭제, 미생성, 권한 문제 등)에 대한 추가 정보는 제공되지 않았음"
+  ],
+  "recommended_actions": [
+    "SALES.SALES_SUMMARY 테이블이 정상적으로 생성되어 있는지 확인",
+    "테이블 생성 또는 복구 필요 시 관련 담당자와 협의",
+    "테이블 생성/삭제 이력 및 권한 설정을 점검"
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "version": "v3",
+  "case_id": "D-06",
+  "summary": "배치 잡 실행 시 DB 접속 오류(ORA-12154)가 발생하여 작업이 실패하였습니다. SUCCESS Tool 결과가 없으므로 원인에 대한 확정적 진단은 불가능하며, 로그상 DB 접속 설정 오류가 가장 유력합니다.",
+  "extracted_info": {
+    "job_name": "DAILY_LEGACY_EXTRACT",
+    "connection_name": "LEGACY_DB",
+    "account": "batch_legacy",
+    "error_messages": [
+      "ORA-12154: TNS:could not resolve the connect identifier specified",
+      "DB connection failed for account=batch_legacy connection=LEGACY_DB"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "cause_name": "DB 접속 설정 오류",
+      "evidence": [
+        "2026-09-01 04:15:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+        "2026-09-01 04:15:03 ERROR DB connection failed for account=batch_legacy connection=LEGACY_DB"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "cause_name": "DB 접속 설정 오류",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "2026-09-01 04:15:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+        "2026-09-01 04:15:03 ERROR DB connection failed for account=batch_legacy connection=LEGACY_DB"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "DB 접속 설정 오류(DB_CONNECTION_CONFIG_ERROR) 외에 다른 근본 원인이 있는지 확인",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "DB_CONNECTION_CONFIG_ERROR"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "DB 접속 실패의 직접 원인이 접속 설정 오류(DB_CONNECTION_CONFIG_ERROR)인지, 인증 정보 불일치(DB_CREDENTIAL_MISMATCH) 또는 계정 잠김(DB_ACCOUNT_LOCKED) 등 다른 DB 관련 원인인지 확인이 필요하다."
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "DB 접속 실패의 근본 원인이 접속 설정 오류(DB_CONNECTION_CONFIG_ERROR)인지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "DB 접속 실패의 근본 원인이 접속 설정 오류(DB_CONNECTION_CONFIG_ERROR)인지 확인한다.",
+          "candidate_tool": "check_db_status",
+          "arguments": {
+            "connection_name": "LEGACY_DB",
+            "account": "batch_legacy"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "DB_CONNECTION_CONFIG_ERROR",
+            "DB_CREDENTIAL_MISMATCH",
+            "DB_ACCOUNT_LOCKED"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "DB_CONNECTION_CONFIG_ERROR",
+          "cause_name": "DB 접속 설정 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 04:15:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+            "2026-09-01 04:15:03 ERROR DB connection failed for account=batch_legacy connection=LEGACY_DB"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "DB 접속 실패의 직접 원인이 접속 설정 오류(DB_CONNECTION_CONFIG_ERROR)인지, 인증 정보 불일치(DB_CREDENTIAL_MISMATCH) 또는 계정 잠김(DB_ACCOUNT_LOCKED) 등 다른 DB 관련 원인인지 확인이 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_db_status",
+      "arguments": {
+        "connection_name": "LEGACY_DB",
+        "account": "batch_legacy",
+        "job_name": "DAILY_LEGACY_EXTRACT"
+      },
+      "reason": "로그에 ORA-12154 오류와 DB 접속 실패 메시지가 있어 DB 접속 설정 오류가 의심되나, 계정 잠김이나 인증 정보 불일치 등 다른 DB 원인 가능성도 배제할 수 없어 check_db_status로 추가 확인이 필요하다.",
+      "evidence_summary": {
+        "status": "FAILED",
+        "error": "DB_STATUS_DATA_NOT_FOUND"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_db_status",
+        "status": "FAILED",
+        "data": null,
+        "error": "DB_STATUS_DATA_NOT_FOUND"
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "DB 접속 설정 오류(DB_CONNECTION_CONFIG_ERROR) 외에 다른 근본 원인이 있는지 확인",
+      "investigation_plan": [
+        {
+          "goal": "DB 접속 설정 오류(DB_CONNECTION_CONFIG_ERROR) 외에 다른 근본 원인이 있는지 확인",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "DB_CONNECTION_CONFIG_ERROR"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "DB_CONNECTION_CONFIG_ERROR",
+          "cause_name": "DB 접속 설정 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 04:15:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+            "2026-09-01 04:15:03 ERROR DB connection failed for account=batch_legacy connection=LEGACY_DB"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "DB 접속 실패의 직접 원인이 접속 설정 오류(DB_CONNECTION_CONFIG_ERROR)인지, 인증 정보 불일치(DB_CREDENTIAL_MISMATCH) 또는 계정 잠김(DB_ACCOUNT_LOCKED) 등 다른 DB 관련 원인인지 확인이 필요하다."
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "로그에 ORA-12154와 DB 접속 실패 메시지가 명확히 기록되어 있고, check_db_status Tool의 추가 실행도 이미 시도되었으나 SUCCESS evidence가 없으므로, 현재 로그만으로 DB 접속 설정 오류가 근본 원인임을 충분히 판단할 수 있습니다. 추가로 확인할 unresolved question이 없습니다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_db_status",
+      "reason": "로그에 ORA-12154 오류와 DB 접속 실패 메시지가 있어 DB 접속 설정 오류가 의심되나, 계정 잠김이나 인증 정보 불일치 등 다른 DB 원인 가능성도 배제할 수 없어 check_db_status로 추가 확인이 필요하다.",
+      "arguments": {
+        "connection_name": "LEGACY_DB",
+        "account": "batch_legacy",
+        "job_name": "DAILY_LEGACY_EXTRACT"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_db_status",
+      "status": "FAILED",
+      "data": null,
+      "error": "DB_STATUS_DATA_NOT_FOUND"
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+  "original_v2_diagnosis_level": "추정",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+  "final_cause_name": "DB 접속 설정 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 04:15:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+    "2026-09-01 04:15:03 ERROR DB connection failed for account=batch_legacy connection=LEGACY_DB"
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 DB 접속 설정 오류의 확정적 근거를 제시할 수 없습니다.",
+    "실제 DB 접속 설정, 계정 상태, 네트워크 등 추가 확인이 필요합니다."
+  ],
+  "recommended_actions": [
+    "DB 접속 설정(TNS, connection string 등)을 점검하십시오.",
+    "SUCCESS Tool을 통한 DB 상태 및 접속 설정 검증을 추가로 수행하십시오.",
+    "네트워크 및 DB 계정 상태도 함께 확인하십시오."
+  ]
+}

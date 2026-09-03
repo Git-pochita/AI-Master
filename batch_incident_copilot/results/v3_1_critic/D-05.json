@@ -1,0 +1,124 @@
+{
+  "version": "v3",
+  "case_id": "D-05",
+  "summary": "DAILY_SALES_DB_LOAD 배치 잡 실행 시 DB 인증 오류(ORA-01017: invalid username/password; logon denied)가 발생하여 작업이 실패하였습니다. SUCCESS Tool 결과가 없으므로 로그 기반으로만 진단합니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_DB_LOAD",
+    "connection_name": "SALES_DB",
+    "error_messages": [
+      "ORA-01017: invalid username/password; logon denied",
+      "DB authentication/login failure connection=SALES_DB"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "evidence": [
+        "2026-09-01 04:10:03 ERROR ORA-01017: invalid username/password; logon denied",
+        "2026-09-01 04:10:03 ERROR DB authentication/login failure connection=SALES_DB"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "2026-09-01 04:10:03 ERROR ORA-01017: invalid username/password; logon denied",
+        "2026-09-01 04:10:03 ERROR DB authentication/login failure connection=SALES_DB"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "로그의 ORA-01017 에러와 DB 인증 실패 메시지가 실제로 DB 인증 정보 불일치 때문인지 확인한다.",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "MISSING_ARGUMENTS",
+      "related_cause_codes": [
+        "DB_CREDENTIAL_MISMATCH"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [],
+  "current_round": 1,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "로그의 ORA-01017 에러와 DB 인증 실패 메시지가 실제로 DB 인증 정보 불일치 때문인지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "로그의 ORA-01017 에러와 DB 인증 실패 메시지가 실제로 DB 인증 정보 불일치 때문인지 확인한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "MISSING_ARGUMENTS",
+          "related_cause_codes": [
+            "DB_CREDENTIAL_MISMATCH"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "DB_CREDENTIAL_MISMATCH",
+          "cause_name": "DB 인증 정보 불일치",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 04:10:03 ERROR ORA-01017: invalid username/password; logon denied",
+            "2026-09-01 04:10:03 ERROR DB authentication/login failure connection=SALES_DB"
+          ]
+        }
+      ],
+      "unresolved_questions": [],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "로그에 ORA-01017(잘못된 사용자명/비밀번호)와 DB 인증 실패 메시지가 명확히 기록되어 있어 추가 도구 실행 없이 DB 인증 정보 불일치가 근본 원인임을 충분히 뒷받침한다.",
+      "evidence_summary": {},
+      "replanned": false,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [],
+  "tool_results": [],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "DB_CREDENTIAL_MISMATCH",
+  "original_v2_diagnosis_level": "추정",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "DB_CREDENTIAL_MISMATCH",
+  "final_cause_name": "DB 인증 정보 불일치",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 04:10:03 ERROR ORA-01017: invalid username/password; logon denied",
+    "2026-09-01 04:10:03 ERROR DB authentication/login failure connection=SALES_DB"
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 DB 계정 상태, 인증 정보, 접속 설정 등 추가적인 확인이 불가능합니다.",
+    "로그만으로는 실제 인증 정보 불일치가 원인인지, 계정 잠김 등 다른 DB 이슈가 있는지 확정할 수 없습니다."
+  ],
+  "recommended_actions": [
+    "SALES_DB 연결에 사용된 DB 계정의 아이디/패스워드가 올바른지 확인하십시오.",
+    "DB 계정이 잠겨 있거나 만료되지 않았는지 DBA에게 확인 요청하십시오.",
+    "배치 잡의 connection 설정을 점검하고, 필요시 재설정 또는 재시도하십시오."
+  ]
+}

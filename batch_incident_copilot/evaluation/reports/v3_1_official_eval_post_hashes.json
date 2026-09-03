@@ -1,0 +1,18 @@
+{
+  "base_main_sha": "75adc968467af04a1979f443c65f63241d7fbf37",
+  "recorded_at": "2026-09-02T23:50:35Z",
+  "pytest": "199 passed",
+  "model": "gpt-4.1",
+  "matches_pre_hashes": true,
+  "mismatch": {},
+  "sha256": {
+    "app/evidence_comparison.py": "ced8b9fa400fe3d4dd407610bbecd7ecce88816f518128c01359c1be1eec46f9",
+    "app/critic.py": "abfc3b52b1b29bacbc8f1315111fee07bb7cbf08751189bc699e3055682febc9",
+    "app/v3.py": "1ce29f1930634eada3c091d646c3451b35b0d866e34d2cbd03fcc816ad310921",
+    "prompts/v3_critic_prompt.txt": "bd91f95d3f302e560aa50a90fcb17ca53c6a6c43986b47d6870ca64dc07d5289",
+    "prompts/v3_revision_prompt.txt": "c076a1b875b4337a216af469de1a05d2a256bdaae2421351d8259963b1295fcf",
+    "app/planning.py": "4ca57c116abb2e3142e1fc08f9374e4db9640dfa3e22eefede24d37128d892dd",
+    "prompts/v2_planning_prompt.txt": "a6e1b1241a03acd2c1c42f847bae0eeb815a3a988474469800b4162439bf9b71",
+    "evaluation/ground_truth.json": "9b07d3fcbd968c7996754daf69ffc0354cf8f009f7e451f60a0565df84f0efe8"
+  }
+}

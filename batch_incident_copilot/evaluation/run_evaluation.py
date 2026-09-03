@@ -51,7 +51,9 @@ def evaluate_one_case(version: str, case_id: str, ground_truth: dict) -> dict:
         log_text = log_path.read_text(encoding="utf-8")
         result = _retry_diagnosis(version, log_text, case_id)
         payload = result.model_dump()
-        if version == "v3":
+        if version == "v3_1":
+            results_dir = settings.V3_1_RESULTS_DIR
+        elif version == "v3":
             results_dir = settings.V3_RESULTS_DIR
         elif version == "v2":
             results_dir = settings.V2_RESULTS_DIR
@@ -96,7 +98,7 @@ def main() -> int:
         "--versions",
         nargs="+",
         default=["v0", "v1"],
-        choices=["v0", "v1", "v2", "v3"],
+        choices=["v0", "v1", "v2", "v3", "v3_1"],
         help="실행할 버전",
     )
     parser.add_argument(
@@ -124,6 +126,8 @@ def main() -> int:
         "v1_vs_v2.md",
         "v2_refined_summary.json",
         "v1_vs_v2_refined.md",
+        "v3_summary.json",
+        "v2_refined_vs_v3.md",
     }
     for version in args.versions:
         summary = run_version(version, ground_truth, case_ids)

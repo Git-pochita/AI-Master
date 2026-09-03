@@ -1,0 +1,235 @@
+{
+  "version": "v3",
+  "case_id": "P-01",
+  "summary": "DAILY_SALES_LOAD 배치 잡 실행 시 business_date 파라미터가 잡 실행일(20260901)과 달라서 파라미터가 거부되었고, 잡이 실패(return_code=12)하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_LOAD",
+    "business_date": "20260831",
+    "error_messages": [
+      "parameter rejected: business_date=20260831",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "evidence": [
+        "2026-09-01 06:00:02 ERROR parameter rejected: business_date=20260831"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "2026-09-01 06:00:02 ERROR parameter rejected: business_date=20260831",
+        "validate_parameter 결과: expected_value=20260901, parameter_value=20260831, is_valid=false"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "business_date 파라미터가 잡 실행일과 달라서 거부된 것이 근본 원인인지 확인",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "INVALID_BUSINESS_DATE"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "business_date=20260831 파라미터가 실제로 유효하지 않은 값인지 확인이 필요함"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "business_date=20260831 파라미터가 거부된 원인이 실제로 파라미터 유효성 문제인지 확인",
+      "investigation_plan": [
+        {
+          "goal": "business_date=20260831 파라미터가 거부된 원인이 실제로 파라미터 유효성 문제인지 확인",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "DAILY_SALES_LOAD",
+            "parameter_name": "business_date",
+            "parameter_value": "20260831"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_BUSINESS_DATE"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_BUSINESS_DATE",
+          "cause_name": "실행일자 파라미터 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 06:00:02 ERROR parameter rejected: business_date=20260831"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "business_date=20260831 파라미터가 실제로 유효하지 않은 값인지 확인이 필요함"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831"
+      },
+      "reason": "로그에 business_date 파라미터가 거부되었다는 명확한 신호가 있으므로, 실제로 파라미터 유효성 문제인지 validate_parameter로 확인이 필요함.",
+      "evidence_summary": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "expected_value": "20260901",
+        "is_valid": false,
+        "format_valid": true,
+        "range_valid": null,
+        "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901",
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "validate_parameter",
+        "status": "SUCCESS",
+        "data": {
+          "job_name": "DAILY_SALES_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260831",
+          "required": true,
+          "provided": true,
+          "format_valid": true,
+          "range_valid": null,
+          "expected_value": "20260901",
+          "allowed_values": null,
+          "min": null,
+          "max": null,
+          "is_valid": false,
+          "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+          "job_run_date": "20260901"
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "business_date 파라미터가 잡 실행일과 달라서 거부된 것이 근본 원인인지 확인",
+      "investigation_plan": [
+        {
+          "goal": "business_date 파라미터가 잡 실행일과 달라서 거부된 것이 근본 원인인지 확인",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_BUSINESS_DATE"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_BUSINESS_DATE",
+          "cause_name": "실행일자 파라미터 오류",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "2026-09-01 06:00:02 ERROR parameter rejected: business_date=20260831",
+            "validate_parameter 결과: expected_value=20260901, parameter_value=20260831, is_valid=false"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "business_date=20260831 파라미터가 실제로 유효하지 않은 값인지 확인이 필요함"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "로그와 validate_parameter SUCCESS evidence에서 business_date가 잡 실행일과 달라 거부된 것이 명확히 확인되어 추가 조사가 필요 없습니다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "로그에 business_date 파라미터가 거부되었다는 명확한 신호가 있으므로, 실제로 파라미터 유효성 문제인지 validate_parameter로 확인이 필요함.",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "required": true,
+        "provided": true,
+        "format_valid": true,
+        "range_valid": null,
+        "expected_value": "20260901",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901"
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "INVALID_BUSINESS_DATE",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과에서 business_date 파라미터가 provided=true, format_valid=true이나 is_valid=false로 확인됨",
+    "expected_value=20260901, 실제 입력값=20260831로 불일치",
+    "로그에서 parameter rejected: business_date=20260831 확인"
+  ],
+  "limitations": [
+    "business_date 파라미터가 왜 잘못 입력되었는지(예: 스케줄링 오류, 수동 입력 실수 등)까지는 확인할 수 없음"
+  ],
+  "recommended_actions": [
+    "잡 실행일과 일치하는 business_date 파라미터를 입력하도록 스케줄링 또는 입력 로직을 점검",
+    "파라미터 검증 로직이 정상적으로 동작하는지 추가 확인"
+  ]
+}

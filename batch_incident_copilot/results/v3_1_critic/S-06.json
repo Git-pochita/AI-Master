@@ -1,0 +1,237 @@
+{
+  "version": "v3",
+  "case_id": "S-06",
+  "summary": "DAILY_HR_SYNC 배치 실행 중 'ORA-00942: table or view does not exist'와 'invalid schema: HR_X' 오류가 발생했습니다. SUCCESS Tool 결과가 없으므로 실제 테이블 또는 스키마 존재 여부는 확인되지 않았습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_HR_SYNC",
+    "schema": "HR_X",
+    "table": "EMPLOYEES",
+    "sql": "SELECT EMP_ID FROM HR_X.EMPLOYEES",
+    "error_messages": [
+      "ORA-00942: table or view does not exist",
+      "invalid schema: HR_X"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 07:30:03 ERROR ORA-00942: table or view does not exist"
+      ]
+    },
+    {
+      "cause_code": "INVALID_SCHEMA",
+      "cause_name": "스키마 오류",
+      "evidence": [
+        "2026-09-01 07:30:03 ERROR invalid schema: HR_X"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "2026-09-01 07:30:03 ERROR ORA-00942: table or view does not exist"
+      ]
+    },
+    {
+      "cause_code": "INVALID_SCHEMA",
+      "cause_name": "스키마 오류",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "2026-09-01 07:30:03 ERROR invalid schema: HR_X"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "로그에 나타난 'ORA-00942: table or view does not exist'와 'invalid schema: HR_X' 중 어떤 것이 근본 원인인지 판별한다.",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "TABLE_NOT_FOUND",
+        "INVALID_SCHEMA"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "'테이블 없음'과 '스키마 오류' 중 무엇이 근본 원인인지 추가적으로 확인할 수 있는 방법이 있는가?"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "스키마 HR_X와 테이블 EMPLOYEES, 컬럼 EMP_ID의 존재 여부를 확인하여 '스키마 오류'와 '테이블 없음' 중 어떤 원인이 근본적인지 판단한다.",
+      "investigation_plan": [
+        {
+          "goal": "스키마 HR_X와 테이블 EMPLOYEES, 컬럼 EMP_ID의 존재 여부를 확인하여 '스키마 오류'와 '테이블 없음' 중 어떤 원인이 근본적인지 판단한다.",
+          "candidate_tool": "check_sql_metadata",
+          "arguments": {
+            "schema": "HR_X",
+            "table": "EMPLOYEES",
+            "column": "EMP_ID"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_SCHEMA",
+            "TABLE_NOT_FOUND"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 07:30:03 ERROR ORA-00942: table or view does not exist"
+          ]
+        },
+        {
+          "cause_code": "INVALID_SCHEMA",
+          "cause_name": "스키마 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 07:30:03 ERROR invalid schema: HR_X"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "스키마 HR_X가 존재하지 않아 발생한 오류인지, 스키마는 있으나 테이블 EMPLOYEES가 없는지 구분이 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_sql_metadata",
+      "arguments": {
+        "schema": "HR_X",
+        "table": "EMPLOYEES",
+        "column": "EMP_ID",
+        "job_name": "DAILY_HR_SYNC"
+      },
+      "reason": "로그에 스키마 오류와 테이블 없음 오류가 모두 나타나 있으므로, check_sql_metadata로 스키마와 테이블, 컬럼의 존재 여부를 확인하면 두 가설 중 근본 원인을 구분할 수 있다.",
+      "evidence_summary": {
+        "status": "FAILED",
+        "error": "SQL_METADATA_DATA_NOT_FOUND"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_sql_metadata",
+        "status": "FAILED",
+        "data": null,
+        "error": "SQL_METADATA_DATA_NOT_FOUND"
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "로그에 나타난 'ORA-00942: table or view does not exist'와 'invalid schema: HR_X' 중 어떤 것이 근본 원인인지 판별한다.",
+      "investigation_plan": [
+        {
+          "goal": "로그에 나타난 'ORA-00942: table or view does not exist'와 'invalid schema: HR_X' 중 어떤 것이 근본 원인인지 판별한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "TABLE_NOT_FOUND",
+            "INVALID_SCHEMA"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 07:30:03 ERROR ORA-00942: table or view does not exist"
+          ]
+        },
+        {
+          "cause_code": "INVALID_SCHEMA",
+          "cause_name": "스키마 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 07:30:03 ERROR invalid schema: HR_X"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "'테이블 없음'과 '스키마 오류' 중 무엇이 근본 원인인지 추가적으로 확인할 수 있는 방법이 있는가?"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "로그에 'invalid schema: HR_X'와 'ORA-00942: table or view does not exist'가 모두 명시되어 있고, check_sql_metadata Tool 결과로도 추가 확인이 불가하므로, 이 이상의 Tool 호출로 근본 원인을 더 명확히 구분할 수 없다. 현재 로그 증거만으로 원인 후보가 충분히 드러나 있다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그에 스키마 오류와 테이블 없음 오류가 모두 나타나 있으므로, check_sql_metadata로 스키마와 테이블, 컬럼의 존재 여부를 확인하면 두 가설 중 근본 원인을 구분할 수 있다.",
+      "arguments": {
+        "schema": "HR_X",
+        "table": "EMPLOYEES",
+        "column": "EMP_ID",
+        "job_name": "DAILY_HR_SYNC"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "FAILED",
+      "data": null,
+      "error": "SQL_METADATA_DATA_NOT_FOUND"
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "INVALID_SCHEMA",
+  "original_v2_diagnosis_level": "추정",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "INVALID_SCHEMA",
+  "final_cause_name": "스키마 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 07:30:03 ERROR ORA-00942: table or view does not exist",
+    "2026-09-01 07:30:03 ERROR invalid schema: HR_X"
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 실제 스키마 또는 테이블 존재 여부를 확인할 수 없습니다.",
+    "로그만으로는 근본 원인이 스키마 오류인지 테이블 없음인지 확정할 수 없습니다."
+  ],
+  "recommended_actions": [
+    "HR_X 스키마가 DB에 존재하는지 확인하십시오.",
+    "EMPLOYEES 테이블이 HR_X 스키마에 존재하는지 확인하십시오.",
+    "DB 접속 계정의 권한 및 스키마 접근 가능 여부를 점검하십시오."
+  ]
+}
