@@ -40,13 +40,20 @@ from app.v3 import (
 from main import run_diagnosis
 
 
-V2_DIR = PROJECT_ROOT / "results" / "v2_planning"
+V2_FIXTURE_DIR = PROJECT_ROOT / "tests" / "fixtures" / "v2_planning"
 LOG_DIR = PROJECT_ROOT / "data" / "sample_logs"
 FAILED_CATALOG = "카탈로그에 경로가 없습니다"
 
 
 def _load_v2(case_id: str) -> V2DiagnosisResult:
-    payload = json.loads((V2_DIR / f"{case_id}.json").read_text(encoding="utf-8"))
+    path = V2_FIXTURE_DIR / f"{case_id}.json"
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"V2 test fixture가 없습니다: {path}. "
+            "평가 산출물 results/v2_planning 이 아니라 "
+            "tests/fixtures/v2_planning 에 고정 fixture를 두어야 합니다."
+        )
+    payload = json.loads(path.read_text(encoding="utf-8"))
     return V2DiagnosisResult.model_validate(payload)
 
 
