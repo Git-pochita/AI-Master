@@ -49,13 +49,7 @@ else:
 
 uploaded = st.file_uploader("로그 파일 업로드 (.log, .txt)", type=["log", "txt"])
 pasted = st.text_area("로그 직접 입력", height=220, placeholder="배치 실행 로그를 붙여넣으십시오.")
-
-col_id, col_btn = st.columns([2, 1])
-with col_id:
-    case_id = st.text_input("case_id (선택)", value="file_case_001")
-with col_btn:
-    st.write("")
-    started = st.button("분석 시작", type="primary", use_container_width=True)
+started = st.button("분석 시작", type="primary")
 
 
 def _load_log() -> tuple[str, str | None, str | None]:
@@ -401,7 +395,6 @@ if started:
             outcome = analyze(
                 version=version,
                 log_text=log_text,
-                case_id=case_id or None,
                 filename=filename,
             )
         _render_validation(outcome.validation.model_dump())
