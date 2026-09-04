@@ -79,6 +79,7 @@ def test_streamlit_uses_live_progress_callback():
     assert "_redraw_progress" in STREAMLIT_SRC
     assert "format_progress_markdown" in STREAMLIT_SRC
     assert "progress_fn=on_progress" in STREAMLIT_SRC
+    assert "result_slot = st.empty()" in STREAMLIT_SRC
     assert "_render_final(payload)" in STREAMLIT_SRC
     assert 'st.markdown(f"- ' not in STREAMLIT_SRC
     assert "slot.markdown(format_progress_markdown" in STREAMLIT_SRC

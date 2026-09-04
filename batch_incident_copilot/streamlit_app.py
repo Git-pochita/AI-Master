@@ -404,6 +404,8 @@ if started:
     else:
         st.subheader("분석 진행 과정")
         progress_events: list[ProgressEvent] = []
+        # 이전 실행의 최종 진단이 분석 중에 남아 보이지 않도록 아래 영역을 먼저 비운다.
+        result_slot = st.empty()
         with st.status("분석 진행 과정", expanded=True) as status_widget:
             progress_slot = st.empty()
             _redraw_progress(progress_slot, progress_events, None)
@@ -437,27 +439,30 @@ if started:
                 status_widget.update(label="분석 진행 과정", state="complete")
 
         if outcome.validation.decision == ValidationDecision.ABORT:
-            _render_validation(outcome.validation.model_dump())
+            with result_slot.container():
+                _render_validation(outcome.validation.model_dump())
             st.stop()
         if outcome.error:
-            st.error(outcome.error)
+            with result_slot.container():
+                st.error(outcome.error)
             st.stop()
         payload = outcome.result or {}
-        st.divider()
-        if version == "v3":
-            _render_v3_critic(payload)
-        _render_final(payload)
-        with st.expander("상세 실행 Trace", expanded=False):
-            if version in {"v2", "v3"}:
-                _render_v2_trace(payload)
-            else:
-                _render_execution_trace(outcome.trace, version)
-            _render_agent_events(outcome.trace)
-        with st.expander("원본 진단 필드", expanded=False):
-            st.markdown("추출 정보")
-            _render_extracted(payload)
-            st.markdown("초기 원인 가설")
-            _render_hypotheses(payload)
-            if version in {"v1", "v2", "v3"}:
-                st.markdown("점검 Tool 원본 결과")
-                _render_tools(payload)
+        with result_slot.container():
+            st.divider()
+            if version == "v3":
+                _render_v3_critic(payload)
+            _render_final(payload)
+            with st.expander("상세 실행 Trace", expanded=False):
+                if version in {"v2", "v3"}:
+                    _render_v2_trace(payload)
+                else:
+                    _render_execution_trace(outcome.trace, version)
+                _render_agent_events(outcome.trace)
+            with st.expander("원본 진단 필드", expanded=False):
+                st.markdown("추출 정보")
+                _render_extracted(payload)
+                st.markdown("초기 원인 가설")
+                _render_hypotheses(payload)
+                if version in {"v1", "v2", "v3"}:
+                    st.markdown("점검 Tool 원본 결과")
+                    _render_tools(payload)
