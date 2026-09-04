@@ -41,9 +41,12 @@ TITLE_REFLECTION_RUNNING = "Reflection"
 
 _PRIVATE_COT_MARKERS = (
     "chain_of_thought",
+    "chain-of-thought",
     "private_reasoning",
     "hidden_reasoning",
     "revision_reason",
+    "planner_reason",
+    "scratchpad",
 )
 
 TOOL_HIGHLIGHT_KEYS = (
@@ -88,13 +91,20 @@ ProgressCallback = Callable[[ProgressEvent], None]
 def emit(progress_fn: ProgressCallback | None, event: ProgressEvent) -> None:
     if progress_fn is None:
         return
+    event.details = [
+        line for line in event.details if not _looks_like_private(str(line))
+    ]
     progress_fn(event)
+
+
+def _looks_like_private(text: str) -> bool:
+    lowered = (text or "").lower()
+    return any(marker in lowered for marker in _PRIVATE_COT_MARKERS)
 
 
 def contains_private_cot(event: ProgressEvent) -> bool:
     blob = " ".join([event.title, *event.details, *map(str, event.metadata.values())])
-    lowered = blob.lower()
-    return any(marker in lowered for marker in _PRIVATE_COT_MARKERS)
+    return _looks_like_private(blob)
 
 
 def _truncate(text: str, limit: int = 80) -> str:
@@ -139,39 +149,46 @@ def emit_log_analysis(
     progress_fn: ProgressCallback | None,
     extracted_info: dict[str, Any] | None,
 ) -> None:
+    emit(
+        progress_fn,
+        ProgressEvent(
+            step=STEP_LOG_ANALYSIS,
+            title=TITLE_LOG_ANALYSIS,
+            details=_log_analysis_details(extracted_info),
+            status="done",
+        ),
+    )
+
+
+def _log_analysis_details(extracted_info: dict[str, Any] | None) -> list[str]:
     extracted = extracted_info or {}
     details: list[str] = []
     errors = extracted.get("error_messages")
     if isinstance(errors, list):
         for item in errors:
             text = _truncate(str(item), 100)
-            if text:
+            if text and text not in details:
                 details.append(text)
     elif isinstance(errors, str) and errors.strip():
         details.append(_truncate(errors, 100))
+    seen_labels: set[str] = set()
     for key, label in (
         ("error_code", "error_code"),
         ("return_code", "return_code"),
         ("job_name", "job"),
         ("job", "job"),
+        ("input_path", "path"),
+        ("file_path", "path"),
+        ("path", "path"),
     ):
+        if label in seen_labels:
+            continue
         value = extracted.get(key)
         if value in (None, "", [], {}):
             continue
-        line = f"{label}={value}"
-        if line not in details:
-            details.append(line)
-        if label == "job":
-            break
-    emit(
-        progress_fn,
-        ProgressEvent(
-            step=STEP_LOG_ANALYSIS,
-            title=TITLE_LOG_ANALYSIS,
-            details=details,
-            status="done",
-        ),
-    )
+        details.append(f"{label}={value}")
+        seen_labels.add(label)
+    return details
 
 
 def _hypothesis_rows(hypotheses: Iterable[Any]) -> list[str]:
@@ -179,13 +196,11 @@ def _hypothesis_rows(hypotheses: Iterable[Any]) -> list[str]:
     for item in hypotheses or []:
         if isinstance(item, dict):
             code = item.get("cause_code")
-            name = item.get("cause_name") or ""
         else:
             code = getattr(item, "cause_code", None)
-            name = getattr(item, "cause_name", "") or ""
         if not code:
             continue
-        rows.append(f"`{code}` {name}".strip())
+        rows.append(str(code))
     return rows
 
 
@@ -218,6 +233,8 @@ def emit_initial_perception(
 def running_label(event: ProgressEvent) -> str:
     tool = event.metadata.get("tool")
     if event.step == STEP_TOOL and tool:
+        if str(tool) in event.title:
+            return event.title
         return f"{event.title} · {tool}"
     return event.title
 
@@ -238,8 +255,11 @@ def format_progress_markdown(
         lines = [f"✓ **{event.title}**"]
         for item in event.details:
             text = str(item).strip()
-            if text:
-                lines.append(text)
+            if not text:
+                continue
+            if not text.startswith("· "):
+                text = f"· {text}"
+            lines.append(text)
         blocks.append("\n\n".join(lines))
     if running_title:
         blocks.append(f"진행 중: **{running_title}**")
@@ -278,18 +298,16 @@ def emit_planning(
     for step in investigation_plan or []:
         if isinstance(step, dict):
             tool = step.get("candidate_tool")
-            goal = step.get("goal") or ""
         else:
             tool = getattr(step, "candidate_tool", None)
-            goal = getattr(step, "goal", "") or ""
-        if tool:
-            tools.append(str(tool))
-        label = f"`{tool}`" if tool else "추가 확인 항목"
-        goal_text = _truncate(str(goal), 80)
-        if goal_text:
-            details.append(f"{label} — {goal_text}")
+        if not tool:
+            continue
+        name = str(tool)
+        tools.append(name)
+        if details:
+            details.append(f"{name} 후보")
         else:
-            details.append(label)
+            details.append(name)
     emit(
         progress_fn,
         ProgressEvent(
@@ -308,9 +326,9 @@ def emit_replan(
     *,
     round_index: int | None = None,
 ) -> None:
-    details = ["이전 점검만으로는 원인을 확정하기 부족합니다."]
+    details = ["이전 점검만으로 원인 확정 부족"]
     if selected_tool:
-        details.append(f"추가 점검: `{selected_tool}`")
+        details.append(f"다음 점검: {selected_tool}")
     emit(
         progress_fn,
         ProgressEvent(
@@ -332,16 +350,15 @@ def emit_tool(
 ) -> None:
     payload = result.model_dump() if isinstance(result, ToolResult) else (result or {})
     status = str(payload.get("status") or "")
-    details = [f"`{tool_name}`"]
     if status == "FAILED":
-        details.append("실행 실패 (최종 근거에서 제외)")
+        details = ["실행 실패 (최종 근거에서 제외)"]
     else:
-        details.extend(highlight_tool_data(payload.get("data") or {}))
+        details = highlight_tool_data(payload.get("data") or {})
     emit(
         progress_fn,
         ProgressEvent(
             step=STEP_TOOL,
-            title=TITLE_TOOL,
+            title=f"{TITLE_TOOL} · {tool_name}",
             details=details,
             status="done",
             metadata={
@@ -353,14 +370,57 @@ def emit_tool(
     )
 
 
-def emit_evidence(progress_fn: ProgressCallback | None) -> None:
+def _looks_like_raw_json(text: str) -> bool:
+    stripped = (text or "").lstrip()
+    return stripped.startswith("{") or stripped.startswith("[")
+
+
+def evidence_details(
+    evidence: Iterable[str] | None = None,
+    tool_results: Iterable[Any] | None = None,
+    *,
+    limit: int = 4,
+) -> list[str]:
+    """최종 판단에 쓰인 핵심 evidence만 2~4줄로 요약한다. raw JSON/CoT는 넣지 않는다."""
+    lines: list[str] = []
+    for text in evidence or []:
+        cleaned = _truncate(str(text).strip(), 120)
+        if not cleaned or _looks_like_private(cleaned) or _looks_like_raw_json(cleaned):
+            continue
+        if cleaned not in lines:
+            lines.append(cleaned)
+        if len(lines) >= limit:
+            return lines
+    if len(lines) >= 2:
+        return lines[:limit]
+    for item in tool_results or []:
+        payload = item.model_dump() if hasattr(item, "model_dump") else dict(item or {})
+        if str(payload.get("status") or "") != "SUCCESS":
+            continue
+        tool = str(payload.get("tool") or "")
+        for field in highlight_tool_data(payload.get("data") or {}):
+            line = f"{tool}: {field}" if tool else field
+            if line not in lines:
+                lines.append(line)
+            if len(lines) >= limit:
+                return lines
+    return lines[:limit]
+
+
+def emit_evidence(
+    progress_fn: ProgressCallback | None,
+    evidence: Iterable[str] | None = None,
+    tool_results: Iterable[Any] | None = None,
+) -> None:
+    details = evidence_details(evidence, tool_results)
     emit(
         progress_fn,
         ProgressEvent(
             step=STEP_EVIDENCE,
             title=TITLE_EVIDENCE,
-            details=["수집된 Tool 결과와 로그 신호를 종합했습니다."],
+            details=details,
             status="done",
+            metadata={"count": len(details)},
         ),
     )
 
@@ -381,12 +441,9 @@ def _issue_types(issues: Iterable[Any]) -> list[str]:
 def emit_critic(progress_fn: ProgressCallback | None, critic: Any) -> None:
     payload = critic.model_dump() if hasattr(critic, "model_dump") else dict(critic or {})
     issue_types = _issue_types(payload.get("issues") or [])
-    details = [
-        f"verdict: `{payload.get('verdict') or 'PASS'}`",
-        f"evidence_consistent: `{payload.get('evidence_consistent')}`",
-    ]
+    details = [str(payload.get("verdict") or "PASS")]
     if issue_types:
-        details.append("issue types: " + ", ".join(f"`{name}`" for name in issue_types))
+        details.append("issue type: " + ", ".join(issue_types))
     emit(
         progress_fn,
         ProgressEvent(
@@ -409,13 +466,11 @@ def emit_reflection(
     original_cause: str | None = None,
     final_cause: str | None = None,
 ) -> None:
-    details = ["V2 진단과 Critic 이슈를 비교해 최종 진단을 재검토했습니다."]
-    if revised and original_cause and final_cause and original_cause != final_cause:
-        details.append(f"원인 코드: `{original_cause}` → `{final_cause}`")
+    details: list[str] = []
+    if original_cause and final_cause:
+        details.append(f"{original_cause} → {final_cause}")
     elif revised:
-        details.append("진단 수준 또는 원인을 교정했습니다.")
-    else:
-        details.append("원인 코드는 유지했습니다.")
+        details.append("진단 수준 교정")
     emit(
         progress_fn,
         ProgressEvent(

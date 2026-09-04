@@ -22,8 +22,15 @@ from app.progress import (
     ProgressEvent,
     contains_private_cot,
     emit_critic,
+    emit_evidence,
+    emit_hypotheses,
+    emit_log_analysis,
     emit_planning,
+    emit_reflection,
+    emit_replan,
+    emit_tool,
     emit_validation,
+    evidence_details,
     highlight_tool_data,
     format_progress_markdown,
     running_label,
@@ -139,7 +146,13 @@ def test_v0_progress_omits_planning_tool_critic(monkeypatch):
     assert running[0].step == STEP_LOG_ANALYSIS
     assert running[0].title == TITLE_LOG_ANALYSIS_RUNNING
     hypotheses = next(item for item in events if item.step == STEP_HYPOTHESES)
-    assert any("FILE_NOT_RECEIVED" in line for line in hypotheses.details)
+    assert hypotheses.details == ["FILE_NOT_RECEIVED"]
+    log_event = next(
+        item for item in events if item.step == STEP_LOG_ANALYSIS and item.status == "done"
+    )
+    assert any("FileNotFoundError" in line for line in log_event.details)
+    assert "return_code=12" in log_event.details
+    assert "job=DAILY_SALES_LOAD" in log_event.details
 
 
 def test_v1_progress_has_tools_but_not_planning(monkeypatch):
@@ -197,8 +210,9 @@ def test_v1_progress_has_tools_but_not_planning(monkeypatch):
     assert STEP_REPLAN not in steps
     assert STEP_CRITIC not in steps
     tool_event = next(item for item in events if item.step == STEP_TOOL and item.status == "done")
-    assert "`check_file_status`" in tool_event.details[0]
+    assert "check_file_status" in tool_event.title
     assert any(line.startswith("exists=") for line in tool_event.details)
+    assert any(line.startswith("path=") for line in tool_event.details)
     assert "reason" not in " ".join(tool_event.details)
 
 
@@ -259,8 +273,9 @@ def test_v2_progress_shows_planning_tool_replan_evidence(monkeypatch):
     assert STEP_CRITIC not in steps
     planning = next(item for item in events if item.step == STEP_PLANNING and item.status == "done")
     assert any("check_file_status" in line for line in planning.details)
+    assert "파일 확인" not in " ".join(planning.details)
     replan = next(item for item in events if item.step == STEP_REPLAN and item.status == "done")
-    assert "이전 점검만으로는 원인을 확정하기 부족합니다." in replan.details
+    assert "이전 점검만으로 원인 확정 부족" in replan.details
     assert any("validate_parameter" in line for line in replan.details)
     assert "실행일자 검증" not in " ".join(replan.details)
     running_replan = next(
@@ -270,6 +285,10 @@ def test_v2_progress_shows_planning_tool_replan_evidence(monkeypatch):
     )
     assert running_replan.title == TITLE_REPLAN
     assert all(not contains_private_cot(item) for item in events)
+    evidence = next(item for item in events if item.step == STEP_EVIDENCE and item.status == "done")
+    assert evidence.details
+    assert all("몇 건" not in line for line in evidence.details)
+    assert any("success evidence" in line or "exists=" in line for line in evidence.details)
 
 
 def test_v2_without_second_tool_omits_replan(monkeypatch):
@@ -444,7 +463,8 @@ def test_emit_planning_lists_tools_not_planner_reason():
         round_index=1,
     )
     assert events[0].step == STEP_PLANNING
-    assert any("check_file_status" in line for line in events[0].details)
+    assert events[0].details == ["check_file_status"]
+    assert "파일 존재 확인" not in " ".join(events[0].details)
     assert "planner" not in " ".join(events[0].details).lower()
 
 
@@ -458,7 +478,10 @@ def test_v3_producer_progress_then_critic(monkeypatch):
     def fake_v2(log_text, case_id=None, progress_fn=None):
         emit_planning(
             progress_fn,
-            [{"candidate_tool": "check_file_status", "goal": "파일 확인"}],
+            [
+                {"candidate_tool": "check_file_status", "goal": "파일 확인"},
+                {"candidate_tool": "validate_parameter", "goal": "날짜 검증"},
+            ],
             round_index=1,
         )
         emit_tool(
@@ -470,7 +493,10 @@ def test_v3_producer_progress_then_critic(monkeypatch):
                 data={"path": "/data/in/sales_20260831.csv", "exists": False},
             ),
         )
-        emit_evidence(progress_fn)
+        emit_evidence(
+            progress_fn,
+            evidence=["check_file_status: exists=False"],
+        )
         return v2
 
     events, progress_fn = _recorder()
@@ -563,3 +589,170 @@ def test_v3_reflection_emits_running_before_revision():
     assert running_titles.index(TITLE_CRITIC_RUNNING) < running_titles.index(
         TITLE_REFLECTION_RUNNING
     )
+
+
+def test_log_and_hypothesis_details_are_actual_artifacts():
+    events, progress_fn = _recorder()
+    emit_log_analysis(
+        progress_fn,
+        {
+            "error_messages": ["FileNotFoundError"],
+            "return_code": "12",
+            "job_name": "DAILY_SALES_LOAD",
+            "input_path": "/data/in/sales_20260903.csv",
+        },
+    )
+    emit_hypotheses(
+        progress_fn,
+        [
+            {"cause_code": "FILE_NOT_RECEIVED", "cause_name": "파일 미수신"},
+            {"cause_code": "INVALID_BUSINESS_DATE", "cause_name": "영업일자 불일치"},
+        ],
+    )
+    log_event = events[0]
+    assert log_event.details == [
+        "FileNotFoundError",
+        "return_code=12",
+        "job=DAILY_SALES_LOAD",
+        "path=/data/in/sales_20260903.csv",
+    ]
+    assert events[1].details == ["FILE_NOT_RECEIVED", "INVALID_BUSINESS_DATE"]
+    assert all(not contains_private_cot(item) for item in events)
+
+
+def test_planning_lists_candidate_tools_without_goals():
+    events, progress_fn = _recorder()
+    emit_planning(
+        progress_fn,
+        [
+            {
+                "candidate_tool": "check_file_status",
+                "goal": "이 문장은 planner reason처럼 보이면 안 됩니다.",
+            },
+            {
+                "candidate_tool": "validate_parameter",
+                "goal": "날짜를 왜 점검하는지 장문 설명",
+            },
+        ],
+    )
+    assert events[0].details == ["check_file_status", "validate_parameter 후보"]
+    blob = " ".join(events[0].details)
+    assert "장문" not in blob
+    assert "planner" not in blob.lower()
+
+
+def test_replan_and_tool_details_are_observable_fields():
+    from app.schemas import ToolResult
+
+    events, progress_fn = _recorder()
+    emit_replan(progress_fn, "validate_parameter", round_index=2)
+    emit_tool(
+        progress_fn,
+        "validate_parameter",
+        ToolResult(
+            tool="validate_parameter",
+            status="SUCCESS",
+            data={
+                "parameter_name": "business_date",
+                "parameter_value": "20260903",
+                "expected_value": "20260904",
+                "is_valid": False,
+                "raw_dump": {"secret": "nope"},
+            },
+        ),
+        round_index=2,
+    )
+    assert events[0].details == [
+        "이전 점검만으로 원인 확정 부족",
+        "다음 점검: validate_parameter",
+    ]
+    tool_event = events[1]
+    assert tool_event.title == "Tool 실행 · validate_parameter"
+    assert "parameter_name=business_date" in tool_event.details
+    assert "parameter_value=20260903" in tool_event.details
+    assert "expected_value=20260904" in tool_event.details
+    assert "is_valid=False" in tool_event.details
+    assert "raw_dump" not in " ".join(tool_event.details)
+    assert "secret" not in " ".join(tool_event.details)
+
+
+def test_evidence_details_use_final_evidence_not_counts():
+    from app.schemas import ToolResult
+
+    lines = evidence_details(
+        [
+            "check_file_status: exists=False, received=False",
+            "validate_parameter: is_valid=False",
+            "chain_of_thought: do not show",
+            '{"path": "/tmp/raw.json"}',
+        ],
+        [
+            ToolResult(
+                tool="check_file_status",
+                status="SUCCESS",
+                data={"path": "/data/in/sales_20260903.csv", "exists": False},
+            )
+        ],
+    )
+    assert 2 <= len(lines) <= 4
+    assert "check_file_status: exists=False, received=False" in lines
+    assert "validate_parameter: is_valid=False" in lines
+    assert all("chain_of_thought" not in line.lower() for line in lines)
+    assert all(not line.lstrip().startswith("{") for line in lines)
+    assert all("몇 건" not in line for line in lines)
+
+    events, progress_fn = _recorder()
+    emit_evidence(
+        progress_fn,
+        evidence=['{"path": "/tmp/raw.json", "dump": true}'],
+        tool_results=[
+            ToolResult(
+                tool="check_file_status",
+                status="SUCCESS",
+                data={
+                    "path": "/data/in/sales_20260903.csv",
+                    "exists": False,
+                    "received": False,
+                },
+            )
+        ],
+    )
+    blob = " ".join(events[0].details)
+    assert "exists=False" in blob
+    assert "received=False" in blob
+    assert "/tmp/raw.json" not in blob
+    assert "몇 건 확보" not in blob
+
+
+def test_critic_and_reflection_details_stay_short():
+    events, progress_fn = _recorder()
+    emit_critic(
+        progress_fn,
+        CriticResult(
+            verdict="REVISE",
+            evidence_consistent=False,
+            diagnosis_level_appropriate=True,
+            owner_consistent=True,
+            issues=[
+                CriticIssue(
+                    issue_type=CriticIssueType.EVIDENCE_CONFLICT,
+                    description="내부 장문 reasoning",
+                    related_evidence=["x"],
+                    blocking=True,
+                )
+            ],
+            revision_reason="private critic prose",
+        ),
+    )
+    assert events[0].details[0] == "REVISE"
+    assert events[0].details[1] == "issue type: EVIDENCE_CONFLICT"
+    assert "evidence_consistent" not in " ".join(events[0].details)
+    assert "장문" not in " ".join(events[0].details)
+    emit_reflection(
+        progress_fn,
+        revised=True,
+        original_cause="FILE_NOT_RECEIVED",
+        final_cause="INVALID_BUSINESS_DATE",
+    )
+    assert events[1].details == ["FILE_NOT_RECEIVED → INVALID_BUSINESS_DATE"]
+    assert all(not contains_private_cot(item) for item in events)
