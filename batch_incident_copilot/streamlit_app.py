@@ -18,7 +18,16 @@ from app.ui_service import (
 )
 from app.agent_events import build_agent_event_views
 from app.trace import AgentExecutionTrace, build_trace_view
-from app.progress import ProgressEvent, format_progress_markdown, running_label
+from app.progress import ProgressEvent
+from app.progress_view import (
+    cause_label,
+    format_operator_progress,
+    issue_type_label,
+    operator_running_label,
+    owner_label,
+    verdict_label,
+    yes_no_label,
+)
 
 st.set_page_config(page_title="Batch Incident Copilot", layout="wide")
 
@@ -71,13 +80,23 @@ def _redraw_progress(
 ) -> None:
     # container 자식 누적 대신 empty.markdown 한 장으로 다시 그린다.
     # 같은 스크립트 스레드에서 단계가 끝날 때마다 websocket delta가 나가게 한다.
-    slot.markdown(format_progress_markdown(events, running_title))
+    slot.markdown(format_operator_progress(events, running_title))
+
+
+def _item(text) -> None:
+    """markdown 리스트('- ', '* ')를 쓰지 않는다. 중첩 expander에서 bullet만 남는 버그를 피한다."""
+    value = str(text).strip()
+    if not value:
+        return
+    if value.startswith(("- ", "* ")):
+        value = value[2:].strip()
+    st.markdown(f"· {value}")
 
 
 def _render_validation(validation: dict) -> None:
     st.subheader("입력 검증")
     decision = validation.get("decision")
-    st.write(f"status: **{decision}**")
+    st.write(f"상태: **{decision}**")
     reasons = validation.get("reasons") or []
     if decision == ValidationDecision.ABORT.value:
         for reason in reasons:
@@ -101,7 +120,11 @@ def _render_trace_row(row) -> None:
     if row.kind == "kv":
         st.markdown(f"**{row.label}:** {row.value}" if row.label else row.value)
         return
-    st.markdown(row.value)
+    value = str(row.value or "").strip()
+    if value.startswith(("- ", "* ")):
+        _item(value)
+        return
+    st.markdown(value)
 
 
 def _render_execution_trace(trace: dict | None, version_name: str) -> None:
@@ -132,44 +155,51 @@ def _render_execution_trace(trace: dict | None, version_name: str) -> None:
                 _render_trace_row(row)
 
 
-def _render_diagnosis_level(level: str) -> None:
-    st.markdown(f"**diagnosis_level:** `{level}`")
-    if level == "확인됨":
-        st.success("확인됨")
-    elif level == "가능성 높음":
-        st.warning("가능성 높음")
-    else:
-        st.info(level or "추정")
+def _evidence_items(payload: dict) -> list:
+    evidence_items = list(payload.get("evidence") or [])
+    if evidence_items:
+        return evidence_items
+    for hyp in hypotheses_from_result(payload):
+        if hyp.get("cause_code") == payload.get("final_cause_code"):
+            return list(hyp.get("evidence") or [])
+    return []
 
 
 def _render_final(payload: dict) -> None:
     st.subheader("최종 진단")
-    st.write(f"**final_cause_code:** `{payload.get('final_cause_code')}`")
-    st.write(f"**final_cause_name:** {payload.get('final_cause_name')}")
-    _render_diagnosis_level(str(payload.get("diagnosis_level") or ""))
-    st.write(f"**owner:** {payload.get('owner')}")
-    st.markdown("**evidence**")
-    evidence_items = list(payload.get("evidence") or [])
-    if not evidence_items:
-        for hyp in hypotheses_from_result(payload):
-            if hyp.get("cause_code") == payload.get("final_cause_code"):
-                evidence_items = list(hyp.get("evidence") or [])
-                break
+    cause_name = str(payload.get("final_cause_name") or "").strip()
+    cause_code = str(payload.get("final_cause_code") or "").strip()
+    if not cause_name:
+        cause_name = cause_label(cause_code) or "원인 미정"
+    st.markdown(f"## {cause_name}")
+    if cause_code:
+        st.caption(cause_code)
+    st.write(f"진단 수준: **{payload.get('diagnosis_level') or '추정'}**")
+    st.write(f"담당 영역: **{owner_label(payload.get('owner'))}**")
+
+    st.markdown("**근거**")
+    evidence_items = _evidence_items(payload)
     if evidence_items:
         for item in evidence_items:
-            st.write(f"- {item}")
+            _item(item)
     else:
-        st.caption("표시할 evidence가 없습니다.")
-    st.markdown("**recommended_action**")
+        st.caption("표시할 근거가 없습니다.")
+
+    st.markdown("**권장 조치**")
     actions = payload.get("recommended_actions") or []
     if actions:
         for item in actions:
-            st.write(f"- {item}")
+            _item(item)
     else:
         st.caption("권고 조치가 없습니다.")
-    st.markdown("**limitations**")
-    for item in payload.get("limitations") or []:
-        st.write(f"- {item}")
+
+    st.markdown("**제약사항**")
+    limitations = payload.get("limitations") or []
+    if limitations:
+        for item in limitations:
+            _item(item)
+    else:
+        st.caption("표시할 제약사항이 없습니다.")
 
 
 def _render_extracted(payload: dict) -> None:
@@ -181,7 +211,7 @@ def _render_extracted(payload: dict) -> None:
         if isinstance(value, list):
             st.markdown(f"**{label}**")
             for item in value:
-                st.write(f"- {item}")
+                _item(item)
         else:
             st.write(f"**{label}:** {value}")
 
@@ -192,9 +222,13 @@ def _render_hypotheses(payload: dict) -> None:
         st.caption("초기 가설이 없습니다.")
         return
     for item in items:
-        st.markdown(f"**{item.get('cause_code')}** — {item.get('cause_name')}")
+        name = item.get("cause_name") or cause_label(item.get("cause_code"))
+        code = item.get("cause_code")
+        st.markdown(f"**{name}**")
+        if code:
+            st.caption(str(code))
         for evidence in item.get("evidence") or []:
-            st.write(f"- {evidence}")
+            _item(evidence)
 
 
 def _render_tools(payload: dict) -> None:
@@ -212,13 +246,14 @@ def _render_tools(payload: dict) -> None:
         title = f"점검 {index + 1} - {tool_name}"
         if status:
             title = f"{title} ({status})"
-        with st.expander(title, expanded=False):
+        with st.container(border=True):
+            st.markdown(f"**{title}**")
             st.write(f"**tool name:** {tool_name}")
             arguments = selection.get("arguments") or {}
             if arguments:
                 st.write("**arguments**")
                 for key, value in arguments.items():
-                    st.write(f"- {key}: {value}")
+                    _item(f"{key}: {value}")
             st.write(f"**status:** {status}")
             if status == "FAILED":
                 st.error(result.get("error") or "Tool 실행 실패")
@@ -228,14 +263,14 @@ def _render_tools(payload: dict) -> None:
                 if summary:
                     st.write("**data 요약**")
                     for key, value in summary.items():
-                        st.write(f"- {key}: {value}")
+                        _item(f"{key}: {value}")
                 extra = result.get("data") or {}
                 siblings = extra.get("same_directory_files")
                 if siblings:
                     st.write("**same_directory_files**")
                     for item in siblings:
-                        st.write(
-                            f"- {item.get('path')}: exists={item.get('exists')}, "
+                        _item(
+                            f"{item.get('path')}: exists={item.get('exists')}, "
                             f"received={item.get('received')}"
                         )
 
@@ -260,10 +295,11 @@ def _render_agent_events(trace: dict | None) -> None:
                 for key in ("timestamp", "round", "status", "source")
                 if view.get(key) not in (None, "")
             }
-            with st.expander("detail / metadata", expanded=False):
-                if extra:
-                    st.json(extra)
-                st.json(view.get("metadata") or {})
+            if extra:
+                st.json(extra)
+            metadata = view.get("metadata") or {}
+            if metadata:
+                st.json(metadata)
 
 
 def _render_v2_trace(payload: dict) -> None:
@@ -295,14 +331,14 @@ def _render_v2_trace(payload: dict) -> None:
             if questions:
                 st.markdown("**unresolved_questions**")
                 for question in questions:
-                    st.write(f"- {question}")
+                    _item(question)
             plan_steps = item.get("investigation_plan") or []
             if plan_steps:
                 st.markdown("**investigation_plan**")
                 for step in plan_steps:
                     tool = step.get("candidate_tool") or "none"
-                    st.write(
-                        f"- {step.get('goal') or ''} / {tool} / {step.get('status')}"
+                    _item(
+                        f"{step.get('goal') or ''} / {tool} / {step.get('status')}"
                     )
 
         if item.get("selected_tool"):
@@ -311,7 +347,7 @@ def _render_v2_trace(payload: dict) -> None:
                 st.write(f"**tool:** `{item.get('selected_tool')}`")
                 arguments = item.get("arguments") or {}
                 for key, value in arguments.items():
-                    st.write(f"- {key}: {value}")
+                    _item(f"{key}: {value}")
             result = item.get("tool_result") or {}
             with st.container(border=True):
                 st.markdown(f"**Tool Result (round {round_index})**")
@@ -325,7 +361,7 @@ def _render_v2_trace(payload: dict) -> None:
                         result.get("data") or {}
                     )
                     for key, value in summary.items():
-                        st.write(f"- {key}: {value}")
+                        _item(f"{key}: {value}")
 
         with st.container(border=True):
             st.markdown(f"**Evidence / Hypothesis Update (round {round_index})**")
@@ -333,8 +369,8 @@ def _render_v2_trace(payload: dict) -> None:
             if not states:
                 st.caption("가설 상태 갱신이 없습니다.")
             for state in states:
-                st.write(
-                    f"- `{state.get('cause_code')}` ({state.get('origin')}): "
+                _item(
+                    f"`{state.get('cause_code')}` ({state.get('origin')}): "
                     f"{state.get('status')}"
                 )
                 for signal in state.get("signals") or []:
@@ -355,44 +391,48 @@ def _render_v2_trace(payload: dict) -> None:
         st.write(f"**current_round:** {payload.get('current_round')}")
 
 
-def _render_v3_critic(payload: dict) -> None:
-    st.subheader("V3 Critic / Reflection")
+def _issue_type_value(item) -> object:
+    if isinstance(item, dict):
+        return item.get("issue_type")
+    value = getattr(item, "issue_type", None)
+    return value.value if hasattr(value, "value") else value
+
+
+def _render_v3_detail(payload: dict) -> None:
     st.caption("Critic 자유서술 reasoning은 표시하지 않습니다.")
     critic = payload.get("critic_result") or {}
     if not isinstance(critic, dict):
         critic = critic.model_dump()
     issues = critic.get("issues") or []
-    issue_types = []
-    for item in issues:
-        if isinstance(item, dict):
-            issue_types.append(item.get("issue_type"))
-        else:
-            value = getattr(item, "issue_type", None)
-            issue_types.append(value.value if hasattr(value, "value") else value)
     with st.container(border=True):
-        st.markdown("**V2 Producer 결과**")
-        st.write(f"**Original V2 Cause:** `{payload.get('original_v2_cause_code')}`")
+        st.markdown("**원래 진단**")
         st.write(
-            f"**Original V2 Level:** `{payload.get('original_v2_diagnosis_level')}`"
+            f"원인: {cause_label(payload.get('original_v2_cause_code'))} "
+            f"({payload.get('original_v2_cause_code')})"
         )
-        st.write(f"**Original V2 Owner:** `{payload.get('original_v2_owner')}`")
+        st.write(f"진단 수준: {payload.get('original_v2_diagnosis_level')}")
+        st.write(f"담당 영역: {owner_label(payload.get('original_v2_owner'))}")
     with st.container(border=True):
-        st.markdown("**Critic**")
-        st.write(f"**verdict:** `{critic.get('verdict')}`")
-        st.write(f"**revised:** `{payload.get('revised')}`")
-        st.write(f"**issue types:** {issue_types or '[]'}")
-        st.write(f"**evidence_consistent:** `{critic.get('evidence_consistent')}`")
+        st.markdown("**검증 결과**")
+        st.write(f"결과: {verdict_label(critic.get('verdict'))}")
+        st.write(f"원인 교정: {yes_no_label(payload.get('revised'))}")
+        st.write(f"근거 일관성: {yes_no_label(critic.get('evidence_consistent'))}")
         if issues:
+            st.markdown("**확인된 이슈**")
             for item in issues:
                 row = item if isinstance(item, dict) else item.model_dump()
-                st.write(
-                    f"- `{row.get('issue_type')}` blocking={row.get('blocking')}"
-                )
+                blocking = "차단" if row.get("blocking") else "참고"
+                _item(f"{issue_type_label(_issue_type_value(item))} ({blocking})")
+        else:
+            st.caption("확인된 이슈 없음")
     with st.container(border=True):
-        st.markdown("**Final V3 Cause**")
-        st.write(f"**Final V3 Cause:** `{payload.get('final_cause_code')}`")
-        st.write(f"**Final V3 Level:** `{payload.get('diagnosis_level')}`")
-        st.write(f"**owner:** `{payload.get('owner')}`")
+        st.markdown("**최종 원인**")
+        st.write(
+            f"원인: {payload.get('final_cause_name') or cause_label(payload.get('final_cause_code'))}"
+        )
+        st.caption(str(payload.get("final_cause_code") or ""))
+        st.write(f"진단 수준: {payload.get('diagnosis_level')}")
+        st.write(f"담당 영역: {owner_label(payload.get('owner'))}")
 
 
 if started:
@@ -404,24 +444,26 @@ if started:
     else:
         st.subheader("분석 진행 과정")
         progress_events: list[ProgressEvent] = []
+        # 라이브 패널을 status 밖에 둔다. collapse 후에도 한 번만 보이게 한다.
+        progress_slot = st.empty()
         # 이전 실행의 최종 진단이 분석 중에 남아 보이지 않도록 아래 영역을 먼저 비운다.
         result_slot = st.empty()
-        with st.status("분석 진행 과정", expanded=True) as status_widget:
-            progress_slot = st.empty()
-            _redraw_progress(progress_slot, progress_events, None)
+        _redraw_progress(progress_slot, progress_events, None)
+        with st.status("분석 중", expanded=True) as status_widget:
+            st.caption("단계별 점검을 실행하고 있습니다.")
 
             def on_progress(event: ProgressEvent) -> None:
                 if event.status == "running":
-                    label = running_label(event)
+                    label = operator_running_label(event)
                     _redraw_progress(progress_slot, progress_events, label)
                     status_widget.update(
-                        label=f"분석 진행 과정 · {label}",
+                        label=f"분석 중 · {label}",
                         state="running",
                     )
                     return
                 progress_events.append(event)
                 _redraw_progress(progress_slot, progress_events, None)
-                status_widget.update(label="분석 진행 과정", state="running")
+                status_widget.update(label="분석 중", state="running")
 
             outcome = analyze(
                 version=version,
@@ -434,11 +476,9 @@ if started:
                 outcome.error
                 or outcome.validation.decision == ValidationDecision.ABORT
             ):
-                status_widget.update(label="분석 진행 과정", state="error")
+                status_widget.update(label="분석 중단", state="error")
             else:
-                status_widget.update(label="분석 진행 과정", state="complete")
-        if progress_events:
-            st.markdown(format_progress_markdown(progress_events))
+                status_widget.update(label="분석 완료", state="complete")
 
         if outcome.validation.decision == ValidationDecision.ABORT:
             with result_slot.container():
@@ -451,9 +491,11 @@ if started:
         payload = outcome.result or {}
         with result_slot.container():
             st.divider()
-            if version == "v3":
-                _render_v3_critic(payload)
             _render_final(payload)
+            if version == "v3":
+                st.caption("최종 검증 완료")
+                with st.expander("상세 보기", expanded=False):
+                    _render_v3_detail(payload)
             with st.expander("상세 실행 Trace", expanded=False):
                 if version in {"v2", "v3"}:
                     _render_v2_trace(payload)

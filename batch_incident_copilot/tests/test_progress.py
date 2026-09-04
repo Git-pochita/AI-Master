@@ -35,6 +35,7 @@ from app.progress import (
     format_progress_markdown,
     running_label,
 )
+from app.progress_view import format_operator_progress, operator_running_label
 from app.planning import diagnose_v2
 from app.schemas import (
     CriticIssue,
@@ -84,18 +85,23 @@ def test_streamlit_uses_live_progress_callback():
     assert "st.status" in STREAMLIT_SRC
     assert "st.empty" in STREAMLIT_SRC
     assert "_redraw_progress" in STREAMLIT_SRC
-    assert "format_progress_markdown" in STREAMLIT_SRC
+    assert "format_operator_progress" in STREAMLIT_SRC
     assert "progress_fn=on_progress" in STREAMLIT_SRC
     assert "result_slot = st.empty()" in STREAMLIT_SRC
     assert "_render_final(payload)" in STREAMLIT_SRC
     assert 'st.markdown(f"- ' not in STREAMLIT_SRC
-    assert "slot.markdown(format_progress_markdown" in STREAMLIT_SRC
-    assert "st.markdown(format_progress_markdown(progress_events))" in STREAMLIT_SRC
+    assert "slot.markdown(format_operator_progress" in STREAMLIT_SRC
+    assert "st.markdown(format_progress_markdown(progress_events))" not in STREAMLIT_SRC
+    assert STREAMLIT_SRC.count('st.subheader("분석 진행 과정")') == 1
+    assert 'st.subheader("V3 Critic / Reflection")' not in STREAMLIT_SRC
+    assert "**final_cause_code:**" not in STREAMLIT_SRC
+    assert "**verdict:**" not in STREAMLIT_SRC
     status_block = STREAMLIT_SRC.split("with st.status", 1)[1].split(
         "if outcome.validation", 1
     )[0]
     assert "st.expander" not in status_block
     assert "_render_execution_trace" not in status_block
+    assert "_render_final" not in status_block
 
 
 def test_emit_validation_and_no_private_cot():
@@ -757,3 +763,105 @@ def test_critic_and_reflection_details_stay_short():
     )
     assert events[1].details == ["FILE_NOT_RECEIVED → INVALID_BUSINESS_DATE"]
     assert all(not contains_private_cot(item) for item in events)
+
+
+def test_format_operator_progress_groups_and_hides_raw_fields():
+    from app.schemas import ToolResult
+
+    events, progress_fn = _recorder()
+    emit_validation(
+        progress_fn,
+        ValidationResult(
+            decision=ValidationDecision.PROCEED,
+            reasons=["배치 로그로 보입니다."],
+        ),
+    )
+    emit_log_analysis(
+        progress_fn,
+        {
+            "error_messages": ["FileNotFoundError"],
+            "return_code": "12",
+            "job_name": "DAILY_SALES_LOAD",
+            "input_path": "/data/in/sales_20260903.csv",
+        },
+    )
+    emit_hypotheses(
+        progress_fn,
+        [
+            {"cause_code": "FILE_NOT_RECEIVED", "cause_name": "파일 미수신"},
+            {"cause_code": "INVALID_FILE_PATH", "cause_name": "파일 경로 오류"},
+        ],
+    )
+    emit_tool(
+        progress_fn,
+        "check_file_status",
+        ToolResult(
+            tool="check_file_status",
+            status="SUCCESS",
+            data={"path": "/data/in/sales_20260903.csv", "exists": False},
+        ),
+    )
+    emit_tool(
+        progress_fn,
+        "validate_parameter",
+        ToolResult(
+            tool="validate_parameter",
+            status="SUCCESS",
+            data={
+                "parameter_name": "business_date",
+                "parameter_value": "20260903",
+                "expected_value": "20260901",
+                "is_valid": False,
+            },
+        ),
+    )
+    emit_evidence(
+        progress_fn,
+        evidence=[
+            "validate_parameter: parameter_value=20260903, expected_value=20260901",
+        ],
+    )
+    emit_critic(
+        progress_fn,
+        CriticResult(
+            verdict="PASS",
+            evidence_consistent=True,
+            diagnosis_level_appropriate=True,
+            owner_consistent=True,
+        ),
+    )
+    text = format_operator_progress(events)
+    assert "✓ **로그 분석**" in text
+    assert "주요 오류: FileNotFoundError" in text
+    assert "작업: DAILY_SALES_LOAD" in text
+    assert "✓ **원인 후보**" in text
+    assert "파일 미수신" in text
+    assert "파일 경로 오류" in text
+    assert "✓ **추가 점검**" in text
+    assert "파일 상태 확인 → 실패" in text
+    assert "실행일자 검증 → 불일치 확인" in text
+    assert "✓ **근거 종합**" in text
+    assert "business_date: 20260903" in text
+    assert "expected: 20260901" in text
+    assert "✓ **최종 검증**" in text
+    assert "진단 근거 일관성 확인 완료" in text
+    assert "\n- " not in text
+    assert "\n* " not in text
+    for hidden in (
+        "final_cause_code",
+        "verdict",
+        "revised",
+        "issue types",
+        "evidence_consistent",
+        "PASS",
+        "False",
+        "[]",
+        "FILE_NOT_RECEIVED",
+        "check_file_status",
+        "validate_parameter",
+    ):
+        assert hidden not in text
+    running = format_operator_progress(events, running_title="최종 검증")
+    assert "진행 중: **최종 검증**" in running
+    event = ProgressEvent(step=STEP_TOOL, title="Tool 실행", status="running")
+    assert operator_running_label(event) == "추가 점검"
