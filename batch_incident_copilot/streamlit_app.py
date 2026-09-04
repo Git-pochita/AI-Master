@@ -18,6 +18,7 @@ from app.ui_service import (
 )
 from app.agent_events import build_agent_event_views
 from app.trace import AgentExecutionTrace, build_trace_view
+from app.progress import ProgressEvent, format_progress_markdown, running_label
 
 st.set_page_config(page_title="Batch Incident Copilot", layout="wide")
 
@@ -61,6 +62,16 @@ def _load_log() -> tuple[str, str | None, str | None]:
             return "", uploaded.name, "읽을 수 없는 입력입니다: UTF-8로 디코딩하지 못했습니다."
         return text, uploaded.name, None
     return pasted, None, None
+
+
+def _redraw_progress(
+    slot,
+    events: list[ProgressEvent],
+    running_title: str | None,
+) -> None:
+    # container 자식 누적 대신 empty.markdown 한 장으로 다시 그린다.
+    # 같은 스크립트 스레드에서 단계가 끝날 때마다 websocket delta가 나가게 한다.
+    slot.markdown(format_progress_markdown(events, running_title))
 
 
 def _render_validation(validation: dict) -> None:
@@ -391,32 +402,67 @@ if started:
     elif not (log_text or "").strip():
         st.error("로그 파일을 업로드하거나 로그 텍스트를 입력하십시오.")
     else:
-        with st.spinner("분석 중입니다."):
+        st.subheader("분석 진행 과정")
+        progress_events: list[ProgressEvent] = []
+        # 이전 실행의 최종 진단이 분석 중에 남아 보이지 않도록 아래 영역을 먼저 비운다.
+        result_slot = st.empty()
+        with st.status("분석 진행 과정", expanded=True) as status_widget:
+            progress_slot = st.empty()
+            _redraw_progress(progress_slot, progress_events, None)
+
+            def on_progress(event: ProgressEvent) -> None:
+                if event.status == "running":
+                    label = running_label(event)
+                    _redraw_progress(progress_slot, progress_events, label)
+                    status_widget.update(
+                        label=f"분석 진행 과정 · {label}",
+                        state="running",
+                    )
+                    return
+                progress_events.append(event)
+                _redraw_progress(progress_slot, progress_events, None)
+                status_widget.update(label="분석 진행 과정", state="running")
+
             outcome = analyze(
                 version=version,
                 log_text=log_text,
                 filename=filename,
+                progress_fn=on_progress,
             )
-        _render_validation(outcome.validation.model_dump())
+            _redraw_progress(progress_slot, progress_events, None)
+            if (
+                outcome.error
+                or outcome.validation.decision == ValidationDecision.ABORT
+            ):
+                status_widget.update(label="분석 진행 과정", state="error")
+            else:
+                status_widget.update(label="분석 진행 과정", state="complete")
+
         if outcome.validation.decision == ValidationDecision.ABORT:
+            with result_slot.container():
+                _render_validation(outcome.validation.model_dump())
             st.stop()
         if outcome.error:
-            st.error(outcome.error)
+            with result_slot.container():
+                st.error(outcome.error)
             st.stop()
         payload = outcome.result or {}
-        if version in {"v2", "v3"}:
-            _render_v2_trace(payload)
+        with result_slot.container():
+            st.divider()
             if version == "v3":
                 _render_v3_critic(payload)
-        else:
-            _render_execution_trace(outcome.trace, version)
-        _render_agent_events(outcome.trace)
-        _render_final(payload)
-        with st.expander("원본 진단 필드", expanded=False):
-            st.markdown("추출 정보")
-            _render_extracted(payload)
-            st.markdown("초기 원인 가설")
-            _render_hypotheses(payload)
-            if version in {"v1", "v2", "v3"}:
-                st.markdown("점검 Tool 원본 결과")
-                _render_tools(payload)
+            _render_final(payload)
+            with st.expander("상세 실행 Trace", expanded=False):
+                if version in {"v2", "v3"}:
+                    _render_v2_trace(payload)
+                else:
+                    _render_execution_trace(outcome.trace, version)
+                _render_agent_events(outcome.trace)
+            with st.expander("원본 진단 필드", expanded=False):
+                st.markdown("추출 정보")
+                _render_extracted(payload)
+                st.markdown("초기 원인 가설")
+                _render_hypotheses(payload)
+                if version in {"v1", "v2", "v3"}:
+                    st.markdown("점검 Tool 원본 결과")
+                    _render_tools(payload)
