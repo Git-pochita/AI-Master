@@ -861,6 +861,30 @@ def test_format_operator_progress_groups_and_hides_raw_fields():
         "validate_parameter",
     ):
         assert hidden not in text
+
+    prose_events, prose_fn = _recorder()
+    emit_tool(
+        prose_fn,
+        "validate_parameter",
+        ToolResult(
+            tool="validate_parameter",
+            status="SUCCESS",
+            data={
+                "parameter_name": "business_date",
+                "parameter_value": "20260831",
+                "expected_value": "20260901",
+                "is_valid": False,
+            },
+        ),
+    )
+    emit_evidence(
+        prose_fn,
+        evidence=["로그에서 FileNotFoundError가 확인됨"],
+    )
+    prose_text = format_operator_progress(prose_events)
+    assert "business_date: 20260831" in prose_text
+    assert "expected: 20260901" in prose_text
+    assert "False" not in prose_text
     running = format_operator_progress(events, running_title="최종 검증")
     assert "진행 중: **최종 검증**" in running
     event = ProgressEvent(step=STEP_TOOL, title="Tool 실행", status="running")

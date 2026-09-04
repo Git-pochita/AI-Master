@@ -215,21 +215,28 @@ def _tool_outcome_line(event: ProgressEvent) -> str:
 
 
 def _evidence_group(events: list[ProgressEvent]) -> list[str]:
-    evidence_events = _done(events, STEP_EVIDENCE)
-    if not evidence_events:
-        return []
-    details = [str(item) for item in evidence_events[0].details]
     parsed: dict[str, str] = {}
     leftovers: list[str] = []
-    for text in details:
-        for key, value in _EQ_IN_TEXT.findall(text):
-            parsed[key] = value
-        match = _KV.match(text)
-        if match:
-            parsed[match.group(1)] = match.group(2)
-            continue
-        if text and not text.lstrip().startswith("{") and "SUCCESS data" not in text:
-            leftovers.append(text)
+    sources = list(_done(events, STEP_EVIDENCE)) + list(_done(events, STEP_TOOL))
+    if not _done(events, STEP_EVIDENCE):
+        return []
+    for event in sources:
+        for raw in event.details:
+            text = str(raw).strip()
+            if not text:
+                continue
+            for key, value in _EQ_IN_TEXT.findall(text):
+                parsed[key] = value
+            match = _KV.match(text)
+            if match:
+                parsed[match.group(1)] = match.group(2)
+                continue
+            if (
+                event.step == STEP_EVIDENCE
+                and not text.lstrip().startswith("{")
+                and "SUCCESS data" not in text
+            ):
+                leftovers.append(text)
     lines: list[str] = []
     business = parsed.get("parameter_value") or parsed.get("business_date")
     expected = parsed.get("expected_value")
