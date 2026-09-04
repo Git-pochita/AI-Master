@@ -18,7 +18,7 @@ from app.ui_service import (
 )
 from app.agent_events import build_agent_event_views
 from app.trace import AgentExecutionTrace, build_trace_view
-from app.progress import ProgressEvent
+from app.progress import ProgressEvent, running_label
 
 st.set_page_config(page_title="Batch Incident Copilot", layout="wide")
 
@@ -69,7 +69,24 @@ def _render_progress_event(event: ProgressEvent) -> None:
         return
     st.markdown(f"✓ **{event.title}**")
     for item in event.details:
-        st.markdown(f"- {item}")
+        # st.status 안쪽에서 markdown 리스트('- ', '* ')를 쓰면 본문이 비는
+        # Streamlit 버그가 있어 write로만 핵심 상태를 적는다.
+        st.write(item)
+
+
+def _redraw_progress(
+    slot,
+    events: list[ProgressEvent],
+    running_title: str | None,
+) -> None:
+    with slot.container():
+        if not events and not running_title:
+            st.caption("분석 단계를 기다리는 중입니다.")
+            return
+        for event in events:
+            _render_progress_event(event)
+        if running_title:
+            st.write(f"진행 중: {running_title}")
 
 
 def _render_validation(validation: dict) -> None:
@@ -401,21 +418,22 @@ if started:
         st.error("로그 파일을 업로드하거나 로그 텍스트를 입력하십시오.")
     else:
         st.subheader("분석 진행 과정")
+        progress_events: list[ProgressEvent] = []
         with st.status("분석 진행 과정", expanded=True) as status_widget:
-            completed_box = st.container()
-            running_slot = st.empty()
+            progress_slot = st.empty()
+            _redraw_progress(progress_slot, progress_events, None)
 
             def on_progress(event: ProgressEvent) -> None:
                 if event.status == "running":
-                    running_slot.markdown(f"**{event.title}**")
+                    label = running_label(event)
+                    _redraw_progress(progress_slot, progress_events, label)
                     status_widget.update(
-                        label=f"분석 진행 과정 · {event.title}",
+                        label=f"분석 진행 과정 · {label}",
                         state="running",
                     )
                     return
-                running_slot.empty()
-                with completed_box:
-                    _render_progress_event(event)
+                progress_events.append(event)
+                _redraw_progress(progress_slot, progress_events, None)
                 status_widget.update(label="분석 진행 과정", state="running")
 
             outcome = analyze(
@@ -424,7 +442,7 @@ if started:
                 filename=filename,
                 progress_fn=on_progress,
             )
-            running_slot.empty()
+            _redraw_progress(progress_slot, progress_events, None)
             if (
                 outcome.error
                 or outcome.validation.decision == ValidationDecision.ABORT

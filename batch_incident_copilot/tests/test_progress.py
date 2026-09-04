@@ -15,10 +15,17 @@ from app.progress import (
     STEP_REPLAN,
     STEP_TOOL,
     STEP_VALIDATION,
+    TITLE_CRITIC_RUNNING,
+    TITLE_LOG_ANALYSIS_RUNNING,
+    TITLE_REFLECTION_RUNNING,
+    TITLE_REPLAN,
     ProgressEvent,
     contains_private_cot,
     emit_critic,
+    emit_planning,
     emit_validation,
+    highlight_tool_data,
+    running_label,
 )
 from app.planning import diagnose_v2
 from app.schemas import (
@@ -67,8 +74,16 @@ def test_progress_sources_do_not_fake_delay():
 def test_streamlit_uses_live_progress_callback():
     assert "분석 진행 과정" in STREAMLIT_SRC
     assert "st.status" in STREAMLIT_SRC
+    assert "st.empty" in STREAMLIT_SRC
+    assert "_redraw_progress" in STREAMLIT_SRC
     assert "progress_fn=on_progress" in STREAMLIT_SRC
     assert "_render_final(payload)" in STREAMLIT_SRC
+    assert 'st.markdown(f"- ' not in STREAMLIT_SRC
+    status_block = STREAMLIT_SRC.split("with st.status", 1)[1].split(
+        "if outcome.validation", 1
+    )[0]
+    assert "st.expander" not in status_block
+    assert "_render_execution_trace" not in status_block
 
 
 def test_emit_validation_and_no_private_cot():
@@ -116,7 +131,11 @@ def test_v0_progress_omits_planning_tool_critic(monkeypatch):
     assert STEP_TOOL not in steps
     assert STEP_REPLAN not in steps
     assert STEP_CRITIC not in steps
-    assert any("FILE_NOT_RECEIVED" in line for line in events[2].details)
+    running = [item for item in events if item.status == "running"]
+    assert running[0].step == STEP_LOG_ANALYSIS
+    assert running[0].title == TITLE_LOG_ANALYSIS_RUNNING
+    hypotheses = next(item for item in events if item.step == STEP_HYPOTHESES)
+    assert any("FILE_NOT_RECEIVED" in line for line in hypotheses.details)
 
 
 def test_v1_progress_has_tools_but_not_planning(monkeypatch):
@@ -240,6 +259,12 @@ def test_v2_progress_shows_planning_tool_replan_evidence(monkeypatch):
     assert "이전 점검만으로는 원인을 확정하기 부족합니다." in replan.details
     assert any("validate_parameter" in line for line in replan.details)
     assert "실행일자 검증" not in " ".join(replan.details)
+    running_replan = next(
+        item
+        for item in events
+        if item.step == STEP_REPLAN and item.status == "running"
+    )
+    assert running_replan.title == TITLE_REPLAN
     assert all(not contains_private_cot(item) for item in events)
 
 
@@ -358,3 +383,165 @@ def test_critic_event_skips_issue_descriptions():
     assert "private critic prose" not in blob
     assert "EVIDENCE_CONFLICT" in blob
     assert not contains_private_cot(events[0])
+
+
+def test_highlight_tool_data_keeps_only_key_fields():
+    lines = highlight_tool_data(
+        {
+            "path": "/data/in/sales_20260831.csv",
+            "exists": False,
+            "received": False,
+            "raw_payload": {"secret": "do-not-show"},
+            "same_directory_files": [{"path": "/data/in/other.csv"}],
+        }
+    )
+    blob = " ".join(lines)
+    assert "exists=False" in blob
+    assert "received=False" in blob
+    assert "raw_payload" not in blob
+    assert "secret" not in blob
+    assert "same_directory_files" not in blob
+
+
+def test_running_label_includes_tool_name():
+    event = ProgressEvent(
+        step=STEP_TOOL,
+        title="Tool 실행",
+        status="running",
+        metadata={"tool": "check_file_status"},
+    )
+    assert running_label(event) == "Tool 실행 · check_file_status"
+
+
+def test_emit_planning_lists_tools_not_planner_reason():
+    events, progress_fn = _recorder()
+    emit_planning(
+        progress_fn,
+        [
+            {
+                "candidate_tool": "check_file_status",
+                "goal": "파일 존재 확인",
+            }
+        ],
+        round_index=1,
+    )
+    assert events[0].step == STEP_PLANNING
+    assert any("check_file_status" in line for line in events[0].details)
+    assert "planner" not in " ".join(events[0].details).lower()
+
+
+def test_v3_producer_progress_then_critic(monkeypatch):
+    from tests.test_v3 import _load_log, _load_v2, _pass_draft
+    from app.progress import emit_evidence, emit_planning, emit_tool
+    from app.schemas import ToolResult
+
+    v2 = _load_v2("F-01")
+
+    def fake_v2(log_text, case_id=None, progress_fn=None):
+        emit_planning(
+            progress_fn,
+            [{"candidate_tool": "check_file_status", "goal": "파일 확인"}],
+            round_index=1,
+        )
+        emit_tool(
+            progress_fn,
+            "check_file_status",
+            ToolResult(
+                tool="check_file_status",
+                status="SUCCESS",
+                data={"path": "/data/in/sales_20260831.csv", "exists": False},
+            ),
+        )
+        emit_evidence(progress_fn)
+        return v2
+
+    events, progress_fn = _recorder()
+    result = diagnose_v3(
+        _load_log("F-01"),
+        case_id="F-01",
+        critic_fn=_pass_draft,
+        diagnose_v2_fn=fake_v2,
+        progress_fn=progress_fn,
+    )
+    assert result.critic_result.verdict == "PASS"
+    steps = _done_steps(events)
+    assert steps == [STEP_PLANNING, STEP_TOOL, STEP_EVIDENCE, STEP_CRITIC]
+    critic_running = next(
+        item
+        for item in events
+        if item.step == STEP_CRITIC and item.status == "running"
+    )
+    assert critic_running.title == TITLE_CRITIC_RUNNING
+
+
+def test_analyze_v3_1_routes_progress_like_v3(monkeypatch):
+    from tests.test_v3 import _load_v2, _pass_draft
+
+    v2 = _load_v2("F-01")
+    captured = {}
+
+    def fake_v3(log_text, case_id=None, progress_fn=None, **_kwargs):
+        captured["progress_fn"] = progress_fn
+        captured["log"] = log_text
+        from app.progress import emit_critic
+
+        emit_critic(
+            progress_fn,
+            {
+                "verdict": "PASS",
+                "evidence_consistent": True,
+                "issues": [],
+            },
+        )
+        from app.v3 import _pack_v3
+        from app.schemas import CriticResult
+
+        return _pack_v3(
+            v2,
+            CriticResult(
+                verdict="PASS",
+                evidence_consistent=True,
+                diagnosis_level_appropriate=True,
+                owner_consistent=True,
+            ),
+            summary=v2.summary,
+            final_cause_code=v2.final_cause_code,
+            final_cause_name=v2.final_cause_name,
+            diagnosis_level=v2.diagnosis_level,
+            owner=v2.owner,
+            evidence=list(v2.evidence),
+            limitations=list(v2.limitations),
+            recommended_actions=list(v2.recommended_actions),
+        )
+
+    monkeypatch.setattr("app.v3.diagnose_v3", fake_v3)
+    events, progress_fn = _recorder()
+    outcome = analyze("v3_1", SAMPLE, progress_fn=progress_fn)
+    assert outcome.ok is True
+    assert captured["progress_fn"] is progress_fn
+    assert _done_steps(events)[0] == STEP_VALIDATION
+    assert STEP_CRITIC in _done_steps(events)
+
+
+def test_v3_reflection_emits_running_before_revision():
+    from tests.test_v3 import _load_log, _load_v2, _conflict_better_draft, _revision_draft
+
+    v2 = _load_v2("F-02")
+    events, progress_fn = _recorder()
+    diagnose_v3(
+        _load_log("F-02"),
+        case_id="F-02",
+        v2_result=v2,
+        critic_fn=lambda *_a, **_k: _conflict_better_draft("sales_20260901.csv"),
+        revise_fn=lambda *_a, **_k: _revision_draft(v2, "INVALID_FILE_PATH"),
+        diagnose_v2_fn=lambda *_a, **_k: (_ for _ in ()).throw(
+            AssertionError("diagnose_v2 should not run")
+        ),
+        progress_fn=progress_fn,
+    )
+    running_titles = [item.title for item in events if item.status == "running"]
+    assert TITLE_CRITIC_RUNNING in running_titles
+    assert TITLE_REFLECTION_RUNNING in running_titles
+    assert running_titles.index(TITLE_CRITIC_RUNNING) < running_titles.index(
+        TITLE_REFLECTION_RUNNING
+    )

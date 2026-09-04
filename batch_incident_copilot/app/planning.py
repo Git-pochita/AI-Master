@@ -310,9 +310,15 @@ def diagnose_v2(
 ) -> V2DiagnosisResult:
     from app.progress import (
         STEP_EVIDENCE,
+        STEP_LOG_ANALYSIS,
         STEP_PLANNING,
-        TITLE_EVIDENCE,
+        STEP_REPLAN,
+        STEP_TOOL,
+        TITLE_EVIDENCE_RUNNING,
+        TITLE_LOG_ANALYSIS_RUNNING,
         TITLE_PLANNING,
+        TITLE_REPLAN,
+        TITLE_TOOL,
         emit_evidence,
         emit_initial_perception,
         emit_planning,
@@ -321,6 +327,7 @@ def diagnose_v2(
         emit_tool,
     )
 
+    emit_running(progress_fn, STEP_LOG_ANALYSIS, TITLE_LOG_ANALYSIS_RUNNING)
     initial = diagnose(log_text, case_id=case_id)
     emit_initial_perception(progress_fn, initial.extracted_info, initial.hypotheses)
     initial_hypotheses = [item.model_copy(deep=True) for item in initial.hypotheses]
@@ -343,6 +350,8 @@ def diagnose_v2(
 
         if round_index == 1:
             emit_running(progress_fn, STEP_PLANNING, TITLE_PLANNING)
+        else:
+            emit_running(progress_fn, STEP_REPLAN, TITLE_REPLAN)
         decision = planner(
             log_text=log_text,
             extracted_info=initial.extracted_info,
@@ -444,6 +453,12 @@ def diagnose_v2(
                         planner_tool,
                         round_index=round_index,
                     )
+                emit_running(
+                    progress_fn,
+                    STEP_TOOL,
+                    TITLE_TOOL,
+                    metadata={"tool": planner_tool},
+                )
                 tool_result = execute_tool(planner_tool, arguments)
                 emit_tool(
                     progress_fn,
@@ -494,7 +509,7 @@ def diagnose_v2(
     if stop_reason is None:
         stop_reason = StopReason.MAX_PLANNING_ROUNDS
 
-    emit_running(progress_fn, STEP_EVIDENCE, TITLE_EVIDENCE)
+    emit_running(progress_fn, STEP_EVIDENCE, TITLE_EVIDENCE_RUNNING)
     final_payload = finalizer(log_text, initial, results)
     emit_evidence(progress_fn)
     return V2DiagnosisResult(

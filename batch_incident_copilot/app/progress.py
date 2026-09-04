@@ -27,13 +27,17 @@ STEP_REFLECTION = "reflection"
 TITLE_VALIDATION = "입력 로그 검증 완료"
 TITLE_VALIDATION_FAILED = "입력 로그 검증 실패"
 TITLE_LOG_ANALYSIS = "핵심 오류 분석 완료"
+TITLE_LOG_ANALYSIS_RUNNING = "핵심 오류 분석"
 TITLE_HYPOTHESES = "초기 원인 후보 생성"
 TITLE_PLANNING = "Investigation Plan 생성"
 TITLE_REPLAN = "Re-planning"
 TITLE_TOOL = "Tool 실행"
 TITLE_EVIDENCE = "Evidence Aggregation 완료"
+TITLE_EVIDENCE_RUNNING = "Evidence Aggregation"
 TITLE_CRITIC = "Critic 검증 완료"
+TITLE_CRITIC_RUNNING = "Critic 검증"
 TITLE_REFLECTION = "Reflection 완료"
+TITLE_REFLECTION_RUNNING = "Reflection"
 
 _PRIVATE_COT_MARKERS = (
     "chain_of_thought",
@@ -209,6 +213,13 @@ def emit_initial_perception(
 ) -> None:
     emit_log_analysis(progress_fn, extracted_info)
     emit_hypotheses(progress_fn, hypotheses)
+
+
+def running_label(event: ProgressEvent) -> str:
+    tool = event.metadata.get("tool")
+    if event.step == STEP_TOOL and tool:
+        return f"{event.title} · {tool}"
+    return event.title
 
 
 def emit_running(

@@ -101,8 +101,14 @@ def run_backend(
         from app.v3 import diagnose_v3
 
         return diagnose_v3(log_text, case_id=case_id, progress_fn=progress_fn)
-    from app.progress import emit_initial_perception
+    from app.progress import (
+        STEP_LOG_ANALYSIS,
+        TITLE_LOG_ANALYSIS_RUNNING,
+        emit_initial_perception,
+        emit_running,
+    )
 
+    emit_running(progress_fn, STEP_LOG_ANALYSIS, TITLE_LOG_ANALYSIS_RUNNING)
     result = diagnose(log_text, case_id=case_id)
     emit_initial_perception(progress_fn, result.extracted_info, result.hypotheses)
     return result

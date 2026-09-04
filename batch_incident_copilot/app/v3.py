@@ -197,7 +197,9 @@ def diagnose_v3(
 ) -> V3DiagnosisResult:
     from app.progress import (
         STEP_CRITIC,
-        TITLE_CRITIC,
+        STEP_REFLECTION,
+        TITLE_CRITIC_RUNNING,
+        TITLE_REFLECTION_RUNNING,
         emit_critic,
         emit_reflection,
         emit_running,
@@ -205,12 +207,9 @@ def diagnose_v3(
 
     producer = diagnose_v2_fn or diagnose_v2
     if v2_result is None:
-        if diagnose_v2_fn is None:
-            v2 = _v2_snapshot(
-                diagnose_v2(log_text, case_id=case_id, progress_fn=progress_fn)
-            )
-        else:
-            v2 = _v2_snapshot(producer(log_text, case_id=case_id))
+        v2 = _v2_snapshot(
+            producer(log_text, case_id=case_id, progress_fn=progress_fn)
+        )
     else:
         v2 = _v2_snapshot(v2_result)
 
@@ -224,7 +223,7 @@ def diagnose_v3(
             return run_critic(text, result)
         return run_critic(text, result, critic_fn=critic_fn)
 
-    emit_running(progress_fn, STEP_CRITIC, TITLE_CRITIC)
+    emit_running(progress_fn, STEP_CRITIC, TITLE_CRITIC_RUNNING)
     critic = _critic_once(log_text, v2)
     emit_critic(progress_fn, critic)
 
@@ -252,6 +251,7 @@ def diagnose_v3(
         draft = runner(log_text, v2, critic)
         return _apply_post_revision(draft.model_dump(), v2=v2, critic=critic, log_text=log_text)
 
+    emit_running(progress_fn, STEP_REFLECTION, TITLE_REFLECTION_RUNNING)
     payload = _revise_once()
     limitations = list(payload.get("limitations") or [])
     if not cause_revision_allowed(

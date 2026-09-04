@@ -86,6 +86,7 @@ def collect_tool_results(
     already_called: list[str] = []
 
     for _ in range(MAX_TOOL_CALLS):
+        emit_running(progress_fn, STEP_TOOL, TITLE_TOOL)
         selection = select_tool(log_text, initial, already_called, results)
         if not selection.selected_tool:
             break
@@ -186,18 +187,21 @@ def diagnose_v1(
 ) -> V1DiagnosisResult:
     from app.progress import (
         STEP_EVIDENCE,
-        TITLE_EVIDENCE,
+        STEP_LOG_ANALYSIS,
+        TITLE_EVIDENCE_RUNNING,
+        TITLE_LOG_ANALYSIS_RUNNING,
         emit_evidence,
         emit_initial_perception,
         emit_running,
     )
 
+    emit_running(progress_fn, STEP_LOG_ANALYSIS, TITLE_LOG_ANALYSIS_RUNNING)
     initial = diagnose(log_text, case_id=case_id)
     emit_initial_perception(progress_fn, initial.extracted_info, initial.hypotheses)
     selections, tool_results = collect_tool_results(
         log_text, initial, progress_fn=progress_fn
     )
-    emit_running(progress_fn, STEP_EVIDENCE, TITLE_EVIDENCE)
+    emit_running(progress_fn, STEP_EVIDENCE, TITLE_EVIDENCE_RUNNING)
     final_payload = finalize_diagnosis(log_text, initial, tool_results)
     emit_evidence(progress_fn)
     result = V1DiagnosisResult(
