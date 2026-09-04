@@ -437,6 +437,8 @@ if started:
                 status_widget.update(label="분석 진행 과정", state="error")
             else:
                 status_widget.update(label="분석 진행 과정", state="complete")
+        if progress_events:
+            st.markdown(format_progress_markdown(progress_events))
 
         if outcome.validation.decision == ValidationDecision.ABORT:
             with result_slot.container():

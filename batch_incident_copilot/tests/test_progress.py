@@ -90,6 +90,7 @@ def test_streamlit_uses_live_progress_callback():
     assert "_render_final(payload)" in STREAMLIT_SRC
     assert 'st.markdown(f"- ' not in STREAMLIT_SRC
     assert "slot.markdown(format_progress_markdown" in STREAMLIT_SRC
+    assert "st.markdown(format_progress_markdown(progress_events))" in STREAMLIT_SRC
     status_block = STREAMLIT_SRC.split("with st.status", 1)[1].split(
         "if outcome.validation", 1
     )[0]
