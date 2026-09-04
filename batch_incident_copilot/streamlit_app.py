@@ -446,8 +446,6 @@ if started:
         progress_events: list[ProgressEvent] = []
         # 라이브 패널을 status 밖에 둔다. collapse 후에도 한 번만 보이게 한다.
         progress_slot = st.empty()
-        # 이전 실행의 최종 진단이 분석 중에 남아 보이지 않도록 아래 영역을 먼저 비운다.
-        result_slot = st.empty()
         _redraw_progress(progress_slot, progress_events, None)
         with st.status("분석 중", expanded=True) as status_widget:
             st.caption("단계별 점검을 실행하고 있습니다.")
@@ -480,6 +478,8 @@ if started:
             else:
                 status_widget.update(label="분석 완료", state="complete")
 
+        # status 다음에 결과를 그려 완료 배지가 expander 아래로 밀리지 않게 한다.
+        result_slot = st.empty()
         if outcome.validation.decision == ValidationDecision.ABORT:
             with result_slot.container():
                 _render_validation(outcome.validation.model_dump())

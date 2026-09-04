@@ -88,6 +88,12 @@ def test_streamlit_uses_live_progress_callback():
     assert "format_operator_progress" in STREAMLIT_SRC
     assert "progress_fn=on_progress" in STREAMLIT_SRC
     assert "result_slot = st.empty()" in STREAMLIT_SRC
+    assert STREAMLIT_SRC.find("progress_slot = st.empty()") < STREAMLIT_SRC.find(
+        "with st.status"
+    )
+    assert STREAMLIT_SRC.find("with st.status") < STREAMLIT_SRC.find(
+        "result_slot = st.empty()"
+    )
     assert "_render_final(payload)" in STREAMLIT_SRC
     assert 'st.markdown(f"- ' not in STREAMLIT_SRC
     assert "slot.markdown(format_operator_progress" in STREAMLIT_SRC
