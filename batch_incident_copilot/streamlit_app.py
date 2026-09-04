@@ -18,6 +18,7 @@ from app.ui_service import (
 )
 from app.agent_events import build_agent_event_views
 from app.trace import AgentExecutionTrace, build_trace_view
+from app.progress import ProgressEvent
 
 st.set_page_config(page_title="Batch Incident Copilot", layout="wide")
 
@@ -61,6 +62,14 @@ def _load_log() -> tuple[str, str | None, str | None]:
             return "", uploaded.name, "읽을 수 없는 입력입니다: UTF-8로 디코딩하지 못했습니다."
         return text, uploaded.name, None
     return pasted, None, None
+
+
+def _render_progress_event(event: ProgressEvent) -> None:
+    if event.status != "done":
+        return
+    st.markdown(f"✓ **{event.title}**")
+    for item in event.details:
+        st.markdown(f"- {item}")
 
 
 def _render_validation(validation: dict) -> None:
@@ -391,27 +400,56 @@ if started:
     elif not (log_text or "").strip():
         st.error("로그 파일을 업로드하거나 로그 텍스트를 입력하십시오.")
     else:
-        with st.spinner("분석 중입니다."):
+        st.subheader("분석 진행 과정")
+        with st.status("분석 진행 과정", expanded=True) as status_widget:
+            completed_box = st.container()
+            running_slot = st.empty()
+
+            def on_progress(event: ProgressEvent) -> None:
+                if event.status == "running":
+                    running_slot.markdown(f"**{event.title}**")
+                    status_widget.update(
+                        label=f"분석 진행 과정 · {event.title}",
+                        state="running",
+                    )
+                    return
+                running_slot.empty()
+                with completed_box:
+                    _render_progress_event(event)
+                status_widget.update(label="분석 진행 과정", state="running")
+
             outcome = analyze(
                 version=version,
                 log_text=log_text,
                 filename=filename,
+                progress_fn=on_progress,
             )
-        _render_validation(outcome.validation.model_dump())
+            running_slot.empty()
+            if (
+                outcome.error
+                or outcome.validation.decision == ValidationDecision.ABORT
+            ):
+                status_widget.update(label="분석 진행 과정", state="error")
+            else:
+                status_widget.update(label="분석 진행 과정", state="complete")
+
         if outcome.validation.decision == ValidationDecision.ABORT:
+            _render_validation(outcome.validation.model_dump())
             st.stop()
         if outcome.error:
             st.error(outcome.error)
             st.stop()
         payload = outcome.result or {}
-        if version in {"v2", "v3"}:
-            _render_v2_trace(payload)
-            if version == "v3":
-                _render_v3_critic(payload)
-        else:
-            _render_execution_trace(outcome.trace, version)
-        _render_agent_events(outcome.trace)
+        st.divider()
+        if version == "v3":
+            _render_v3_critic(payload)
         _render_final(payload)
+        with st.expander("상세 실행 Trace", expanded=False):
+            if version in {"v2", "v3"}:
+                _render_v2_trace(payload)
+            else:
+                _render_execution_trace(outcome.trace, version)
+            _render_agent_events(outcome.trace)
         with st.expander("원본 진단 필드", expanded=False):
             st.markdown("추출 정보")
             _render_extracted(payload)

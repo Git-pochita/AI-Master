@@ -306,8 +306,23 @@ def diagnose_v2(
     case_id: str | None = None,
     plan_fn: Callable[..., PlannerDecision] | None = None,
     finalize_fn: Callable[..., dict] | None = None,
+    progress_fn: Callable[..., None] | None = None,
 ) -> V2DiagnosisResult:
+    from app.progress import (
+        STEP_EVIDENCE,
+        STEP_PLANNING,
+        TITLE_EVIDENCE,
+        TITLE_PLANNING,
+        emit_evidence,
+        emit_initial_perception,
+        emit_planning,
+        emit_replan,
+        emit_running,
+        emit_tool,
+    )
+
     initial = diagnose(log_text, case_id=case_id)
+    emit_initial_perception(progress_fn, initial.extracted_info, initial.hypotheses)
     initial_hypotheses = [item.model_copy(deep=True) for item in initial.hypotheses]
     working = _initial_working_hypotheses(initial_hypotheses)
     investigation_plan: list[InvestigationStep] = []
@@ -326,6 +341,8 @@ def diagnose_v2(
             stop_reason = StopReason.MAX_TOOL_CALLS
             break
 
+        if round_index == 1:
+            emit_running(progress_fn, STEP_PLANNING, TITLE_PLANNING)
         decision = planner(
             log_text=log_text,
             extracted_info=initial.extracted_info,
@@ -341,6 +358,12 @@ def diagnose_v2(
             working = _merge_hypothesis_states(working, decision.hypothesis_states)
         if decision.unresolved_questions:
             unresolved = list(decision.unresolved_questions)
+        if round_index == 1:
+            emit_planning(
+                progress_fn,
+                investigation_plan,
+                round_index=round_index,
+            )
 
         planner_tool = decision.selected_tool
         arguments = complete_v2_arguments(
@@ -415,7 +438,19 @@ def diagnose_v2(
                 recorded_tool = planner_tool
                 recorded_args = arguments
             else:
+                if replanned:
+                    emit_replan(
+                        progress_fn,
+                        planner_tool,
+                        round_index=round_index,
+                    )
                 tool_result = execute_tool(planner_tool, arguments)
+                emit_tool(
+                    progress_fn,
+                    planner_tool,
+                    tool_result,
+                    round_index=round_index,
+                )
                 seen.add(fingerprint)
                 recorded_tool = planner_tool
                 recorded_args = arguments
@@ -459,7 +494,9 @@ def diagnose_v2(
     if stop_reason is None:
         stop_reason = StopReason.MAX_PLANNING_ROUNDS
 
+    emit_running(progress_fn, STEP_EVIDENCE, TITLE_EVIDENCE)
     final_payload = finalizer(log_text, initial, results)
+    emit_evidence(progress_fn)
     return V2DiagnosisResult(
         version="v2",
         case_id=case_id or initial.case_id,

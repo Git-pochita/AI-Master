@@ -74,7 +74,13 @@ def select_tool(
     return selection
 
 
-def collect_tool_results(log_text: str, initial) -> tuple[list[ToolSelection], list[ToolResult]]:
+def collect_tool_results(
+    log_text: str,
+    initial,
+    progress_fn=None,
+) -> tuple[list[ToolSelection], list[ToolResult]]:
+    from app.progress import STEP_TOOL, TITLE_TOOL, emit_running, emit_tool
+
     selections: list[ToolSelection] = []
     results: list[ToolResult] = []
     already_called: list[str] = []
@@ -88,7 +94,14 @@ def collect_tool_results(log_text: str, initial) -> tuple[list[ToolSelection], l
             selection.arguments,
             getattr(initial, "extracted_info", None),
         )
+        emit_running(
+            progress_fn,
+            STEP_TOOL,
+            TITLE_TOOL,
+            metadata={"tool": selection.selected_tool},
+        )
         tool_result = execute_tool(selection.selected_tool, selection.arguments)
+        emit_tool(progress_fn, selection.selected_tool, tool_result)
         selections.append(selection)
         results.append(tool_result)
         already_called.append(selection.selected_tool)
@@ -166,10 +179,27 @@ def apply_diagnosis_level_policy(level: str, tool_results: list[ToolResult]) -> 
     return level
 
 
-def diagnose_v1(log_text: str, case_id: str | None = None) -> V1DiagnosisResult:
+def diagnose_v1(
+    log_text: str,
+    case_id: str | None = None,
+    progress_fn=None,
+) -> V1DiagnosisResult:
+    from app.progress import (
+        STEP_EVIDENCE,
+        TITLE_EVIDENCE,
+        emit_evidence,
+        emit_initial_perception,
+        emit_running,
+    )
+
     initial = diagnose(log_text, case_id=case_id)
-    selections, tool_results = collect_tool_results(log_text, initial)
+    emit_initial_perception(progress_fn, initial.extracted_info, initial.hypotheses)
+    selections, tool_results = collect_tool_results(
+        log_text, initial, progress_fn=progress_fn
+    )
+    emit_running(progress_fn, STEP_EVIDENCE, TITLE_EVIDENCE)
     final_payload = finalize_diagnosis(log_text, initial, tool_results)
+    emit_evidence(progress_fn)
     result = V1DiagnosisResult(
         case_id=case_id or initial.case_id,
         summary=final_payload["summary"],

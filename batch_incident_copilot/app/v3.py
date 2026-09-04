@@ -193,10 +193,24 @@ def diagnose_v3(
     critic_fn=None,
     revise_fn: Callable[..., RevisionDraft] | None = None,
     diagnose_v2_fn=None,
+    progress_fn=None,
 ) -> V3DiagnosisResult:
+    from app.progress import (
+        STEP_CRITIC,
+        TITLE_CRITIC,
+        emit_critic,
+        emit_reflection,
+        emit_running,
+    )
+
     producer = diagnose_v2_fn or diagnose_v2
     if v2_result is None:
-        v2 = _v2_snapshot(producer(log_text, case_id=case_id))
+        if diagnose_v2_fn is None:
+            v2 = _v2_snapshot(
+                diagnose_v2(log_text, case_id=case_id, progress_fn=progress_fn)
+            )
+        else:
+            v2 = _v2_snapshot(producer(log_text, case_id=case_id))
     else:
         v2 = _v2_snapshot(v2_result)
 
@@ -210,7 +224,9 @@ def diagnose_v3(
             return run_critic(text, result)
         return run_critic(text, result, critic_fn=critic_fn)
 
+    emit_running(progress_fn, STEP_CRITIC, TITLE_CRITIC)
     critic = _critic_once(log_text, v2)
+    emit_critic(progress_fn, critic)
 
     if critic.verdict == "PASS":
         return _pack_v3(
@@ -250,7 +266,7 @@ def diagnose_v3(
                 note = "FAILED Tool error는 최종 supporting evidence에서 제외했습니다."
                 if note not in limitations:
                     limitations.append(note)
-    return _pack_v3(
+    packed = _pack_v3(
         v2,
         critic,
         summary=payload.get("summary") or v2.summary,
@@ -262,3 +278,10 @@ def diagnose_v3(
         limitations=limitations,
         recommended_actions=list(payload.get("recommended_actions") or []),
     )
+    emit_reflection(
+        progress_fn,
+        revised=packed.revised,
+        original_cause=packed.original_v2_cause_code,
+        final_cause=packed.final_cause_code,
+    )
+    return packed
