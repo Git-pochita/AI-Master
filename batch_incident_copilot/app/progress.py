@@ -222,6 +222,32 @@ def running_label(event: ProgressEvent) -> str:
     return event.title
 
 
+def format_progress_markdown(
+    events: list[ProgressEvent],
+    running_title: str | None = None,
+) -> str:
+    """st.empty().markdown()으로 한 번에 다시 그려 라이브 갱신한다.
+
+    markdown 리스트 문법('- ', '* ')은 쓰지 않는다. st.status 중첩 시
+    본문이 비는 Streamlit 버그를 피하기 위함이다.
+    """
+    blocks: list[str] = []
+    for event in events:
+        if event.status != "done":
+            continue
+        lines = [f"✓ **{event.title}**"]
+        for item in event.details:
+            text = str(item).strip()
+            if text:
+                lines.append(text)
+        blocks.append("\n\n".join(lines))
+    if running_title:
+        blocks.append(f"진행 중: **{running_title}**")
+    if not blocks:
+        return "분석 단계를 기다리는 중입니다."
+    return "\n\n".join(blocks)
+
+
 def emit_running(
     progress_fn: ProgressCallback | None,
     step: str,

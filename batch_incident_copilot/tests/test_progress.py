@@ -25,6 +25,7 @@ from app.progress import (
     emit_planning,
     emit_validation,
     highlight_tool_data,
+    format_progress_markdown,
     running_label,
 )
 from app.planning import diagnose_v2
@@ -76,9 +77,11 @@ def test_streamlit_uses_live_progress_callback():
     assert "st.status" in STREAMLIT_SRC
     assert "st.empty" in STREAMLIT_SRC
     assert "_redraw_progress" in STREAMLIT_SRC
+    assert "format_progress_markdown" in STREAMLIT_SRC
     assert "progress_fn=on_progress" in STREAMLIT_SRC
     assert "_render_final(payload)" in STREAMLIT_SRC
     assert 'st.markdown(f"- ' not in STREAMLIT_SRC
+    assert "slot.markdown(format_progress_markdown" in STREAMLIT_SRC
     status_block = STREAMLIT_SRC.split("with st.status", 1)[1].split(
         "if outcome.validation", 1
     )[0]
@@ -403,7 +406,21 @@ def test_highlight_tool_data_keeps_only_key_fields():
     assert "same_directory_files" not in blob
 
 
-def test_running_label_includes_tool_name():
+def test_format_progress_markdown_is_live_panel_text():
+    events, progress_fn = _recorder()
+    emit_validation(
+        progress_fn,
+        ValidationResult(
+            decision=ValidationDecision.PROCEED,
+            reasons=["배치 로그로 보입니다."],
+        ),
+    )
+    text = format_progress_markdown(events, running_title="핵심 오류 분석")
+    assert "✓ **입력 로그 검증 완료**" in text
+    assert "배치 로그로 보입니다." in text
+    assert "진행 중: **핵심 오류 분석**" in text
+    assert "\n- " not in text
+    assert "\n* " not in text
     event = ProgressEvent(
         step=STEP_TOOL,
         title="Tool 실행",

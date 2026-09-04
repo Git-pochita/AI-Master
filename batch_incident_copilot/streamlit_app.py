@@ -18,7 +18,7 @@ from app.ui_service import (
 )
 from app.agent_events import build_agent_event_views
 from app.trace import AgentExecutionTrace, build_trace_view
-from app.progress import ProgressEvent, running_label
+from app.progress import ProgressEvent, format_progress_markdown, running_label
 
 st.set_page_config(page_title="Batch Incident Copilot", layout="wide")
 
@@ -64,29 +64,14 @@ def _load_log() -> tuple[str, str | None, str | None]:
     return pasted, None, None
 
 
-def _render_progress_event(event: ProgressEvent) -> None:
-    if event.status != "done":
-        return
-    st.markdown(f"✓ **{event.title}**")
-    for item in event.details:
-        # st.status 안쪽에서 markdown 리스트('- ', '* ')를 쓰면 본문이 비는
-        # Streamlit 버그가 있어 write로만 핵심 상태를 적는다.
-        st.write(item)
-
-
 def _redraw_progress(
     slot,
     events: list[ProgressEvent],
     running_title: str | None,
 ) -> None:
-    with slot.container():
-        if not events and not running_title:
-            st.caption("분석 단계를 기다리는 중입니다.")
-            return
-        for event in events:
-            _render_progress_event(event)
-        if running_title:
-            st.write(f"진행 중: {running_title}")
+    # container 자식 누적 대신 empty.markdown 한 장으로 다시 그린다.
+    # 같은 스크립트 스레드에서 단계가 끝날 때마다 websocket delta가 나가게 한다.
+    slot.markdown(format_progress_markdown(events, running_title))
 
 
 def _render_validation(validation: dict) -> None:
