@@ -675,8 +675,13 @@ def test_v2_planning_frozen():
 
 def test_streamlit_exposes_v3_without_revision_reason():
     source = (PROJECT_ROOT / "streamlit_app.py").read_text(encoding="utf-8")
-    assert "V3 Critic / Reflection" in source
+    assert "최종 검증 완료" in source
+    assert 'st.expander("상세 보기"' in source
+    assert 'st.subheader("V3 Critic / Reflection")' not in source
     assert "revision_reason" not in source
+    assert "**verdict:**" not in source
+    assert "**revised:**" not in source
+    assert "issue types" not in source
 
 
 def test_cli_and_eval_accept_v3():

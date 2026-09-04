@@ -278,10 +278,11 @@ def diagnose_v3(
         limitations=limitations,
         recommended_actions=list(payload.get("recommended_actions") or []),
     )
-    emit_reflection(
-        progress_fn,
-        revised=packed.revised,
-        original_cause=packed.original_v2_cause_code,
-        final_cause=packed.final_cause_code,
-    )
+    if packed.revised:
+        emit_reflection(
+            progress_fn,
+            revised=packed.revised,
+            original_cause=packed.original_v2_cause_code,
+            final_cause=packed.final_cause_code,
+        )
     return packed

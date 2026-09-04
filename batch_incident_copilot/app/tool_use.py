@@ -203,7 +203,11 @@ def diagnose_v1(
     )
     emit_running(progress_fn, STEP_EVIDENCE, TITLE_EVIDENCE_RUNNING)
     final_payload = finalize_diagnosis(log_text, initial, tool_results)
-    emit_evidence(progress_fn)
+    emit_evidence(
+        progress_fn,
+        evidence=final_payload.get("evidence"),
+        tool_results=tool_results,
+    )
     result = V1DiagnosisResult(
         case_id=case_id or initial.case_id,
         summary=final_payload["summary"],
