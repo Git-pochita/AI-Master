@@ -181,12 +181,14 @@ def test_streamlit_has_no_case_id_input():
     assert "st.text_input" not in STREAMLIT_SRC
     assert "case_id=case_id" not in STREAMLIT_SRC
     assert "filename=filename" in STREAMLIT_SRC
+    assert "분석 진행 과정" in STREAMLIT_SRC
+    assert "progress_fn=on_progress" in STREAMLIT_SRC
 
 
 def test_analyze_without_case_id_does_not_use_filename_as_hint(monkeypatch):
     captured = {}
 
-    def fake_backend(version, log_text, case_id=None):
+    def fake_backend(version, log_text, case_id=None, **_kwargs):
         captured["case_id"] = case_id
         return DiagnosisResult(
             summary="V0",

@@ -306,7 +306,12 @@ def test_streamlit_renders_execution_trace_section():
     trace_src = (PROJECT_ROOT / "app" / "trace.py").read_text(encoding="utf-8")
     assert "Agent Execution Trace" in streamlit_src
     assert "Investigation Process" in streamlit_src
-    assert "with st.status" not in streamlit_src
+    assert 'with st.status("분석 진행 과정"' in streamlit_src
+    status_block = streamlit_src.split("with st.status", 1)[1].split(
+        "if outcome.validation", 1
+    )[0]
+    assert "st.expander" not in status_block
+    assert "_render_execution_trace" not in status_block
     assert "Chain-of-Thought" in streamlit_src
     assert "_render_execution_trace(outcome.trace, version)" in streamlit_src
     for title in (

@@ -83,20 +83,35 @@ def validate_input(log_text: str, filename: str | None = None) -> ValidationResu
     return validate_log_content(log_text)
 
 
-def run_backend(version: str, log_text: str, case_id: str | None = None):
+def run_backend(
+    version: str,
+    log_text: str,
+    case_id: str | None = None,
+    progress_fn=None,
+):
     if version == "v1":
         from app.tool_use import diagnose_v1
 
-        return diagnose_v1(log_text, case_id=case_id)
+        return diagnose_v1(log_text, case_id=case_id, progress_fn=progress_fn)
     if version == "v2":
         from app.planning import diagnose_v2
 
-        return diagnose_v2(log_text, case_id=case_id)
-    if version == "v3":
+        return diagnose_v2(log_text, case_id=case_id, progress_fn=progress_fn)
+    if version in {"v3", "v3_1"}:
         from app.v3 import diagnose_v3
 
-        return diagnose_v3(log_text, case_id=case_id)
-    return diagnose(log_text, case_id=case_id)
+        return diagnose_v3(log_text, case_id=case_id, progress_fn=progress_fn)
+    from app.progress import (
+        STEP_LOG_ANALYSIS,
+        TITLE_LOG_ANALYSIS_RUNNING,
+        emit_initial_perception,
+        emit_running,
+    )
+
+    emit_running(progress_fn, STEP_LOG_ANALYSIS, TITLE_LOG_ANALYSIS_RUNNING)
+    result = diagnose(log_text, case_id=case_id)
+    emit_initial_perception(progress_fn, result.extracted_info, result.hypotheses)
+    return result
 
 
 def extract_visible_fields(extracted_info: dict[str, Any] | None) -> list[tuple[str, Any]]:
@@ -157,10 +172,14 @@ def analyze(
     log_text: str,
     case_id: str | None = None,
     filename: str | None = None,
+    progress_fn=None,
 ) -> AnalysisOutcome:
+    from app.progress import emit_validation
+
     # UI/메타데이터용. 업로드 파일명(F-01.log 등)을 진단 case_id로 쓰지 않는다.
     resolved_case_id = case_id or "ui_case"
     validation = validate_input(log_text, filename=filename)
+    emit_validation(progress_fn, validation)
     if validation.decision == ValidationDecision.ABORT:
         return AnalysisOutcome(
             ok=False,
@@ -172,18 +191,18 @@ def analyze(
             trace=None,
         )
     try:
-        result = run_backend(version, log_text, case_id)
+        result = run_backend(version, log_text, case_id, progress_fn=progress_fn)
         payload = result.model_dump()
         from app.agent_events import build_agent_events
         from app.trace import build_execution_trace
 
-        trace_version = "v1" if version in {"v2", "v3"} else version
+        trace_version = "v1" if version in {"v2", "v3", "v3_1"} else version
         trace = build_execution_trace(trace_version, payload).model_dump()
-        if version in {"v2", "v3"}:
+        if version in {"v2", "v3", "v3_1"}:
             trace["version"] = version
             trace["planning_trace"] = payload.get("planning_trace") or []
             trace["stop_reason"] = payload.get("stop_reason")
-        if version == "v3":
+        if version in {"v3", "v3_1"}:
             trace["critic_result"] = payload.get("critic_result")
             trace["revised"] = payload.get("revised")
             trace["original_v2_cause_code"] = payload.get("original_v2_cause_code")
@@ -191,8 +210,9 @@ def analyze(
                 "original_v2_diagnosis_level"
             )
             trace["original_v2_owner"] = payload.get("original_v2_owner")
+        event_version = "v3" if version == "v3_1" else version
         trace["agent_events"] = [
-            event.model_dump() for event in build_agent_events(version, payload)
+            event.model_dump() for event in build_agent_events(event_version, payload)
         ]
         return AnalysisOutcome(
             ok=True,
