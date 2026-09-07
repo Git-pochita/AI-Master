@@ -103,3 +103,21 @@ def test_streamlit_keeps_debug_views_collapsed_and_replan_wording_is_historical(
         assert f'with st.expander("{title}", expanded=False):' in source
     assert "이 라운드는 이전 라운드의 근거 부족으로 재계획되었습니다." in source
     assert "추가 조사가 필요하여 Re-plan 했습니다." not in source
+
+
+def test_limitations_render_only_in_analysis_final_section():
+    source = (PROJECT_ROOT / "streamlit_app.py").read_text(encoding="utf-8")
+    report_block = source.split("def _render_incident_report", 1)[1].split(
+        "def _render_final", 1
+    )[0]
+    final_block = source.split("def _render_final", 1)[1].split(
+        "def _render_extracted", 1
+    )[0]
+    raw_fields_block = source.split(
+        'with st.expander("원본 진단 필드", expanded=False):', 1
+    )[1]
+
+    assert "limitations" not in report_block
+    assert 'st.markdown("**제약사항**")' in final_block
+    assert 'st.caption("표시할 제약사항이 없습니다.")' in final_block
+    assert "limitations" not in raw_fields_block

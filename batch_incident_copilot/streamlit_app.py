@@ -227,6 +227,15 @@ def _render_final(payload: dict) -> None:
     else:
         st.caption("권고 조치가 없습니다.")
 
+    st.markdown("**제약사항**")
+    limitations = payload.get("limitations") or []
+    if limitations:
+        for item in limitations:
+            _item(item)
+    else:
+        st.caption("표시할 제약사항이 없습니다.")
+
+
 def _render_extracted(payload: dict) -> None:
     rows = extract_visible_fields(payload.get("extracted_info") or {})
     if not rows:
@@ -552,10 +561,3 @@ if started:
                     if version in {"v1", "v2", "v3"}:
                         st.markdown("**Tool arguments / raw result**")
                         _render_tools(payload)
-                    st.markdown("**제약사항**")
-                    limitations = payload.get("limitations") or []
-                    if limitations:
-                        for item in limitations:
-                            _item(item)
-                    else:
-                        st.caption("표시할 제약사항이 없습니다.")

@@ -1,4 +1,6 @@
 import sys
+
+import pytest
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +13,7 @@ from app.ui_service import (
     extract_visible_fields,
     hypotheses_from_result,
     public_error_message,
+    run_backend,
     summarize_tool_data,
     validate_input,
 )
@@ -220,3 +223,8 @@ def test_hypotheses_from_v1_payload():
         {"initial_hypotheses": [{"cause_code": "FILE_NOT_RECEIVED"}], "hypotheses": []}
     )
     assert items[0]["cause_code"] == "FILE_NOT_RECEIVED"
+
+
+def test_run_backend_rejects_unknown_version():
+    with pytest.raises(ValueError, match="지원하지 않는 분석 version"):
+        run_backend("v9", SAMPLE)

@@ -101,6 +101,8 @@ def run_backend(
         from app.v3 import diagnose_v3
 
         return diagnose_v3(log_text, case_id=case_id, progress_fn=progress_fn)
+    if version != "v0":
+        raise ValueError(f"지원하지 않는 분석 version입니다: {version}")
     from app.progress import (
         STEP_LOG_ANALYSIS,
         TITLE_LOG_ANALYSIS_RUNNING,
