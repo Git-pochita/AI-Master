@@ -10,6 +10,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.schemas import ValidationDecision
+from app.incident_report import IncidentReport, build_incident_report
 from app.ui_service import (
     analyze,
     extract_visible_fields,
@@ -165,6 +166,39 @@ def _evidence_items(payload: dict) -> list:
     return []
 
 
+def _render_incident_report(report: IncidentReport) -> None:
+    st.subheader("장애 초동 보고서")
+
+    st.markdown("### 1. 장애 개요")
+    st.table(
+        [
+            {"항목": "작업명", "내용": report.overview.job_name},
+            {"항목": "발생 시각", "내용": report.overview.occurred_at},
+            {"항목": "장애 유형", "내용": report.overview.incident_type},
+            {"항목": "담당 영역", "내용": report.overview.owner},
+            {"항목": "상태", "내용": report.overview.status},
+        ]
+    )
+
+    st.markdown("### 2. 장애 원인")
+    st.write(report.cause.summary)
+    st.table(
+        [
+            {"항목": "핵심 오류", "확인 결과": report.cause.core_error},
+            {"항목": "최종 원인", "확인 결과": report.cause.final_cause},
+            {"항목": "원인 코드", "확인 결과": report.cause.cause_code},
+            {"항목": "판단 수준", "확인 결과": report.cause.diagnosis_level},
+            {
+                "항목": "확인 근거",
+                "확인 결과": " / ".join(report.cause.evidence) or "확인되지 않음",
+            },
+        ]
+    )
+
+    st.markdown("### 3. 조치 사항")
+    st.write(report.action)
+
+
 def _render_final(payload: dict) -> None:
     st.subheader("최종 진단")
     cause_name = str(payload.get("final_cause_name") or "").strip()
@@ -192,15 +226,6 @@ def _render_final(payload: dict) -> None:
             _item(item)
     else:
         st.caption("권고 조치가 없습니다.")
-
-    st.markdown("**제약사항**")
-    limitations = payload.get("limitations") or []
-    if limitations:
-        for item in limitations:
-            _item(item)
-    else:
-        st.caption("표시할 제약사항이 없습니다.")
-
 
 def _render_extracted(payload: dict) -> None:
     rows = extract_visible_fields(payload.get("extracted_info") or {})
@@ -381,7 +406,7 @@ def _render_v2_trace(payload: dict) -> None:
             sufficient = item.get("evidence_sufficient")
             st.write(f"**evidence_sufficient:** `{sufficient}`")
             if item.get("replanned"):
-                st.write("추가 조사가 필요하여 Re-plan 했습니다.")
+                st.write("이 라운드는 이전 라운드의 근거 부족으로 재계획되었습니다.")
             if item.get("stop_reason"):
                 st.write(f"**round stop_reason:** `{item.get('stop_reason')}`")
 
@@ -396,6 +421,16 @@ def _issue_type_value(item) -> object:
         return item.get("issue_type")
     value = getattr(item, "issue_type", None)
     return value.value if hasattr(value, "value") else value
+
+
+def _render_v3_summary(payload: dict) -> None:
+    critic = payload.get("critic_result") or {}
+    if not isinstance(critic, dict):
+        critic = critic.model_dump()
+    st.markdown("**Critic 최종 검증 결과**")
+    st.write(f"결과: **{verdict_label(critic.get('verdict'))}**")
+    st.write(f"근거 일관성: **{yes_no_label(critic.get('evidence_consistent'))}**")
+    st.write(f"최종 진단 교정: **{yes_no_label(payload.get('revised'))}**")
 
 
 def _render_v3_detail(payload: dict) -> None:
@@ -491,22 +526,36 @@ if started:
         payload = outcome.result or {}
         with result_slot.container():
             st.divider()
-            _render_final(payload)
-            if version == "v3":
-                st.caption("최종 검증 완료")
-                with st.expander("상세 보기", expanded=False):
-                    _render_v3_detail(payload)
-            with st.expander("상세 실행 Trace", expanded=False):
-                if version in {"v2", "v3"}:
-                    _render_v2_trace(payload)
-                else:
-                    _render_execution_trace(outcome.trace, version)
-                _render_agent_events(outcome.trace)
-            with st.expander("원본 진단 필드", expanded=False):
-                st.markdown("추출 정보")
-                _render_extracted(payload)
-                st.markdown("초기 원인 가설")
-                _render_hypotheses(payload)
-                if version in {"v1", "v2", "v3"}:
-                    st.markdown("점검 Tool 원본 결과")
-                    _render_tools(payload)
+            report = build_incident_report(payload, log_text=log_text)
+            report_tab, detail_tab = st.tabs(["장애 초동 보고서", "분석 상세"])
+            with report_tab:
+                _render_incident_report(report)
+            with detail_tab:
+                _render_final(payload)
+                if version == "v3":
+                    st.caption("최종 검증 완료")
+                    _render_v3_summary(payload)
+                    with st.expander("상세 보기", expanded=False):
+                        _render_v3_detail(payload)
+                with st.expander("Agent Execution Trace", expanded=False):
+                    if version in {"v2", "v3"}:
+                        _render_v2_trace(payload)
+                    else:
+                        _render_execution_trace(outcome.trace, version)
+                with st.expander("고수준 Agent Trace", expanded=False):
+                    _render_agent_events(outcome.trace)
+                with st.expander("원본 진단 필드", expanded=False):
+                    st.markdown("**추출 정보**")
+                    _render_extracted(payload)
+                    st.markdown("**Initial Hypotheses 상세**")
+                    _render_hypotheses(payload)
+                    if version in {"v1", "v2", "v3"}:
+                        st.markdown("**Tool arguments / raw result**")
+                        _render_tools(payload)
+                    st.markdown("**제약사항**")
+                    limitations = payload.get("limitations") or []
+                    if limitations:
+                        for item in limitations:
+                            _item(item)
+                    else:
+                        st.caption("표시할 제약사항이 없습니다.")
