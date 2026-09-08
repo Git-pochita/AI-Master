@@ -1,0 +1,47 @@
+{
+  "case_id": "S-02",
+  "summary": "배치 잡 DAILY_SALES_DAILY_AGG 실행 중 SALES.SALES_DAILY 테이블에서 TOTAL_AMT 컬럼을 조회하는 SQL에서 ORA-00904: invalid identifier 오류가 발생하여 작업이 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_DAILY_AGG",
+    "schema": "SALES",
+    "table": "SALES_DAILY",
+    "column": "TOTAL_AMT",
+    "sql": "SELECT STORE_CD, TOTAL_AMT FROM SALES.SALES_DAILY",
+    "error_messages": [
+      "ORA-00904: \"TOTAL_AMT\": invalid identifier",
+      "SQL execution failed for SALES.SALES_DAILY",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "COLUMN_NOT_FOUND",
+      "cause_name": "컬럼 없음",
+      "evidence": [
+        "2026-09-01 04:50:03 ERROR ORA-00904: \"TOTAL_AMT\": invalid identifier",
+        "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY"
+      ]
+    },
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY"
+      ]
+    }
+  ],
+  "final_cause_code": "COLUMN_NOT_FOUND",
+  "final_cause_name": "컬럼 없음",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 존재하는지 DB에서 확인하십시오.",
+    "컬럼명이 오타이거나 변경된 이력이 있는지 점검하십시오.",
+    "테이블 구조 변경 이력이나 배치 스크립트의 컬럼명 정의를 검토하십시오."
+  ],
+  "limitations": [
+    "본 진단은 입력된 로그만을 근거로 하며, 실제 DB 테이블 및 컬럼 존재 여부는 외부에서 확인하지 않았습니다.",
+    "컬럼이 실제로 없는지, 오타인지, 권한 문제인지 등은 추가 점검이 필요합니다."
+  ]
+}

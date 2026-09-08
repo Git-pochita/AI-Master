@@ -1,0 +1,253 @@
+{
+  "version": "v3",
+  "case_id": "D-04",
+  "summary": "배치 잡 DAILY_LOCKED_DB_LOAD 실행 시 SALES_DB의 locked_user 계정으로 접속을 시도했으나 ORA-01017 오류와 인증 실패가 발생했습니다. check_db_status SUCCESS 결과에 따르면 계정이 잠겨(account_locked=true) 있으며, 인증 정보와 접속 설정은 모두 유효합니다.",
+  "extracted_info": {
+    "job_name": "DAILY_LOCKED_DB_LOAD",
+    "connection_name": "SALES_DB",
+    "account": "locked_user",
+    "error_messages": [
+      "ORA-01017: invalid username/password; logon denied",
+      "DB authentication/login failure for account=locked_user connection=SALES_DB"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "evidence": [
+        "2026-09-01 04:05:03 ERROR ORA-01017: invalid username/password; logon denied",
+        "2026-09-01 04:05:03 ERROR DB authentication/login failure for account=locked_user connection=SALES_DB"
+      ]
+    },
+    {
+      "cause_code": "DB_ACCOUNT_LOCKED",
+      "cause_name": "DB 계정 잠김",
+      "evidence": [
+        "account=locked_user로 접속 시도",
+        "ORA-01017 오류는 계정 잠김 시에도 발생할 수 있음"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "origin": "initial",
+      "status": "eliminated",
+      "signals": [
+        "check_db_status 결과 credential_status=VALID, account_locked=true"
+      ]
+    },
+    {
+      "cause_code": "DB_ACCOUNT_LOCKED",
+      "cause_name": "DB 계정 잠김",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "check_db_status 결과 account_locked=true, credential_status=VALID"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "DB 인증 실패의 근본 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 인증 정보 불일치(DB_CREDENTIAL_MISMATCH)인지 구분한다.",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "DB_CREDENTIAL_MISMATCH",
+        "DB_ACCOUNT_LOCKED"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "ORA-01017 오류의 원인이 인증 정보 불일치인지, 계정 잠김인지 구분할 수 있는가?"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "DB 인증 정보 불일치와 DB 계정 잠김 중 어떤 원인인지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "DB 인증 정보 불일치와 DB 계정 잠김 중 어떤 원인인지 확인한다.",
+          "candidate_tool": "check_db_status",
+          "arguments": {
+            "connection_name": "SALES_DB",
+            "account": "locked_user"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "DB_CREDENTIAL_MISMATCH",
+            "DB_ACCOUNT_LOCKED"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "DB_CREDENTIAL_MISMATCH",
+          "cause_name": "DB 인증 정보 불일치",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 04:05:03 ERROR ORA-01017: invalid username/password; logon denied",
+            "2026-09-01 04:05:03 ERROR DB authentication/login failure for account=locked_user connection=SALES_DB"
+          ]
+        },
+        {
+          "cause_code": "DB_ACCOUNT_LOCKED",
+          "cause_name": "DB 계정 잠김",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "account=locked_user로 접속 시도",
+            "ORA-01017 오류는 계정 잠김 시에도 발생할 수 있음"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "ORA-01017 오류의 원인이 인증 정보 불일치인지, 계정 잠김인지 구분할 수 있는가?"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_db_status",
+      "arguments": {
+        "connection_name": "SALES_DB",
+        "account": "locked_user",
+        "job_name": "DAILY_LOCKED_DB_LOAD"
+      },
+      "reason": "로그에 ORA-01017 오류가 나타나 DB 인증 정보 불일치와 계정 잠김 모두 가능성이 있으므로, check_db_status를 통해 두 가설 중 무엇이 실제 원인인지 확인할 수 있다.",
+      "evidence_summary": {
+        "connection_name": "SALES_DB",
+        "account": "locked_user",
+        "account_locked": true,
+        "credential_status": "VALID",
+        "connection_config_valid": true,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_db_status",
+        "status": "SUCCESS",
+        "data": {
+          "connection_name": "SALES_DB",
+          "account": "locked_user",
+          "account_locked": true,
+          "credential_status": "VALID",
+          "connection_config_valid": true
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "DB 인증 실패의 근본 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 인증 정보 불일치(DB_CREDENTIAL_MISMATCH)인지 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "DB 인증 실패의 근본 원인이 계정 잠금(DB_ACCOUNT_LOCKED)인지, 인증 정보 불일치(DB_CREDENTIAL_MISMATCH)인지 구분한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "DB_CREDENTIAL_MISMATCH",
+            "DB_ACCOUNT_LOCKED"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "DB_CREDENTIAL_MISMATCH",
+          "cause_name": "DB 인증 정보 불일치",
+          "origin": "initial",
+          "status": "eliminated",
+          "signals": [
+            "check_db_status 결과 credential_status=VALID, account_locked=true"
+          ]
+        },
+        {
+          "cause_code": "DB_ACCOUNT_LOCKED",
+          "cause_name": "DB 계정 잠김",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "check_db_status 결과 account_locked=true, credential_status=VALID"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "ORA-01017 오류의 원인이 인증 정보 불일치인지, 계정 잠김인지 구분할 수 있는가?"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "check_db_status 결과 계정이 잠겨 있고 인증 정보는 유효하므로, 근본 원인은 DB_ACCOUNT_LOCKED로 충분히 판단할 수 있다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_db_status",
+      "reason": "로그에 ORA-01017 오류가 나타나 DB 인증 정보 불일치와 계정 잠김 모두 가능성이 있으므로, check_db_status를 통해 두 가설 중 무엇이 실제 원인인지 확인할 수 있다.",
+      "arguments": {
+        "connection_name": "SALES_DB",
+        "account": "locked_user",
+        "job_name": "DAILY_LOCKED_DB_LOAD"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_db_status",
+      "status": "SUCCESS",
+      "data": {
+        "connection_name": "SALES_DB",
+        "account": "locked_user",
+        "account_locked": true,
+        "credential_status": "VALID",
+        "connection_config_valid": true
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "DB_ACCOUNT_LOCKED",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "DB_ACCOUNT_LOCKED",
+  "final_cause_name": "DB 계정 잠김",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_db_status SUCCESS 결과: account_locked=true, credential_status=VALID, connection_config_valid=true",
+    "로그: ORA-01017: invalid username/password; logon denied",
+    "로그: DB authentication/login failure for account=locked_user connection=SALES_DB"
+  ],
+  "limitations": [
+    "계정 잠김의 원인(예: 비밀번호 오류 반복 등)은 확인되지 않음",
+    "계정 잠김 해제 방법이나 정책은 추가 확인 필요"
+  ],
+  "recommended_actions": [
+    "SALES_DB의 locked_user 계정 잠김 해제 요청 또는 잠김 해제 후 재시도",
+    "계정 잠김 원인(비밀번호 오류 반복 등) 확인 및 재발 방지 조치"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "case_id": "S-04",
+  "summary": "배치 잡 DAILY_SALES_MONTHLY_AGG 실행 중 SALES.SALES_MONTHLY 테이블 조회 시 ORA-00942 오류가 발생하여 작업이 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_MONTHLY_AGG",
+    "schema": "SALES",
+    "table": "SALES_MONTHLY",
+    "sql": "SELECT STORE_CD, SUM(AMT) FROM SALES.SALES_MONTHLY GROUP BY STORE_CD",
+    "error_messages": [
+      "ORA-00942: table or view does not exist"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 07:10:03 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 07:10:02 INFO  sql=SELECT STORE_CD, SUM(AMT) FROM SALES.SALES_MONTHLY GROUP BY STORE_CD"
+      ]
+    }
+  ],
+  "final_cause_code": "TABLE_NOT_FOUND",
+  "final_cause_name": "테이블 없음",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "SALES.SALES_MONTHLY 테이블이 데이터베이스에 존재하는지 직접 확인하십시오.",
+    "테이블명, 스키마명이 올바른지 점검하십시오.",
+    "DB 권한 문제 등 다른 원인도 추가로 확인해 보십시오."
+  ],
+  "limitations": [
+    "로그에 나타난 ORA-00942 오류만을 근거로 진단하였으며, 실제 테이블 존재 여부나 DB 권한 상태 등 외부 환경은 확인할 수 없습니다.",
+    "V0는 외부 DB, 파일, 파라미터 상태를 직접 조회하지 않습니다."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "case_id": "S-04",
+  "summary": "배치 잡 실행 중 SALES 스키마의 SALES_MONTHLY 테이블을 대상으로 SQL을 수행했으나, 테이블이 존재하지 않아 ORA-00942 오류가 발생하였습니다. check_sql_metadata Tool의 SUCCESS 결과에서 SALES 스키마는 존재하지만 SALES_MONTHLY 테이블은 존재하지 않는 것으로 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_MONTHLY_AGG",
+    "schema": "SALES",
+    "table": "SALES_MONTHLY",
+    "sql": "SELECT STORE_CD, SUM(AMT) FROM SALES.SALES_MONTHLY GROUP BY STORE_CD",
+    "error_messages": [
+      "ORA-00942: table or view does not exist"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 07:10:03 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 07:10:02 INFO  sql=SELECT STORE_CD, SUM(AMT) FROM SALES.SALES_MONTHLY GROUP BY STORE_CD"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그와 extracted_info에 'ORA-00942: table or view does not exist' 에러가 발생했고, initial_hypotheses도 테이블 없음(TABLE_NOT_FOUND)을 원인으로 제시하고 있습니다. 테이블(SALES.SALES_MONTHLY) 존재 여부를 검증하기 위해 check_sql_metadata Tool이 필요합니다.",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_MONTHLY",
+        "column": null
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "SALES",
+        "table": "SALES_MONTHLY",
+        "column": null,
+        "schema_exists": true,
+        "table_exists": false,
+        "column_exists": null
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "TABLE_NOT_FOUND",
+  "final_cause_name": "테이블 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 07:10:03 ERROR ORA-00942: table or view does not exist",
+    "check_sql_metadata SUCCESS 결과: schema_exists=true, table_exists=false"
+  ],
+  "limitations": [
+    "테이블이 왜 존재하지 않는지(예: 삭제, 미생성, 이름 오타 등)에 대한 추가 정보는 제공되지 않았음"
+  ],
+  "recommended_actions": [
+    "SALES 스키마에 SALES_MONTHLY 테이블이 정상적으로 생성되어 있는지 확인",
+    "테이블 생성 또는 이름 오타 여부를 점검",
+    "테이블 생성 프로세스 및 배치 선행 작업의 정상 수행 여부를 검토"
+  ]
+}

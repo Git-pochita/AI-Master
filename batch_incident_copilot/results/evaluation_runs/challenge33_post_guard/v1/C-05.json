@@ -1,0 +1,61 @@
+{
+  "case_id": "C-05",
+  "summary": "DAILY_INBOUND_LOAD 배치 잡이 return_code=12와 함께 실패하였으며, 로그에는 'inbound processing failed'라는 메시지가 기록되어 있습니다. 그러나 SUCCESS Tool 결과가 제공되지 않아 구체적인 원인 확인이 불가능합니다.",
+  "extracted_info": {
+    "job_name": "DAILY_INBOUND_LOAD",
+    "return_code": "12",
+    "error_messages": [
+      "inbound processing failed",
+      "job failed with return_code=12"
+    ],
+    "timestamps": [
+      "2026-09-01 08:40:00",
+      "2026-09-01 08:40:01",
+      "2026-09-01 08:40:02",
+      "2026-09-01 08:40:03"
+    ]
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "로그에 'inbound processing failed'라는 메시지가 기록되어 있으나, 구체적인 파일 관련 오류는 명시되어 있지 않음"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "로그에 'inbound processing failed'라는 메시지가 기록되어 있으나, 파일 경로 오류에 대한 직접적인 언급은 없음"
+      ]
+    },
+    {
+      "cause_code": "MISSING_REQUIRED_PARAMETER",
+      "cause_name": "필수 파라미터 누락",
+      "evidence": [
+        "로그에 'inbound processing failed'라는 메시지가 기록되어 있으나, 파라미터 관련 오류 메시지는 없음"
+      ]
+    }
+  ],
+  "selected_tools": [],
+  "tool_results": [],
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "로그에 'inbound processing failed' 메시지가 기록됨",
+    "로그에 파일 관련 구체적 오류는 명시되어 있지 않음",
+    "SUCCESS Tool 결과가 없음"
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 원인에 대한 직접적인 확인이 불가능함",
+    "로그만으로는 파일 미수신, 파일 경로 오류, 파라미터 누락 등 여러 원인 중 특정 원인을 확정할 수 없음"
+  ],
+  "recommended_actions": [
+    "입력 파일 수신 여부와 경로를 확인할 것",
+    "필수 파라미터 제공 여부를 점검할 것",
+    "SUCCESS Tool을 통한 추가 진단을 요청할 것"
+  ]
+}

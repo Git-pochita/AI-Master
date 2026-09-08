@@ -1229,5 +1229,126 @@
       }
     ],
     "notes": "파일 경로는 카탈로그에 없어 check_file_status는 FAILED이다. validate_parameter는 business_date 불일치를 SUCCESS로 반환한다. FAILED는 최종 근거로 쓰지 않는다."
+  },
+  "X-01": {
+    "case_id": "X-01",
+    "incident_domain": "CHALLENGE",
+    "scenario": "미수신처럼 보이나 같은 경로의 정상 sibling 파일로 요청 경로 오타 확인",
+    "log_file": "X-01.log",
+    "actual_cause_code": "INVALID_FILE_PATH",
+    "actual_cause_name": "파일 경로 오류",
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_FILE_PATH",
+      "INVALID_BUSINESS_DATE"
+    ],
+    "required_tools": [
+      "check_file_status"
+    ],
+    "unnecessary_tools": [
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "tool_necessity": "REQUIRED",
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "check_file_status",
+        "arguments": {
+          "path": "/data/in/challenge/sale_20260902.csv"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "exists": false,
+          "received": false
+        }
+      }
+    ],
+    "notes": "요청 경로의 sale_20260902.csv는 없지만 같은 디렉터리에 sales_20260902.csv가 수신되어 있다. 표면 증상은 미수신이나 관찰 가능한 근거는 경로/파일명 오류를 더 강하게 지지한다."
+  },
+  "X-02": {
+    "case_id": "X-02",
+    "incident_domain": "CHALLENGE",
+    "scenario": "SUCCESS Parameter Evidence가 올바른 business date 진단을 직접 지지",
+    "log_file": "X-02.log",
+    "actual_cause_code": "INVALID_BUSINESS_DATE",
+    "actual_cause_name": "실행일자 파라미터 오류",
+    "expected_hypothesis_codes": [
+      "INVALID_BUSINESS_DATE",
+      "INVALID_PARAMETER_FORMAT",
+      "INVALID_PARAMETER_RANGE"
+    ],
+    "required_tools": [
+      "validate_parameter"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "tool_necessity": "REQUIRED",
+    "expected_tool_outcome": "SUCCESS",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "확인됨",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "CHALLENGE_BDATE_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260931"
+        },
+        "expected_status": "SUCCESS",
+        "expected_data": {
+          "parameter_value": "20260931",
+          "expected_value": "20260902",
+          "is_valid": false
+        }
+      }
+    ],
+    "notes": "validate_parameter SUCCESS 결과가 parameter_value와 expected_value 불일치 및 is_valid=false를 직접 보여준다. V3는 근거 없이 정상 진단을 변경하면 안 된다."
+  },
+  "X-03": {
+    "case_id": "X-03",
+    "incident_domain": "CHALLENGE",
+    "scenario": "Parameter Tool lookup 실패로 supporting Tool Evidence 부재",
+    "log_file": "X-03.log",
+    "actual_cause_code": "INVALID_BUSINESS_DATE",
+    "actual_cause_name": "실행일자 파라미터 오류",
+    "expected_hypothesis_codes": [
+      "INVALID_BUSINESS_DATE",
+      "INVALID_PARAMETER_FORMAT",
+      "INVALID_PARAMETER_RANGE"
+    ],
+    "required_tools": [
+      "validate_parameter"
+    ],
+    "unnecessary_tools": [
+      "check_file_status",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "tool_necessity": "REQUIRED",
+    "expected_tool_outcome": "FAILED",
+    "expected_diagnosis_level_v0": "추정",
+    "expected_diagnosis_level_v1": "추정",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_fixtures": [
+      {
+        "tool": "validate_parameter",
+        "arguments": {
+          "job_name": "CHALLENGE_UNKNOWN_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260931"
+        },
+        "expected_status": "FAILED"
+      }
+    ],
+    "notes": "job_name이 mock parameter 카탈로그에 없어 validate_parameter가 FAILED한다. FAILED 결과는 supporting evidence가 아니며 확인됨 판정을 뒷받침할 수 없다."
   }
 }

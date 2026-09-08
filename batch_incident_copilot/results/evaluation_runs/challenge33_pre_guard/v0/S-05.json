@@ -1,0 +1,39 @@
+{
+  "case_id": "S-05",
+  "summary": "배치 잡 DAILY_STORE_NAME_AGG 실행 중 SALES.SALES_DAILY 테이블에서 STORE_NM 컬럼을 조회하려다 ORA-00904: invalid identifier 오류가 발생하여 작업이 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_STORE_NAME_AGG",
+    "schema": "SALES",
+    "table": "SALES_DAILY",
+    "column": "STORE_NM",
+    "sql": "SELECT STORE_CD, STORE_NM FROM SALES.SALES_DAILY",
+    "error_messages": [
+      "ORA-00904: \"STORE_NM\": invalid identifier",
+      "SQL execution failed for SALES.SALES_DAILY column=STORE_NM"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "COLUMN_NOT_FOUND",
+      "cause_name": "컬럼 없음",
+      "evidence": [
+        "2026-09-01 07:20:03 ERROR ORA-00904: \"STORE_NM\": invalid identifier",
+        "2026-09-01 07:20:03 ERROR SQL execution failed for SALES.SALES_DAILY column=STORE_NM"
+      ]
+    }
+  ],
+  "final_cause_code": "COLUMN_NOT_FOUND",
+  "final_cause_name": "컬럼 없음",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "SALES.SALES_DAILY 테이블에 STORE_NM 컬럼이 실제로 존재하는지 확인하십시오.",
+    "컬럼명이 오타가 아닌지, 혹은 컬럼이 삭제/변경되지 않았는지 점검하십시오.",
+    "테이블 구조 변경 이력이나 배치 스크립트의 컬럼명 정의를 검토하십시오."
+  ],
+  "limitations": [
+    "실제 테이블 구조를 직접 확인하지 못하므로 컬럼 존재 여부는 로그에 근거한 추정입니다.",
+    "외부 DB 상태, 테이블 메타정보, 컬럼명 변경 이력 등은 확인할 수 없습니다."
+  ]
+}

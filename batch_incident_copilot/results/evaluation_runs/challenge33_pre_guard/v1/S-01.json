@@ -1,0 +1,68 @@
+{
+  "case_id": "S-01",
+  "summary": "배치 잡 DAILY_SALES_AGG 실행 중 SALES.SALES_SUMMARY 테이블이 존재하지 않아 ORA-00942 오류가 발생하였고, 잡이 실패(return_code=12)하였습니다. check_sql_metadata SUCCESS 결과에 따르면 SALES 스키마는 존재하지만 SALES_SUMMARY 테이블은 존재하지 않는 것으로 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_AGG",
+    "schema": "SALES",
+    "table": "SALES_SUMMARY",
+    "sql": "SELECT STORE_CD, SUM(TOTAL_AMT) FROM SALES.SALES_SUMMARY GROUP BY STORE_CD",
+    "error_messages": [
+      "ORA-00942: table or view does not exist",
+      "table not found: SALES.SALES_SUMMARY"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 04:20:03 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 04:20:03 ERROR table not found: SALES.SALES_SUMMARY"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그와 extracted_info에 'ORA-00942: table or view does not exist' 및 'table not found: SALES.SALES_SUMMARY' 에러가 명확히 나타나 있어, SALES 스키마의 SALES_SUMMARY 테이블 존재 여부를 확인할 필요가 있습니다. check_sql_metadata는 schema와 table 인자를 모두 로그에서 확인할 수 있으므로 적합합니다.",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_SUMMARY",
+        "column": null
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "SALES",
+        "table": "SALES_SUMMARY",
+        "column": null,
+        "schema_exists": true,
+        "table_exists": false,
+        "column_exists": null
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "TABLE_NOT_FOUND",
+  "final_cause_name": "테이블 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 04:20:03 ERROR ORA-00942: table or view does not exist",
+    "2026-09-01 04:20:03 ERROR table not found: SALES.SALES_SUMMARY",
+    "check_sql_metadata SUCCESS 결과: schema_exists=true, table_exists=false"
+  ],
+  "limitations": [
+    "테이블이 왜 존재하지 않는지(예: 삭제, 미생성, 권한 문제 등)에 대한 추가 정보는 제공되지 않았음"
+  ],
+  "recommended_actions": [
+    "SALES.SALES_SUMMARY 테이블의 생성 여부 및 상태를 확인하십시오.",
+    "테이블이 필요한 경우 생성하거나, 테이블명/스키마명이 올바른지 검토하십시오.",
+    "테이블 생성/복구 후 배치 잡을 재실행하십시오."
+  ]
+}

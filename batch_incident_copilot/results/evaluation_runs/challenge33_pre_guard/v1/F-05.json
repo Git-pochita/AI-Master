@@ -1,0 +1,112 @@
+{
+  "case_id": "F-05",
+  "summary": "DAILY_SALES_LOAD 배치 잡이 /data/in/sales_20260831.csv 파일을 찾지 못해 실패하였습니다. check_file_status SUCCESS 결과에 따르면 해당 파일은 존재하지 않고, 수신되지 않은 것으로 확인됩니다. 동일 디렉토리 내 sales_20260901.csv 등 다른 날짜의 파일은 정상적으로 존재하며 수신됨이 확인됩니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_LOAD",
+    "business_date": "20260831",
+    "input_path": "/data/in/sales_20260831.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/sales_20260831.csv"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 02:00:03 ERROR FileNotFoundError: /data/in/sales_20260831.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 02:00:03 ERROR FileNotFoundError: /data/in/sales_20260831.csv"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "로그와 extracted_info에 FileNotFoundError와 파일 경로(/data/in/sales_20260831.csv)가 명확히 나타나 있습니다. 파일 미수신 또는 경로 오류 가설을 검증하려면 해당 경로의 파일 존재/수신 상태를 확인해야 하므로 check_file_status Tool이 필요합니다.",
+      "arguments": {
+        "path": "/data/in/sales_20260831.csv"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "SUCCESS",
+      "data": {
+        "path": "/data/in/sales_20260831.csv",
+        "exists": false,
+        "received": false,
+        "size_bytes": null,
+        "last_modified": null,
+        "filename": "sales_20260831.csv",
+        "same_directory_files": [
+          {
+            "path": "/data/in/ledger_20260831.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "ledger_20260831.csv"
+          },
+          {
+            "path": "/data/in/ledger_20260901.csv",
+            "exists": true,
+            "received": true,
+            "size_bytes": 81920,
+            "last_modified": "2026-09-01T01:45:00",
+            "filename": "ledger_20260901.csv"
+          },
+          {
+            "path": "/data/in/sale_20260901.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "sale_20260901.csv"
+          },
+          {
+            "path": "/data/in/sales_20260831.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "sales_20260831.csv"
+          },
+          {
+            "path": "/data/in/sales_20260901.csv",
+            "exists": true,
+            "received": true,
+            "size_bytes": 204800,
+            "last_modified": "2026-09-01T01:50:00",
+            "filename": "sales_20260901.csv"
+          }
+        ]
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_file_status SUCCESS 결과: /data/in/sales_20260831.csv exists=false, received=false",
+    "로그: FileNotFoundError: /data/in/sales_20260831.csv"
+  ],
+  "limitations": [
+    "파일 미수신의 근본 원인(예: 송신 시스템 장애, 파일 생성 실패 등)은 본 분석에서 확인할 수 없습니다.",
+    "business_date 파라미터가 올바른지 여부는 추가 validate_parameter 결과가 없으므로 판단할 수 없습니다."
+  ],
+  "recommended_actions": [
+    "20260831 기준 sales 파일 송신/생성 경로를 확인하여 미수신 원인을 조사하십시오.",
+    "파일 송신 시스템 또는 담당자에게 문의하여 정상 송신 여부를 확인하십시오.",
+    "필요시 재송신 요청 및 배치 재실행을 검토하십시오."
+  ]
+}

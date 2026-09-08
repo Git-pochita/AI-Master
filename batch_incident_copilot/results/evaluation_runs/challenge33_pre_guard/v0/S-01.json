@@ -1,0 +1,38 @@
+{
+  "case_id": "S-01",
+  "summary": "배치 잡 DAILY_SALES_AGG 실행 중 SALES.SALES_SUMMARY 테이블을 찾을 수 없다는 오류(ORA-00942)가 발생하여 작업이 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_AGG",
+    "schema": "SALES",
+    "table": "SALES_SUMMARY",
+    "sql": "SELECT STORE_CD, SUM(TOTAL_AMT) FROM SALES.SALES_SUMMARY GROUP BY STORE_CD",
+    "error_messages": [
+      "ORA-00942: table or view does not exist",
+      "table not found: SALES.SALES_SUMMARY"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 04:20:03 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 04:20:03 ERROR table not found: SALES.SALES_SUMMARY"
+      ]
+    }
+  ],
+  "final_cause_code": "TABLE_NOT_FOUND",
+  "final_cause_name": "테이블 없음",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "SALES.SALES_SUMMARY 테이블이 데이터베이스에 존재하는지 DBA 또는 데이터 담당자에게 확인하십시오.",
+    "테이블명, 스키마명이 올바른지 배치 파라미터 및 SQL을 점검하십시오.",
+    "테이블 권한 문제 등도 추가로 확인이 필요합니다."
+  ],
+  "limitations": [
+    "로그에 테이블이 실제로 존재하지 않는지, 권한 문제인지, 일시적 장애인지 등 외부 상태를 직접 확인할 수 없습니다.",
+    "V0는 로그에 기록된 오류 메시지에만 근거하여 진단합니다."
+  ]
+}

@@ -1,0 +1,274 @@
+{
+  "version": "v3",
+  "case_id": "S-02",
+  "summary": "배치 잡 DAILY_SALES_DAILY_AGG 실행 중 SALES.SALES_DAILY 테이블에서 TOTAL_AMT 컬럼을 조회하려 했으나, 해당 컬럼이 존재하지 않아 ORA-00904 오류가 발생하였고, 이로 인해 잡이 실패하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_DAILY_AGG",
+    "schema": "SALES",
+    "table": "SALES_DAILY",
+    "column": "TOTAL_AMT",
+    "sql": "SELECT STORE_CD, TOTAL_AMT FROM SALES.SALES_DAILY",
+    "error_messages": [
+      "ORA-00904: \"TOTAL_AMT\": invalid identifier",
+      "SQL execution failed for SALES.SALES_DAILY",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "COLUMN_NOT_FOUND",
+      "cause_name": "컬럼 없음",
+      "evidence": [
+        "2026-09-01 04:50:03 ERROR ORA-00904: \"TOTAL_AMT\": invalid identifier",
+        "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY"
+      ]
+    },
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "COLUMN_NOT_FOUND",
+      "cause_name": "컬럼 없음",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "2026-09-01 04:50:03 ERROR ORA-00904: \"TOTAL_AMT\": invalid identifier",
+        "check_sql_metadata 결과: column_exists=false"
+      ]
+    },
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "origin": "initial",
+      "status": "eliminated",
+      "signals": [
+        "check_sql_metadata 결과: table_exists=true"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 실제로 존재하는지 확인한다.",
+      "candidate_tool": "check_sql_metadata",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "TOTAL_AMT"
+      },
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "COLUMN_NOT_FOUND",
+        "TABLE_NOT_FOUND"
+      ],
+      "status": "executed"
+    }
+  ],
+  "unresolved_questions": [
+    "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 존재하는지 여부",
+    "SALES.SALES_DAILY 테이블 자체가 존재하는지 여부"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 실제로 존재하는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 실제로 존재하는지 확인한다.",
+          "candidate_tool": "check_sql_metadata",
+          "arguments": {
+            "schema": "SALES",
+            "table": "SALES_DAILY",
+            "column": "TOTAL_AMT"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "COLUMN_NOT_FOUND",
+            "TABLE_NOT_FOUND"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "COLUMN_NOT_FOUND",
+          "cause_name": "컬럼 없음",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 04:50:03 ERROR ORA-00904: \"TOTAL_AMT\": invalid identifier",
+            "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY"
+          ]
+        },
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 존재하는지 여부",
+        "SALES.SALES_DAILY 테이블 자체가 존재하는지 여부"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_sql_metadata",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "TOTAL_AMT",
+        "job_name": "DAILY_SALES_DAILY_AGG"
+      },
+      "reason": "로그에 ORA-00904: \"TOTAL_AMT\": invalid identifier 에러가 있어 컬럼 존재 여부를 우선 확인해야 하며, 테이블 존재 여부도 함께 점검할 수 있다.",
+      "evidence_summary": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "TOTAL_AMT",
+        "schema_exists": true,
+        "table_exists": true,
+        "column_exists": false,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_sql_metadata",
+        "status": "SUCCESS",
+        "data": {
+          "schema": "SALES",
+          "table": "SALES_DAILY",
+          "column": "TOTAL_AMT",
+          "schema_exists": true,
+          "table_exists": true,
+          "column_exists": false
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 실제로 존재하는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 실제로 존재하는지 확인한다.",
+          "candidate_tool": "check_sql_metadata",
+          "arguments": {
+            "schema": "SALES",
+            "table": "SALES_DAILY",
+            "column": "TOTAL_AMT"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "COLUMN_NOT_FOUND",
+            "TABLE_NOT_FOUND"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "COLUMN_NOT_FOUND",
+          "cause_name": "컬럼 없음",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "2026-09-01 04:50:03 ERROR ORA-00904: \"TOTAL_AMT\": invalid identifier",
+            "check_sql_metadata 결과: column_exists=false"
+          ]
+        },
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "eliminated",
+          "signals": [
+            "check_sql_metadata 결과: table_exists=true"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 존재하는지 여부",
+        "SALES.SALES_DAILY 테이블 자체가 존재하는지 여부"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "check_sql_metadata 결과로 테이블은 존재하고 컬럼만 없다는 점이 명확히 확인되어, 추가 조사 없이 근본 원인을 판별할 수 있습니다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그에 ORA-00904: \"TOTAL_AMT\": invalid identifier 에러가 있어 컬럼 존재 여부를 우선 확인해야 하며, 테이블 존재 여부도 함께 점검할 수 있다.",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "TOTAL_AMT",
+        "job_name": "DAILY_SALES_DAILY_AGG"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "TOTAL_AMT",
+        "schema_exists": true,
+        "table_exists": true,
+        "column_exists": false
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "COLUMN_NOT_FOUND",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "COLUMN_NOT_FOUND",
+  "final_cause_name": "컬럼 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_sql_metadata SUCCESS 결과: schema_exists=true, table_exists=true, column_exists=false",
+    "2026-09-01 04:50:03 ERROR ORA-00904: \"TOTAL_AMT\": invalid identifier",
+    "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY"
+  ],
+  "limitations": [
+    "컬럼이 왜 존재하지 않는지(DDL 변경, 데이터 마이그레이션 등)까지는 확인되지 않음",
+    "테이블의 다른 컬럼 상태나 전체 스키마 변경 이력은 확인 불가"
+  ],
+  "recommended_actions": [
+    "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 실제로 존재하는지 DBA에게 확인 요청",
+    "컬럼 추가 또는 SQL 수정 등 후속 조치 필요",
+    "배치 잡의 SQL 및 테이블 구조 변경 이력 검토"
+  ]
+}

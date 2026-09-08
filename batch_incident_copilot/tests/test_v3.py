@@ -287,7 +287,7 @@ def test_empty_related_evidence_blocks_cause_revision():
     assert result.final_cause_code == "FILE_NOT_RECEIVED"
 
 
-def test_related_evidence_in_observable_payload_allows_cause_revision():
+def test_related_evidence_without_stronger_cause_support_blocks_revision():
     token = "observed_sibling.csv"
     tools = [_success_tool(token)]
     assert (
@@ -298,11 +298,11 @@ def test_related_evidence_in_observable_payload_allows_cause_revision():
             extracted_info={"input_path": "/data/in/target.csv"},
             tool_results=tools,
         )
-        is True
+        is False
     )
 
 
-def test_success_tool_presence_alone_does_not_pass_gate():
+def test_success_tool_and_token_presence_alone_do_not_pass_gate():
     tools = [_success_tool("observed_sibling.csv")]
     assert (
         alternative_supported_by_observable(
@@ -342,7 +342,7 @@ def test_success_tool_presence_alone_does_not_pass_gate():
             tool_results=tools,
             related_evidence=["observed_sibling.csv"],
         )
-        is True
+        is False
     )
 
 

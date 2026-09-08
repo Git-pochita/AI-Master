@@ -1,0 +1,288 @@
+{
+  "version": "v3",
+  "case_id": "P-04",
+  "summary": "DAILY_RETRY_BATCH 잡 실행 시 retry_count 파라미터가 99로 입력되어, 허용 범위(1~5)를 벗어나 파라미터가 거부되고 잡이 실패(return_code=12)하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_RETRY_BATCH",
+    "retry_count": "99",
+    "error_messages": [
+      "parameter rejected: retry_count=99",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "INVALID_PARAMETER_RANGE",
+      "cause_name": "파라미터 값 범위 오류",
+      "evidence": [
+        "2026-09-01 06:30:02 ERROR parameter rejected: retry_count=99",
+        "retry_count=99로 입력됨",
+        "job failed with return_code=12"
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "evidence": [
+        "2026-09-01 06:30:02 ERROR parameter rejected: retry_count=99"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "INVALID_PARAMETER_RANGE",
+      "cause_name": "파라미터 값 범위 오류",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "2026-09-01 06:30:02 ERROR parameter rejected: retry_count=99",
+        "retry_count=99로 입력됨",
+        "validate_parameter 결과: range_valid=false, min=1, max=5, is_valid=false"
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "origin": "initial",
+      "status": "eliminated",
+      "signals": [
+        "validate_parameter 결과: format_valid=true"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "retry_count=99 파라미터가 허용 범위를 벗어났는지 확인한다.",
+      "candidate_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_RETRY_BATCH",
+        "parameter_name": "retry_count",
+        "parameter_value": "99"
+      },
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "INVALID_PARAMETER_RANGE",
+        "INVALID_PARAMETER_FORMAT"
+      ],
+      "status": "executed"
+    }
+  ],
+  "unresolved_questions": [
+    "retry_count=99 파라미터 거부가 값의 범위 오류인지, 형식 오류인지 구분되지 않았다."
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "retry_count=99 파라미터가 거부된 원인이 값의 범위 오류인지, 형식 오류인지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "retry_count=99 파라미터가 거부된 원인이 값의 범위 오류인지, 형식 오류인지 확인한다.",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "DAILY_RETRY_BATCH",
+            "parameter_name": "retry_count",
+            "parameter_value": "99"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_PARAMETER_RANGE",
+            "INVALID_PARAMETER_FORMAT"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_PARAMETER_RANGE",
+          "cause_name": "파라미터 값 범위 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 06:30:02 ERROR parameter rejected: retry_count=99",
+            "retry_count=99로 입력됨",
+            "job failed with return_code=12"
+          ]
+        },
+        {
+          "cause_code": "INVALID_PARAMETER_FORMAT",
+          "cause_name": "파라미터 형식 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 06:30:02 ERROR parameter rejected: retry_count=99"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "retry_count=99 파라미터 거부가 값의 범위 오류인지, 형식 오류인지 구분되지 않았다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_RETRY_BATCH",
+        "parameter_name": "retry_count",
+        "parameter_value": "99"
+      },
+      "reason": "로그에 retry_count=99 파라미터가 거부되었다는 명확한 signal이 있으므로, validate_parameter Tool로 범위 오류와 형식 오류 중 무엇이 원인인지 확인할 수 있다.",
+      "evidence_summary": {
+        "job_name": "DAILY_RETRY_BATCH",
+        "parameter_name": "retry_count",
+        "parameter_value": "99",
+        "expected_value": "3",
+        "is_valid": false,
+        "format_valid": true,
+        "range_valid": false,
+        "rule": "DAILY_RETRY_BATCH의 retry_count는 1 이상 5 이하 정수여야 한다.",
+        "job_run_date": null,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "validate_parameter",
+        "status": "SUCCESS",
+        "data": {
+          "job_name": "DAILY_RETRY_BATCH",
+          "parameter_name": "retry_count",
+          "parameter_value": "99",
+          "required": true,
+          "provided": true,
+          "format_valid": true,
+          "range_valid": false,
+          "expected_value": "3",
+          "allowed_values": null,
+          "min": 1,
+          "max": 5,
+          "is_valid": false,
+          "rule": "DAILY_RETRY_BATCH의 retry_count는 1 이상 5 이하 정수여야 한다.",
+          "job_run_date": null
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "retry_count=99 파라미터가 허용 범위를 벗어났는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "retry_count=99 파라미터가 허용 범위를 벗어났는지 확인한다.",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "DAILY_RETRY_BATCH",
+            "parameter_name": "retry_count",
+            "parameter_value": "99"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_PARAMETER_RANGE",
+            "INVALID_PARAMETER_FORMAT"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_PARAMETER_RANGE",
+          "cause_name": "파라미터 값 범위 오류",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "2026-09-01 06:30:02 ERROR parameter rejected: retry_count=99",
+            "retry_count=99로 입력됨",
+            "validate_parameter 결과: range_valid=false, min=1, max=5, is_valid=false"
+          ]
+        },
+        {
+          "cause_code": "INVALID_PARAMETER_FORMAT",
+          "cause_name": "파라미터 형식 오류",
+          "origin": "initial",
+          "status": "eliminated",
+          "signals": [
+            "validate_parameter 결과: format_valid=true"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "retry_count=99 파라미터 거부가 값의 범위 오류인지, 형식 오류인지 구분되지 않았다."
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "validate_parameter 결과에서 retry_count=99가 허용 범위(1~5)를 벗어난 값임이 확인되어 INVALID_PARAMETER_RANGE로 충분히 설명된다. 추가 조사가 필요 없다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "로그에 retry_count=99 파라미터가 거부되었다는 명확한 signal이 있으므로, validate_parameter Tool로 범위 오류와 형식 오류 중 무엇이 원인인지 확인할 수 있다.",
+      "arguments": {
+        "job_name": "DAILY_RETRY_BATCH",
+        "parameter_name": "retry_count",
+        "parameter_value": "99"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_RETRY_BATCH",
+        "parameter_name": "retry_count",
+        "parameter_value": "99",
+        "required": true,
+        "provided": true,
+        "format_valid": true,
+        "range_valid": false,
+        "expected_value": "3",
+        "allowed_values": null,
+        "min": 1,
+        "max": 5,
+        "is_valid": false,
+        "rule": "DAILY_RETRY_BATCH의 retry_count는 1 이상 5 이하 정수여야 한다.",
+        "job_run_date": null
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "INVALID_PARAMETER_RANGE",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "INVALID_PARAMETER_RANGE",
+  "final_cause_name": "파라미터 값 범위 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과: retry_count=99, range_valid=false, is_valid=false, min=1, max=5, rule='DAILY_RETRY_BATCH의 retry_count는 1 이상 5 이하 정수여야 한다.'",
+    "로그: parameter rejected: retry_count=99",
+    "로그: job failed with return_code=12"
+  ],
+  "limitations": [
+    "실제 파라미터 입력 경로 및 입력 주체에 대한 정보는 부족함",
+    "잡 실패의 추가적인 영향(후속 처리 등)은 확인되지 않음"
+  ],
+  "recommended_actions": [
+    "retry_count 파라미터 입력값이 1~5 범위 내로 설정되도록 검증 로직 강화",
+    "파라미터 입력 시 사용자 안내 및 자동 validation 적용",
+    "실패 시 상세 원인 및 허용 범위 안내 메시지 제공"
+  ]
+}

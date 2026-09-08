@@ -1,0 +1,64 @@
+{
+  "case_id": "X-03",
+  "summary": "CHALLENGE_UNKNOWN_LOAD 배치 잡 실행 시 business_date 파라미터 값(20260931)에 대해 파라미터 검증 서비스에서 카탈로그 레코드를 찾지 못해 검증이 실패하였습니다. SUCCESS Tool 결과가 없으므로 원인에 대한 확정적 판단은 어렵습니다.",
+  "extracted_info": {
+    "job_name": "CHALLENGE_UNKNOWN_LOAD",
+    "parameter_name": "business_date",
+    "parameter_value": "20260931",
+    "error_message": "Parameter validation service lookup failed; no catalog record was available.",
+    "timestamp": "2026-09-02 02:20:27"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "evidence": [
+        "parameter_name=business_date parameter_value=20260931",
+        "Parameter validation service lookup failed; no catalog record was available."
+      ]
+    },
+    {
+      "cause_code": "MISSING_REQUIRED_PARAMETER",
+      "cause_name": "필수 파라미터 누락",
+      "evidence": [
+        "Parameter validation service lookup failed; no catalog record was available."
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "business_date 파라미터 값(20260931)이 유효한지, 그리고 해당 잡/파라미터 조합이 mock 규칙에 존재하는지 확인이 필요합니다. 이는 INVALID_BUSINESS_DATE 또는 MISSING_REQUIRED_PARAMETER 가설을 검증하는 데 직접적으로 필요합니다.",
+      "arguments": {
+        "job_name": "CHALLENGE_UNKNOWN_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260931"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "FAILED",
+      "data": null,
+      "error": "알 수 없는 job_name입니다: CHALLENGE_UNKNOWN_LOAD"
+    }
+  ],
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "parameter_name=business_date parameter_value=20260931",
+    "Parameter validation service lookup failed; no catalog record was available."
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 파라미터 값의 유효성, 형식, 범위, 누락 여부 등 추가적인 확인이 불가능함.",
+    "실제 business_date 값이 잘못된 날짜(20260931)인지, 카탈로그에 해당 날짜가 없는 것인지 구체적 원인 확인이 불가함."
+  ],
+  "recommended_actions": [
+    "business_date 파라미터 값(20260931)이 유효한 날짜인지 확인하십시오.",
+    "파라미터 검증 서비스의 카탈로그에 해당 날짜가 등록되어 있는지 점검하십시오.",
+    "필요시 파라미터 값 및 카탈로그 레코드 관리 정책을 검토하십시오."
+  ]
+}

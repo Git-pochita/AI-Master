@@ -1,0 +1,74 @@
+{
+  "case_id": "S-03",
+  "summary": "DAILY_FINANCE_LEDGER 배치 잡 실행 시 ORA-00942(table or view does not exist) 및 'invalid schema: FINANCE_X' 오류가 발생하였으며, check_sql_metadata SUCCESS 결과에서 FINANCE_X 스키마가 존재하지 않음이 확인되었습니다. 테이블 존재 여부는 확인되지 않았으나, 스키마 자체가 없으므로 테이블 접근이 불가능합니다.",
+  "extracted_info": {
+    "job_name": "DAILY_FINANCE_LEDGER",
+    "schema": "FINANCE_X",
+    "table": "LEDGER",
+    "sql": "SELECT ACCT_CD, AMT FROM FINANCE_X.LEDGER",
+    "error_messages": [
+      "ORA-00942: table or view does not exist",
+      "invalid schema: FINANCE_X"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 07:00:03 ERROR ORA-00942: table or view does not exist"
+      ]
+    },
+    {
+      "cause_code": "INVALID_SCHEMA",
+      "cause_name": "스키마 오류",
+      "evidence": [
+        "2026-09-01 07:00:03 ERROR invalid schema: FINANCE_X"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그와 extracted_info에 'ORA-00942: table or view does not exist'와 'invalid schema: FINANCE_X' 에러가 있어, 실제로 FINANCE_X 스키마와 LEDGER 테이블이 존재하는지 확인할 필요가 있습니다. check_sql_metadata는 schema와 table 존재 여부를 검증할 수 있으므로 적합합니다.",
+      "arguments": {
+        "schema": "FINANCE_X",
+        "table": "LEDGER",
+        "column": null
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "FINANCE_X",
+        "table": "LEDGER",
+        "column": null,
+        "schema_exists": false,
+        "table_exists": null,
+        "column_exists": null
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "INVALID_SCHEMA",
+  "final_cause_name": "스키마 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 07:00:03 ERROR ORA-00942: table or view does not exist",
+    "2026-09-01 07:00:03 ERROR invalid schema: FINANCE_X",
+    "check_sql_metadata SUCCESS 결과: schema_exists=false"
+  ],
+  "limitations": [
+    "테이블 존재 여부는 스키마가 없으므로 확인되지 않음",
+    "스키마 미존재의 근본 원인(생성 누락, 삭제 등)은 추가 확인 필요"
+  ],
+  "recommended_actions": [
+    "FINANCE_X 스키마 생성 여부 및 생성/삭제 이력 확인",
+    "스키마 생성 또는 올바른 스키마명으로 배치 잡 설정 변경"
+  ]
+}

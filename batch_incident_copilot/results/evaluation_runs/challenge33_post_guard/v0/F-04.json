@@ -1,0 +1,42 @@
+{
+  "case_id": "F-04",
+  "summary": "배치 잡 DAILY_PARTNER_LOAD 실행 중 입력 파일(/data/in/partner/partnr_20260901.csv) 관련 FileNotFoundError가 발생하여 작업이 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_PARTNER_LOAD",
+    "business_date": "20260901",
+    "input_path": "/data/in/partner/partnr_20260901.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+      ]
+    }
+  ],
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "입력 파일(/data/in/partner/partnr_20260901.csv)이 실제로 존재하는지 운영 환경에서 확인하십시오.",
+    "파일 경로가 올바른지, 파일명이 맞는지 점검하십시오.",
+    "파일 수신 프로세스에 이상이 없는지 확인하십시오."
+  ],
+  "limitations": [
+    "로그에 기록된 FileNotFoundError만을 근거로 진단하였으며, 실제 파일 존재 여부나 경로의 정확성 등 운영 환경의 상태는 확인할 수 없습니다.",
+    "외부 시스템이나 파일 수신 프로세스의 상세 원인은 로그만으로 판단할 수 없습니다."
+  ]
+}

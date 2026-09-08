@@ -1,0 +1,36 @@
+{
+  "case_id": "D-05",
+  "summary": "배치 잡이 DB 인증 오류(ORA-01017)로 인해 실패하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_DB_LOAD",
+    "connection_name": "SALES_DB",
+    "error_messages": [
+      "ORA-01017: invalid username/password; logon denied",
+      "DB authentication/login failure connection=SALES_DB"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "evidence": [
+        "2026-09-01 04:10:03 ERROR ORA-01017: invalid username/password; logon denied",
+        "2026-09-01 04:10:03 ERROR DB authentication/login failure connection=SALES_DB"
+      ]
+    }
+  ],
+  "final_cause_code": "DB_CREDENTIAL_MISMATCH",
+  "final_cause_name": "DB 인증 정보 불일치",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "DB 접속에 사용된 username과 password가 올바른지 점검하십시오.",
+    "DB 계정의 상태(잠김, 만료 등)도 추가로 확인해 보십시오.",
+    "DB 접속 설정 파일 또는 파라미터를 재확인하십시오."
+  ],
+  "limitations": [
+    "로그에 기록된 오류 메시지(ORA-01017)만을 근거로 진단하였으며, 실제 DB 계정 상태나 인증 정보의 정확성은 외부에서 확인하지 못했습니다.",
+    "계정 잠김, 네트워크 문제 등 다른 원인 가능성은 로그만으로는 배제할 수 없습니다."
+  ]
+}

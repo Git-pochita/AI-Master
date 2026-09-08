@@ -1,0 +1,64 @@
+{
+  "case_id": "D-03",
+  "summary": "배치 잡 DAILY_REPORT_EXTRACT 실행 중 DB 접속 오류가 발생하였으며, ORA-12154 에러와 함께 DB connection failed 메시지가 기록되었습니다. check_db_status SUCCESS 결과에 따르면 계정 잠김이나 인증 정보 불일치 없이, DB 접속 설정(connection_config_valid)이 올바르지 않은 것으로 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_REPORT_EXTRACT",
+    "connection_name": "REPORT_DB",
+    "account": "batch_user",
+    "error_messages": [
+      "ORA-12154: TNS:could not resolve the connect identifier specified",
+      "DB connection failed for account=batch_user connection=REPORT_DB"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "cause_name": "DB 접속 설정 오류",
+      "evidence": [
+        "2026-09-01 03:55:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+        "2026-09-01 03:55:03 ERROR DB connection failed for account=batch_user connection=REPORT_DB"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_db_status",
+      "reason": "로그와 extracted_info에 connection_name(REPORT_DB)과 account(batch_user)가 모두 명확히 있으므로, DB 접속 설정 오류(ORA-12154)와 관련된 계정 잠금, credential, 접속 설정 유효성 상태를 확인하기 위해 check_db_status Tool이 필요합니다.",
+      "arguments": {
+        "connection_name": "REPORT_DB",
+        "account": "batch_user"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_db_status",
+      "status": "SUCCESS",
+      "data": {
+        "connection_name": "REPORT_DB",
+        "account": "batch_user",
+        "account_locked": false,
+        "credential_status": "VALID",
+        "connection_config_valid": false
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+  "final_cause_name": "DB 접속 설정 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 03:55:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+    "2026-09-01 03:55:03 ERROR DB connection failed for account=batch_user connection=REPORT_DB",
+    "check_db_status SUCCESS 결과: account_locked=false, credential_status=VALID, connection_config_valid=false"
+  ],
+  "limitations": [
+    "DB 접속 설정 오류의 구체적 원인(TNS 설정, 네트워크, listener 등)은 SUCCESS Tool 결과만으로는 추가 확인이 불가함"
+  ],
+  "recommended_actions": [
+    "REPORT_DB의 접속 설정(TNS, host, port, 서비스명 등)을 점검하고 올바르게 수정하십시오.",
+    "DBA 또는 네트워크 담당자와 협업하여 DB 접속 식별자 설정을 재확인하십시오."
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "case_id": "D-06",
+  "summary": "배치 잡 DAILY_LEGACY_EXTRACT 실행 시 ORA-12154 오류와 함께 DB 접속에 실패하였으며, return_code=12로 종료되었습니다. SUCCESS Tool 결과가 없으므로 원인에 대한 확정은 불가능합니다.",
+  "extracted_info": {
+    "job_name": "DAILY_LEGACY_EXTRACT",
+    "connection_name": "LEGACY_DB",
+    "account": "batch_legacy",
+    "error_messages": [
+      "ORA-12154: TNS:could not resolve the connect identifier specified",
+      "DB connection failed for account=batch_legacy connection=LEGACY_DB",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "cause_name": "DB 접속 설정 오류",
+      "evidence": [
+        "2026-09-01 04:15:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+        "2026-09-01 04:15:03 ERROR DB connection failed for account=batch_legacy connection=LEGACY_DB"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_db_status",
+      "reason": "로그와 extracted_info에 connection_name(LEGACY_DB)과 account(batch_legacy)가 모두 명확히 있으므로, DB 접속 설정 오류(ORA-12154)와 관련된 계정 잠금, credential, 접속 설정 유효성 상태를 확인하기 위해 check_db_status Tool이 필요합니다.",
+      "arguments": {
+        "connection_name": "LEGACY_DB",
+        "account": "batch_legacy"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_db_status",
+      "status": "FAILED",
+      "data": null,
+      "error": "DB_STATUS_DATA_NOT_FOUND"
+    }
+  ],
+  "final_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+  "final_cause_name": "DB 접속 설정 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 04:15:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+    "2026-09-01 04:15:03 ERROR DB connection failed for account=batch_legacy connection=LEGACY_DB",
+    "SUCCESS Tool 결과 없음"
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 DB 접속 설정 오류의 확정적 근거를 제시할 수 없습니다.",
+    "실제 DB 접속 설정, TNS 정보, 네트워크 상태 등 추가 확인이 필요합니다."
+  ],
+  "recommended_actions": [
+    "DB 접속 설정(TNS, connection string 등)을 점검하십시오.",
+    "SUCCESS Tool을 통한 DB connection config 검증을 추가로 수행하십시오.",
+    "네트워크 및 DB listener 상태를 확인하십시오."
+  ]
+}

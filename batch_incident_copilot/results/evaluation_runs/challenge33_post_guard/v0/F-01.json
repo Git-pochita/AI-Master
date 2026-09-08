@@ -1,0 +1,42 @@
+{
+  "case_id": "F-01",
+  "summary": "DAILY_ORDERS_LOAD 배치가 입력 파일을 찾지 못해 실패하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_ORDERS_LOAD",
+    "business_date": "20260901",
+    "input_path": "/data/in/orders/orders_20260901.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/orders/orders_20260901.csv"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 02:30:03 ERROR FileNotFoundError: /data/in/orders/orders_20260901.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 02:30:03 ERROR FileNotFoundError: /data/in/orders/orders_20260901.csv"
+      ]
+    }
+  ],
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "입력 파일(/data/in/orders/orders_20260901.csv)이 실제로 존재하는지 확인하십시오.",
+    "파일 경로가 올바른지 점검하십시오.",
+    "파일 전달 및 생성 프로세스에 이상이 없는지 확인하십시오."
+  ],
+  "limitations": [
+    "로그에 FileNotFoundError가 기록되어 있으나, 실제 파일 존재 여부나 경로의 정확성은 외부 시스템을 통해 추가 확인이 필요합니다.",
+    "V0는 파일 시스템 상태를 직접 확인할 수 없습니다."
+  ]
+}

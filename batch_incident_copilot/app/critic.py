@@ -13,7 +13,11 @@ from typing import Any, Callable
 from pydantic import BaseModel, Field
 
 from app.cause_codes import CANONICAL_CAUSE_CODES, validate_cause_code, vocabulary_prompt_block
-from app.evidence_comparison import build_evidence_comparison, comparison_payload
+from app.evidence_comparison import (
+    EvidenceComparison,
+    build_evidence_comparison,
+    comparison_payload,
+)
 from app.schemas import (
     CriticIssue,
     CriticIssueType,
@@ -182,7 +186,95 @@ def alternative_supported_by_observable(
     tokens = [str(item).strip() for item in related_evidence if str(item).strip()]
     if not tokens:
         return False
-    return any(token in haystack for token in tokens)
+    if not any(token in haystack for token in tokens):
+        return False
+    if not current_cause:
+        return False
+    return _observable_cause_support(
+        recommended_cause, comparison, success
+    ) > _observable_cause_support(current_cause, comparison, success)
+
+
+def _observable_cause_support(
+    cause_code: str,
+    comparison: EvidenceComparison,
+    success_tool_results: list[ToolResult],
+) -> int:
+    facts = {
+        item.fact_type
+        for item in [
+            *comparison.strong_causal_observations,
+            *comparison.potentially_conflicting_observations,
+            *comparison.surface_symptoms,
+        ]
+    }
+    if cause_code == "INVALID_FILE_PATH":
+        return 3 if "received_other_file" in facts else 0
+    if cause_code == "FILE_NOT_RECEIVED":
+        if "received_other_file" in facts:
+            return 0
+        return 1 if "target_missing" in facts else 0
+
+    score = 0
+    for item in success_tool_results:
+        data = item.data if isinstance(item.data, dict) else {}
+        if item.tool == "validate_parameter":
+            name = str(data.get("parameter_name") or "")
+            value = data.get("parameter_value")
+            expected = data.get("expected_value")
+            if cause_code == "MISSING_REQUIRED_PARAMETER":
+                score = max(
+                    score,
+                    3
+                    if data.get("provided") is False and data.get("required") is True
+                    else 0,
+                )
+            elif cause_code == "INVALID_BUSINESS_DATE":
+                score = max(
+                    score,
+                    3
+                    if name == "business_date"
+                    and data.get("is_valid") is False
+                    and value != expected
+                    else 0,
+                )
+            elif cause_code == "INVALID_PARAMETER_FORMAT":
+                score = max(score, 3 if data.get("format_valid") is False else 0)
+            elif cause_code == "INVALID_PARAMETER_RANGE":
+                score = max(score, 3 if data.get("range_valid") is False else 0)
+        elif item.tool == "check_db_status":
+            credential = str(data.get("credential_status") or "").upper()
+            if cause_code == "DB_CREDENTIAL_MISMATCH":
+                score = max(
+                    score,
+                    3 if credential and credential not in {"VALID", "OK", "MATCH"} else 0,
+                )
+            elif cause_code == "DB_ACCOUNT_LOCKED":
+                score = max(score, 3 if data.get("account_locked") is True else 0)
+            elif cause_code == "DB_CONNECTION_CONFIG_ERROR":
+                score = max(
+                    score, 3 if data.get("connection_config_valid") is False else 0
+                )
+        elif item.tool == "check_sql_metadata":
+            if cause_code == "INVALID_SCHEMA":
+                score = max(score, 3 if data.get("schema_exists") is False else 0)
+            elif cause_code == "TABLE_NOT_FOUND":
+                score = max(
+                    score,
+                    3
+                    if data.get("schema_exists") is True
+                    and data.get("table_exists") is False
+                    else 0,
+                )
+            elif cause_code == "COLUMN_NOT_FOUND":
+                score = max(
+                    score,
+                    3
+                    if data.get("table_exists") is True
+                    and data.get("column_exists") is False
+                    else 0,
+                )
+    return score
 
 
 def cause_revision_allowed(

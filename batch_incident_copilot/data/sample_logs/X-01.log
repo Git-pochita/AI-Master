@@ -1,0 +1,3 @@
+2026-09-02 02:00:03 ERROR job=CHALLENGE_FILE_LOAD
+FileNotFoundError: /data/in/challenge/sale_20260902.csv
+Input file was not found at the configured request path.

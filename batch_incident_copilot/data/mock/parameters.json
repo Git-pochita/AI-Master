@@ -75,5 +75,16 @@
       "format_pattern": "^[0-9]+$",
       "rule": "DAILY_RETRY_BATCH의 retry_count는 1 이상 5 이하 정수여야 한다."
     }
+  },
+  "CHALLENGE_BDATE_LOAD": {
+    "business_date": {
+      "parameter_name": "business_date",
+      "type": "date_yyyymmdd",
+      "required": true,
+      "job_run_date": "20260902",
+      "expected_value": "20260902",
+      "format_pattern": "^[0-9]{8}$",
+      "rule": "CHALLENGE_BDATE_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다."
+    }
   }
 }

@@ -1,0 +1,72 @@
+{
+  "case_id": "S-02",
+  "summary": "배치 잡 DAILY_SALES_DAILY_AGG 실행 중 SALES.SALES_DAILY 테이블에서 TOTAL_AMT 컬럼을 조회하려 했으나, 해당 컬럼이 존재하지 않아 ORA-00904 오류가 발생하였고, 이로 인해 잡이 실패(return_code=12)하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_DAILY_AGG",
+    "schema": "SALES",
+    "table": "SALES_DAILY",
+    "column": "TOTAL_AMT",
+    "sql": "SELECT STORE_CD, TOTAL_AMT FROM SALES.SALES_DAILY",
+    "error_messages": [
+      "ORA-00904: \"TOTAL_AMT\": invalid identifier",
+      "SQL execution failed for SALES.SALES_DAILY",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "COLUMN_NOT_FOUND",
+      "cause_name": "컬럼 없음",
+      "evidence": [
+        "2026-09-01 04:50:03 ERROR ORA-00904: \"TOTAL_AMT\": invalid identifier",
+        "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그와 extracted_info에 따르면 ORA-00904 에러로 인해 'TOTAL_AMT' 컬럼이 SALES.SALES_DAILY 테이블에 없을 가능성이 높으므로, COLUMN_NOT_FOUND 가설을 검증하기 위해 schema, table, column 존재 여부를 확인해야 합니다.",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "TOTAL_AMT"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "TOTAL_AMT",
+        "schema_exists": true,
+        "table_exists": true,
+        "column_exists": false
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "COLUMN_NOT_FOUND",
+  "final_cause_name": "컬럼 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_sql_metadata SUCCESS 결과: schema_exists=true, table_exists=true, column_exists=false",
+    "로그: ORA-00904: \"TOTAL_AMT\": invalid identifier",
+    "로그: SQL execution failed for SALES.SALES_DAILY",
+    "로그: job failed with return_code=12"
+  ],
+  "limitations": [
+    "컬럼이 왜 존재하지 않는지(DDL 변경, 데이터 마이그레이션 등)까지는 확인되지 않음",
+    "컬럼명 오타 가능성 등 추가적인 원인 분석은 미포함"
+  ],
+  "recommended_actions": [
+    "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 실제로 존재하는지 DDL을 확인하십시오.",
+    "컬럼 추가 또는 SQL 수정 등 근본 원인에 맞는 조치를 취하십시오.",
+    "컬럼명 오타 여부도 검토하십시오."
+  ]
+}

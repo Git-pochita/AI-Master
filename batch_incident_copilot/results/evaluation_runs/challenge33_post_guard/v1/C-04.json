@@ -1,0 +1,67 @@
+{
+  "case_id": "C-04",
+  "summary": "DAILY_METRIC_LOAD 배치 잡 실행 중 'ORA-00942: table or view does not exist' 오류가 발생하였으며, check_sql_metadata SUCCESS 결과에 따르면 ANALYTICS 스키마는 존재하지만 METRIC_DAILY 테이블은 존재하지 않는 것으로 확인되었습니다. 이는 해당 테이블이 실제로 DB에 없어서 발생한 오류입니다.",
+  "extracted_info": {
+    "job_name": "DAILY_METRIC_LOAD",
+    "connection_name": "ANALYTICS_DB",
+    "account": "batch_ok",
+    "schema": "ANALYTICS",
+    "table": "METRIC_DAILY",
+    "sql": "SELECT METRIC_CD FROM ANALYTICS.METRIC_DAILY",
+    "error_messages": [
+      "ORA-00942: table or view does not exist"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 08:30:05 INFO  sql=SELECT METRIC_CD FROM ANALYTICS.METRIC_DAILY"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그와 extracted_info에 'ORA-00942: table or view does not exist' 에러가 발생했고, initial_hypotheses도 테이블 없음(TABLE_NOT_FOUND)을 원인으로 제시하고 있습니다. 테이블(METRIC_DAILY)과 스키마(ANALYTICS)가 존재하는지 확인할 필요가 있으므로 check_sql_metadata Tool을 선택합니다.",
+      "arguments": {
+        "schema": "ANALYTICS",
+        "table": "METRIC_DAILY",
+        "column": "METRIC_CD"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "ANALYTICS",
+        "table": "METRIC_DAILY",
+        "column": "METRIC_CD",
+        "schema_exists": true,
+        "table_exists": false,
+        "column_exists": null
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "TABLE_NOT_FOUND",
+  "final_cause_name": "테이블 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+    "check_sql_metadata SUCCESS: schema_exists=true, table_exists=false"
+  ],
+  "limitations": [
+    "테이블이 왜 존재하지 않는지(삭제, 미생성, 권한 문제 등)까지는 확인되지 않음"
+  ],
+  "recommended_actions": [
+    "ANALYTICS 스키마에 METRIC_DAILY 테이블이 존재하는지 DBA에게 확인 요청",
+    "테이블 생성 또는 권한 부여 등 필요한 조치 진행"
+  ]
+}

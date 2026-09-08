@@ -1,0 +1,70 @@
+{
+  "case_id": "S-02",
+  "summary": "배치 잡 DAILY_SALES_DAILY_AGG 실행 시 SALES.SALES_DAILY 테이블에서 TOTAL_AMT 컬럼을 조회하는 SQL이 실행되었으나, 해당 컬럼이 존재하지 않아 ORA-00904 오류가 발생하였고, 잡이 실패(return_code=12)하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_DAILY_AGG",
+    "schema": "SALES",
+    "table": "SALES_DAILY",
+    "column": "TOTAL_AMT",
+    "sql": "SELECT STORE_CD, TOTAL_AMT FROM SALES.SALES_DAILY",
+    "error_messages": [
+      "ORA-00904: \"TOTAL_AMT\": invalid identifier",
+      "SQL execution failed for SALES.SALES_DAILY",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "COLUMN_NOT_FOUND",
+      "cause_name": "컬럼 없음",
+      "evidence": [
+        "2026-09-01 04:50:03 ERROR ORA-00904: \"TOTAL_AMT\": invalid identifier",
+        "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그와 extracted_info에 따르면 ORA-00904 에러로 인해 'TOTAL_AMT' 컬럼이 SALES.SALES_DAILY 테이블에 없을 가능성이 높으므로, COLUMN_NOT_FOUND 가설을 검증하기 위해 schema, table, column 존재 여부를 확인하는 것이 필요합니다.",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "TOTAL_AMT"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "TOTAL_AMT",
+        "schema_exists": true,
+        "table_exists": true,
+        "column_exists": false
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "COLUMN_NOT_FOUND",
+  "final_cause_name": "컬럼 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 04:50:03 ERROR ORA-00904: \"TOTAL_AMT\": invalid identifier",
+    "2026-09-01 04:50:03 ERROR SQL execution failed for SALES.SALES_DAILY",
+    "check_sql_metadata SUCCESS 결과: schema_exists=true, table_exists=true, column_exists=false"
+  ],
+  "limitations": [
+    "컬럼이 왜 존재하지 않는지(스키마 변경, 컬럼 삭제 등)까지는 확인되지 않음",
+    "실제 SQL 실행 환경 외의 추가적인 DB 변경 이력은 확인 불가"
+  ],
+  "recommended_actions": [
+    "SALES.SALES_DAILY 테이블에 TOTAL_AMT 컬럼이 존재하는지 DB 관리자에게 확인 요청",
+    "컬럼 추가 또는 SQL 수정 등 후속 조치 필요"
+  ]
+}

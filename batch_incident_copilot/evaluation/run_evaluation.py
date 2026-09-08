@@ -1,14 +1,18 @@
 import argparse
 import json
+import signal
 import sys
 import time
 from pathlib import Path
+
+from openai import AzureOpenAI
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.ui_service import public_error_message
+from app import llm_client
 from config import settings
 from evaluation.evaluator import evaluate_payload, load_ground_truth
 from evaluation.metrics import aggregate_case_metrics
@@ -16,6 +20,17 @@ from evaluation.report import render_comparison_markdown, write_json
 from main import run_diagnosis, save_result
 
 RETRY_ATTEMPTS = 3
+REQUEST_TIMEOUT_SECONDS = 60
+
+
+def _create_evaluation_client() -> AzureOpenAI:
+    return AzureOpenAI(
+        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+        api_key=settings.require_api_key(),
+        api_version=settings.AZURE_OPENAI_API_VERSION,
+        timeout=REQUEST_TIMEOUT_SECONDS,
+        max_retries=0,
+    )
 
 
 def sample_log_path(case_id: str) -> Path:
@@ -26,7 +41,20 @@ def _retry_diagnosis(version: str, log_text: str, case_id: str):
     last_error: Exception | None = None
     for attempt in range(1, RETRY_ATTEMPTS + 1):
         try:
-            return run_diagnosis(version, log_text, case_id)
+            previous_handler = signal.getsignal(signal.SIGALRM)
+
+            def _raise_timeout(_signum, _frame):
+                raise TimeoutError(
+                    f"evaluation request exceeded {REQUEST_TIMEOUT_SECONDS} seconds"
+                )
+
+            signal.signal(signal.SIGALRM, _raise_timeout)
+            signal.alarm(REQUEST_TIMEOUT_SECONDS)
+            try:
+                return run_diagnosis(version, log_text, case_id)
+            finally:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, previous_handler)
         except Exception as exc:
             last_error = exc
             if attempt >= RETRY_ATTEMPTS:
@@ -36,7 +64,12 @@ def _retry_diagnosis(version: str, log_text: str, case_id: str):
     raise last_error
 
 
-def evaluate_one_case(version: str, case_id: str, ground_truth: dict) -> dict:
+def evaluate_one_case(
+    version: str,
+    case_id: str,
+    ground_truth: dict,
+    results_dir: Path | None = None,
+) -> dict:
     log_path = sample_log_path(case_id)
     started = time.perf_counter()
     if not log_path.is_file():
@@ -51,7 +84,9 @@ def evaluate_one_case(version: str, case_id: str, ground_truth: dict) -> dict:
         log_text = log_path.read_text(encoding="utf-8")
         result = _retry_diagnosis(version, log_text, case_id)
         payload = result.model_dump()
-        if version == "v3_1":
+        if results_dir is not None:
+            pass
+        elif version == "v3_1":
             results_dir = settings.V3_1_RESULTS_DIR
         elif version == "v3":
             results_dir = settings.V3_RESULTS_DIR
@@ -79,11 +114,23 @@ def evaluate_one_case(version: str, case_id: str, ground_truth: dict) -> dict:
         }
 
 
-def run_version(version: str, ground_truth: dict, case_ids: list[str]) -> dict:
+def run_version(
+    version: str,
+    ground_truth: dict,
+    case_ids: list[str],
+    results_dir: Path | None = None,
+) -> dict:
     rows = []
     for case_id in case_ids:
         print(f"[{version}] {case_id}", flush=True)
-        rows.append(evaluate_one_case(version, case_id, ground_truth[case_id]))
+        rows.append(
+            evaluate_one_case(
+                version,
+                case_id,
+                ground_truth[case_id],
+                results_dir=results_dir,
+            )
+        )
     summary = aggregate_case_metrics(version, rows)
     elapsed = [row.get("elapsed_seconds") or 0 for row in rows]
     summary["average_elapsed_seconds"] = round(sum(elapsed) / len(elapsed), 3) if elapsed else 0.0
@@ -93,6 +140,7 @@ def run_version(version: str, ground_truth: dict, case_ids: list[str]) -> dict:
 
 
 def main() -> int:
+    llm_client.create_client = _create_evaluation_client
     parser = argparse.ArgumentParser(description="Ground Truth 전체 케이스 V0/V1 일괄 평가")
     parser.add_argument(
         "--versions",
@@ -107,6 +155,11 @@ def main() -> int:
         default=None,
         help="지정하면 해당 case만 실행합니다.",
     )
+    parser.add_argument(
+        "--artifact-label",
+        default=None,
+        help="지정하면 기존 공식 artifact 대신 별도 이름 공간에 결과를 저장합니다.",
+    )
     args = parser.parse_args()
 
     ground_truth = load_ground_truth()
@@ -116,7 +169,11 @@ def main() -> int:
         print(f"ground_truth.json에 없는 case_id: {missing}", file=sys.stderr)
         return 1
 
-    reports_dir = settings.REPORTS_DIR
+    reports_dir = (
+        settings.REPORTS_DIR / args.artifact_label
+        if args.artifact_label
+        else settings.REPORTS_DIR
+    )
     summaries: dict[str, dict] = {}
     official_reports = {
         "v0_summary.json",
@@ -130,10 +187,24 @@ def main() -> int:
         "v2_refined_vs_v3.md",
     }
     for version in args.versions:
-        summary = run_version(version, ground_truth, case_ids)
+        results_dir = None
+        if args.artifact_label:
+            results_dir = (
+                settings.PROJECT_ROOT
+                / "results"
+                / "evaluation_runs"
+                / args.artifact_label
+                / version
+            )
+        summary = run_version(
+            version,
+            ground_truth,
+            case_ids,
+            results_dir=results_dir,
+        )
         summaries[version] = summary
         out_path = reports_dir / f"{version}_summary.json"
-        if out_path.name in official_reports and out_path.is_file():
+        if not args.artifact_label and out_path.name in official_reports and out_path.is_file():
             print(f"kept official baseline: {out_path}", flush=True)
         else:
             write_json(out_path, summary)
@@ -141,7 +212,7 @@ def main() -> int:
         print(json.dumps({k: v for k, v in summary.items() if k != "cases"}, ensure_ascii=False, indent=2))
 
     md_path = reports_dir / "v0_vs_v1.md"
-    if md_path.is_file():
+    if not args.artifact_label and md_path.is_file():
         print(f"kept official baseline: {md_path}", flush=True)
     elif "v0" in summaries and "v1" in summaries:
         markdown = render_comparison_markdown(

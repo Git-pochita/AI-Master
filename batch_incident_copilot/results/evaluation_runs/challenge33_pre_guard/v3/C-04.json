@@ -1,0 +1,275 @@
+{
+  "version": "v3",
+  "case_id": "C-04",
+  "summary": "배치 잡 DAILY_METRIC_LOAD 실행 중 'ORA-00942: table or view does not exist' 오류가 발생하였으며, check_sql_metadata SUCCESS 결과에 따르면 스키마 ANALYTICS는 존재하지만 테이블 METRIC_DAILY는 존재하지 않는 것으로 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_METRIC_LOAD",
+    "connection_name": "ANALYTICS_DB",
+    "account": "batch_ok",
+    "schema": "ANALYTICS",
+    "table": "METRIC_DAILY",
+    "sql": "SELECT METRIC_CD FROM ANALYTICS.METRIC_DAILY",
+    "error_messages": [
+      "ORA-00942: table or view does not exist"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 08:30:05 INFO  sql=SELECT METRIC_CD FROM ANALYTICS.METRIC_DAILY"
+      ]
+    },
+    {
+      "cause_code": "INVALID_SCHEMA",
+      "cause_name": "스키마 오류",
+      "evidence": [
+        "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 08:30:04 INFO  schema=ANALYTICS"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+        "check_sql_metadata 결과: schema_exists=true, table_exists=false"
+      ]
+    },
+    {
+      "cause_code": "INVALID_SCHEMA",
+      "cause_name": "스키마 오류",
+      "origin": "initial",
+      "status": "weakened",
+      "signals": [
+        "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+        "check_sql_metadata 결과: schema_exists=true"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "ORA-00942: table or view does not exist 오류의 근본 원인이 테이블 부재(TABLE_NOT_FOUND)인지, 스키마 오류(INVALID_SCHEMA)인지 구분한다.",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "TABLE_NOT_FOUND",
+        "INVALID_SCHEMA"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "ANALYTICS 스키마가 존재하는지 여부",
+    "METRIC_DAILY 테이블이 존재하는지 여부",
+    "METRIC_CD 컬럼이 존재하는지 여부"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "ANALYTICS 스키마의 METRIC_DAILY 테이블 및 METRIC_CD 컬럼 존재 여부를 확인하여 테이블 없음과 스키마 오류 가설을 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "ANALYTICS 스키마의 METRIC_DAILY 테이블 및 METRIC_CD 컬럼 존재 여부를 확인하여 테이블 없음과 스키마 오류 가설을 구분한다.",
+          "candidate_tool": "check_sql_metadata",
+          "arguments": {
+            "schema": "ANALYTICS",
+            "table": "METRIC_DAILY",
+            "column": "METRIC_CD"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "TABLE_NOT_FOUND",
+            "INVALID_SCHEMA"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+            "2026-09-01 08:30:05 INFO  sql=SELECT METRIC_CD FROM ANALYTICS.METRIC_DAILY"
+          ]
+        },
+        {
+          "cause_code": "INVALID_SCHEMA",
+          "cause_name": "스키마 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+            "2026-09-01 08:30:04 INFO  schema=ANALYTICS"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "ANALYTICS 스키마가 존재하는지 여부",
+        "METRIC_DAILY 테이블이 존재하는지 여부",
+        "METRIC_CD 컬럼이 존재하는지 여부"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_sql_metadata",
+      "arguments": {
+        "schema": "ANALYTICS",
+        "table": "METRIC_DAILY",
+        "column": "METRIC_CD",
+        "job_name": "DAILY_METRIC_LOAD",
+        "connection_name": "ANALYTICS_DB",
+        "account": "batch_ok"
+      },
+      "reason": "ORA-00942 에러는 테이블 또는 스키마 존재 문제일 수 있으므로, check_sql_metadata로 스키마, 테이블, 컬럼 존재 여부를 확인하면 두 가설을 구분할 수 있다.",
+      "evidence_summary": {
+        "schema": "ANALYTICS",
+        "table": "METRIC_DAILY",
+        "column": "METRIC_CD",
+        "schema_exists": true,
+        "table_exists": false,
+        "column_exists": null,
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_sql_metadata",
+        "status": "SUCCESS",
+        "data": {
+          "schema": "ANALYTICS",
+          "table": "METRIC_DAILY",
+          "column": "METRIC_CD",
+          "schema_exists": true,
+          "table_exists": false,
+          "column_exists": null
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "ORA-00942: table or view does not exist 오류의 근본 원인이 테이블 부재(TABLE_NOT_FOUND)인지, 스키마 오류(INVALID_SCHEMA)인지 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "ORA-00942: table or view does not exist 오류의 근본 원인이 테이블 부재(TABLE_NOT_FOUND)인지, 스키마 오류(INVALID_SCHEMA)인지 구분한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "TABLE_NOT_FOUND",
+            "INVALID_SCHEMA"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "TABLE_NOT_FOUND",
+          "cause_name": "테이블 없음",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+            "check_sql_metadata 결과: schema_exists=true, table_exists=false"
+          ]
+        },
+        {
+          "cause_code": "INVALID_SCHEMA",
+          "cause_name": "스키마 오류",
+          "origin": "initial",
+          "status": "weakened",
+          "signals": [
+            "2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+            "check_sql_metadata 결과: schema_exists=true"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "ANALYTICS 스키마가 존재하는지 여부",
+        "METRIC_DAILY 테이블이 존재하는지 여부",
+        "METRIC_CD 컬럼이 존재하는지 여부"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "check_sql_metadata의 SUCCESS 결과에서 schema는 존재하고 table만 존재하지 않음이 확인되어, 근본 원인이 TABLE_NOT_FOUND임을 충분히 판별할 수 있다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "ORA-00942 에러는 테이블 또는 스키마 존재 문제일 수 있으므로, check_sql_metadata로 스키마, 테이블, 컬럼 존재 여부를 확인하면 두 가설을 구분할 수 있다.",
+      "arguments": {
+        "schema": "ANALYTICS",
+        "table": "METRIC_DAILY",
+        "column": "METRIC_CD",
+        "job_name": "DAILY_METRIC_LOAD",
+        "connection_name": "ANALYTICS_DB",
+        "account": "batch_ok"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "ANALYTICS",
+        "table": "METRIC_DAILY",
+        "column": "METRIC_CD",
+        "schema_exists": true,
+        "table_exists": false,
+        "column_exists": null
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "TABLE_NOT_FOUND",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "TABLE_NOT_FOUND",
+  "final_cause_name": "테이블 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_sql_metadata SUCCESS 결과: schema_exists=true, table_exists=false",
+    "로그: 2026-09-01 08:30:06 ERROR ORA-00942: table or view does not exist",
+    "로그: 2026-09-01 08:30:05 INFO sql=SELECT METRIC_CD FROM ANALYTICS.METRIC_DAILY"
+  ],
+  "limitations": [
+    "테이블이 왜 존재하지 않는지(삭제, 미생성, 권한 등)까지는 확인되지 않음",
+    "컬럼 존재 여부는 확인되지 않음(table_exists=false로 인해 column_exists=null)"
+  ],
+  "recommended_actions": [
+    "ANALYTICS 스키마에 METRIC_DAILY 테이블이 존재하는지 DBA 또는 데이터 담당자에게 확인",
+    "테이블 생성 또는 권한 부여 등 필요한 조치 수행"
+  ]
+}

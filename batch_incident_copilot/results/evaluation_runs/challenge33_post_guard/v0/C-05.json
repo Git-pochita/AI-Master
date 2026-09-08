@@ -1,0 +1,55 @@
+{
+  "case_id": "C-05",
+  "summary": "DAILY_INBOUND_LOAD 배치 작업이 실행 중 오류로 인해 실패(return_code=12)하였으나, 구체적인 오류 원인은 로그에 명시되어 있지 않습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_INBOUND_LOAD",
+    "start_time": "2026-09-01 08:40:00",
+    "end_time": "2026-09-01 08:40:03",
+    "return_code": "12",
+    "error_messages": [
+      "inbound processing failed",
+      "job failed with return_code=12"
+    ]
+  },
+  "hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "'inbound processing failed'라는 에러 메시지가 기록되어 있으나, 구체적으로 어떤 원인인지 명시되어 있지 않음",
+        "DAILY_INBOUND_LOAD 작업 특성상 인바운드 파일 미수신 가능성 존재"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "'inbound processing failed'라는 에러 메시지가 기록되어 있으나, 구체적으로 어떤 원인인지 명시되어 있지 않음",
+        "파일 경로 오류도 인바운드 처리 실패의 일반적인 원인 중 하나임"
+      ]
+    },
+    {
+      "cause_code": "MISSING_REQUIRED_PARAMETER",
+      "cause_name": "필수 파라미터 누락",
+      "evidence": [
+        "'inbound processing failed'라는 에러 메시지가 기록되어 있으나, 구체적으로 어떤 원인인지 명시되어 있지 않음",
+        "필수 파라미터 누락 시 인바운드 처리 실패가 발생할 수 있음"
+      ]
+    }
+  ],
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "인바운드 파일이 정상적으로 도착했는지 수동으로 확인하십시오.",
+    "작업에 필요한 입력 파일 경로 및 파일명을 점검하십시오.",
+    "필수 파라미터가 누락되지 않았는지 확인하십시오.",
+    "상세 에러 로그 또는 추가 로그를 확보하여 원인을 좁히는 것이 필요합니다."
+  ],
+  "limitations": [
+    "입력된 로그에는 구체적인 오류 원인이 명시되어 있지 않습니다.",
+    "외부 파일, 파라미터, 시스템 상태를 직접 확인할 수 없습니다.",
+    "return_code=12의 의미가 시스템마다 다를 수 있으므로, 코드에 대한 추가 정보가 필요합니다."
+  ]
+}

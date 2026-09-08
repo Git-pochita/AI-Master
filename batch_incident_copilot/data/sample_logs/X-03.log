@@ -1,0 +1,3 @@
+2026-09-02 02:20:27 ERROR job=CHALLENGE_UNKNOWN_LOAD
+parameter_name=business_date parameter_value=20260931
+Parameter validation service lookup failed; no catalog record was available.

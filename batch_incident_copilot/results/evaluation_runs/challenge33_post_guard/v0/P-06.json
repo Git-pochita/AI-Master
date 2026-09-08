@@ -1,0 +1,36 @@
+{
+  "case_id": "P-06",
+  "summary": "배치 잡 DAILY_PROMO_LOAD 실행 중 promo_code 파라미터 형식 오류로 인해 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_PROMO_LOAD",
+    "promo_code": "summer",
+    "error_messages": [
+      "parameter format invalid: promo_code=summer",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "evidence": [
+        "2026-09-01 06:50:02 ERROR parameter format invalid: promo_code=summer",
+        "2026-09-01 06:50:03 ERROR job failed with return_code=12"
+      ]
+    }
+  ],
+  "final_cause_code": "INVALID_PARAMETER_FORMAT",
+  "final_cause_name": "파라미터 형식 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "promo_code 파라미터의 허용 형식 및 값 범위를 확인하십시오.",
+    "운영 매뉴얼 또는 배치 스크립트에서 promo_code 입력 규칙을 점검하십시오.",
+    "필요시 관련 담당자에게 파라미터 입력 예시를 문의하십시오."
+  ],
+  "limitations": [
+    "로그에 기록된 오류 메시지 외에 promo_code의 실제 허용 형식이나 값 범위를 확인할 수 없습니다.",
+    "외부 시스템, 파라미터 정의, 운영 정책 등은 본 분석 범위에 포함되지 않습니다."
+  ]
+}

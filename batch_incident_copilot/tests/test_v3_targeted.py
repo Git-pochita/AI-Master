@@ -138,6 +138,55 @@ def test_critic_corrects_v2_cause_when_success_evidence_supports_alternative():
     assert result.revised is True
 
 
+def test_critic_does_not_reverse_supported_path_cause_to_file_not_received():
+    observed_file = "sales_20260902.csv"
+    v2 = _v2_result(
+        "INVALID_FILE_PATH",
+        tool_results=[
+            ToolResult(
+                tool="check_file_status",
+                status="SUCCESS",
+                data={
+                    "path": "/data/in/challenge/sale_20260902.csv",
+                    "exists": False,
+                    "received": False,
+                    "same_directory_files": [
+                        {
+                            "path": f"/data/in/challenge/{observed_file}",
+                            "exists": True,
+                            "received": True,
+                        }
+                    ],
+                },
+            )
+        ],
+        evidence=[f"동일 경로에서 {observed_file} 수신 확인"],
+    )
+
+    def critic_fn(*_args, **_kwargs):
+        return CriticLLMDraft(
+            evidence_consistent=False,
+            issues=[
+                _issue(CriticIssueType.EVIDENCE_CONFLICT, observed_file),
+                _issue(CriticIssueType.BETTER_SUPPORTED_CAUSE, observed_file),
+            ],
+            recommended_cause_code="FILE_NOT_RECEIVED",
+        )
+
+    result = _run(
+        "FileNotFoundError: /data/in/challenge/sale_20260902.csv",
+        v2,
+        critic_fn=critic_fn,
+        revise_fn=lambda _log, producer, _critic: _revision(
+            producer, "FILE_NOT_RECEIVED"
+        ),
+    )
+
+    assert result.final_cause_code == "INVALID_FILE_PATH"
+    assert result.original_v2_cause_code == "INVALID_FILE_PATH"
+    assert result.revised is False
+
+
 def test_critic_protects_supported_v2_cause_without_both_revision_conditions():
     evidence_token = "parameter_value=20260931"
     v2 = _v2_result(

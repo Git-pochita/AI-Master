@@ -1,0 +1,388 @@
+{
+  "version": "v2",
+  "case_id": "C-06",
+  "summary": "DAILY_SALES_LOAD 잡 실행 시 business_date 파라미터가 실행일(20260901)과 다르게 입력되어(20260831) 잘못된 날짜의 입력 파일 경로(/data/in/missing_catalog/sales_20260831.csv)가 생성되었고, 해당 경로에 파일이 존재하지 않아 FileNotFoundError가 발생하여 잡이 실패하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_LOAD",
+    "business_date": "20260831",
+    "input_path": "/data/in/missing_catalog/sales_20260831.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "origin": "planner",
+      "status": "adopted",
+      "signals": [
+        "validate_parameter Tool SUCCESS: is_valid=false, expected_value=20260901, parameter_value=20260831, job_run_date=20260901"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "business_date 파라미터가 잡 실행일과 일치하는지 확인하여 파라미터 오류 가능성을 점검한다.",
+      "candidate_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "path": "/data/in/missing_catalog/sales_20260831.csv",
+        "parameter_value": "20260831",
+        "parameter_name": "business_date"
+      },
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "INVALID_BUSINESS_DATE"
+      ],
+      "status": "executed"
+    },
+    {
+      "goal": "지정된 경로의 파일 수신/존재 상태를 확인하여 파일 미수신 또는 경로 오류 여부를 점검한다.",
+      "candidate_tool": "check_file_status",
+      "arguments": {
+        "path": "/data/in/missing_catalog/sales_20260831.csv",
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_value": "20260831"
+      },
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "status": "executed"
+    }
+  ],
+  "unresolved_questions": [
+    "파일 미수신과 파일 경로 오류 중 어느 쪽이 근본 원인인지 추가 evidence가 필요하다."
+  ],
+  "current_round": 3,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "input_path에 지정된 파일(/data/in/missing_catalog/sales_20260831.csv)이 실제로 수신/존재했는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "input_path에 지정된 파일(/data/in/missing_catalog/sales_20260831.csv)이 실제로 수신/존재했는지 확인한다.",
+          "candidate_tool": "check_file_status",
+          "arguments": {
+            "path": "/data/in/missing_catalog/sales_20260831.csv"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "지정된 경로의 파일이 실제로 존재하지 않았는지, 아니면 경로 자체가 잘못 지정된 것인지 구분이 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "check_file_status",
+      "arguments": {
+        "path": "/data/in/missing_catalog/sales_20260831.csv",
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_value": "20260831"
+      },
+      "reason": "FileNotFoundError가 발생한 경로의 파일이 실제로 존재하지 않았는지, 경로 지정 오류인지 구분하기 위해 check_file_status로 파일의 수신/존재 상태를 확인해야 한다.",
+      "evidence_summary": {
+        "status": "FAILED",
+        "error": "카탈로그에 경로가 없습니다: /data/in/missing_catalog/sales_20260831.csv"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "check_file_status",
+        "status": "FAILED",
+        "data": null,
+        "error": "카탈로그에 경로가 없습니다: /data/in/missing_catalog/sales_20260831.csv"
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "파일 미수신과 파일 경로 오류 중 어떤 것이 근본 원인인지 구분한다.",
+      "investigation_plan": [
+        {
+          "goal": "파일 미수신과 파일 경로 오류 중 어떤 것이 근본 원인인지 구분한다.",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "파일 미수신과 파일 경로 오류 중 어느 쪽이 근본 원인인지 추가 evidence가 필요하다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "path": "/data/in/missing_catalog/sales_20260831.csv",
+        "parameter_value": "20260831",
+        "parameter_name": "business_date"
+      },
+      "reason": "이미 check_file_status를 실행했고, 추가로 점검할 수 있는 Tool이 없으며, 파라미터 이상 signal도 없다. 파일 미수신과 경로 오류 중 근본 원인을 추가 Tool로 구분할 수 있는 concrete signal이 없어 추가 조사가 불가하다. (로그/extracted_info에 파라미터 이상 concrete signal이 남아 있어 validate_parameter를 추가합니다.)",
+      "evidence_summary": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "expected_value": "20260901",
+        "is_valid": false,
+        "format_valid": true,
+        "range_valid": null,
+        "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901",
+        "status": "SUCCESS"
+      },
+      "replanned": true,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "validate_parameter",
+        "status": "SUCCESS",
+        "data": {
+          "job_name": "DAILY_SALES_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260831",
+          "required": true,
+          "provided": true,
+          "format_valid": true,
+          "range_valid": null,
+          "expected_value": "20260901",
+          "allowed_values": null,
+          "min": null,
+          "max": null,
+          "is_valid": false,
+          "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+          "job_run_date": "20260901"
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 3,
+      "goal": "business_date 파라미터가 잡 실행일과 일치하는지 확인하여 파라미터 오류 가능성을 점검한다.",
+      "investigation_plan": [
+        {
+          "goal": "business_date 파라미터가 잡 실행일과 일치하는지 확인하여 파라미터 오류 가능성을 점검한다.",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "DAILY_SALES_LOAD",
+            "path": "/data/in/missing_catalog/sales_20260831.csv",
+            "parameter_value": "20260831",
+            "parameter_name": "business_date"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_BUSINESS_DATE"
+          ],
+          "status": "executed"
+        },
+        {
+          "goal": "지정된 경로의 파일 수신/존재 상태를 확인하여 파일 미수신 또는 경로 오류 여부를 점검한다.",
+          "candidate_tool": "check_file_status",
+          "arguments": {
+            "path": "/data/in/missing_catalog/sales_20260831.csv",
+            "job_name": "DAILY_SALES_LOAD",
+            "parameter_value": "20260831"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+          ]
+        },
+        {
+          "cause_code": "INVALID_BUSINESS_DATE",
+          "cause_name": "실행일자 파라미터 오류",
+          "origin": "planner",
+          "status": "adopted",
+          "signals": [
+            "validate_parameter Tool SUCCESS: is_valid=false, expected_value=20260901, parameter_value=20260831, job_run_date=20260901"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "파일 미수신과 파일 경로 오류 중 어느 쪽이 근본 원인인지 추가 evidence가 필요하다."
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "validate_parameter Tool의 SUCCESS 결과로 business_date 파라미터가 잡 실행일과 불일치함이 확인되어 INVALID_BUSINESS_DATE 원인에 대한 근거가 충분하다. 추가 Tool 호출 없이 근본 원인을 구분할 수 있다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "FileNotFoundError가 발생한 경로의 파일이 실제로 존재하지 않았는지, 경로 지정 오류인지 구분하기 위해 check_file_status로 파일의 수신/존재 상태를 확인해야 한다.",
+      "arguments": {
+        "path": "/data/in/missing_catalog/sales_20260831.csv",
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_value": "20260831"
+      }
+    },
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "이미 check_file_status를 실행했고, 추가로 점검할 수 있는 Tool이 없으며, 파라미터 이상 signal도 없다. 파일 미수신과 경로 오류 중 근본 원인을 추가 Tool로 구분할 수 있는 concrete signal이 없어 추가 조사가 불가하다. (로그/extracted_info에 파라미터 이상 concrete signal이 남아 있어 validate_parameter를 추가합니다.)",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "path": "/data/in/missing_catalog/sales_20260831.csv",
+        "parameter_value": "20260831",
+        "parameter_name": "business_date"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "FAILED",
+      "data": null,
+      "error": "카탈로그에 경로가 없습니다: /data/in/missing_catalog/sales_20260831.csv"
+    },
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "required": true,
+        "provided": true,
+        "format_valid": true,
+        "range_valid": null,
+        "expected_value": "20260901",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901"
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과: business_date 파라미터가 실행일(20260901)과 다르게 입력되어 is_valid=false, expected_value=20260901",
+    "로그: business_date=20260831, input=/data/in/missing_catalog/sales_20260831.csv",
+    "로그: FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+  ],
+  "limitations": [
+    "실제 파일 미수신 여부는 확인되지 않았으며, 잘못된 business_date 입력으로 인해 잘못된 파일 경로가 생성된 것이 확인됨",
+    "파일이 해당 경로에 존재하지 않은 근본 원인이 파일 미수신인지, 경로 오류인지 추가 확인 필요"
+  ],
+  "recommended_actions": [
+    "잡 실행 시 business_date 파라미터가 실행일과 일치하도록 입력 검증 강화",
+    "business_date 불일치 발생 시 입력 파일 경로 생성 로직 점검",
+    "실행일과 다른 business_date 입력 시 사용자 안내 및 사전 차단"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "case_id": "S-05",
+  "summary": "DAILY_STORE_NAME_AGG 배치 잡 실행 시 SALES.SALES_DAILY 테이블에서 STORE_NM 컬럼을 조회하려 했으나, 해당 컬럼이 존재하지 않아 SQL 실행이 실패하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_STORE_NAME_AGG",
+    "schema": "SALES",
+    "table": "SALES_DAILY",
+    "column": "STORE_NM",
+    "sql": "SELECT STORE_CD, STORE_NM FROM SALES.SALES_DAILY",
+    "error_messages": [
+      "ORA-00904: \"STORE_NM\": invalid identifier",
+      "SQL execution failed for SALES.SALES_DAILY column=STORE_NM"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "COLUMN_NOT_FOUND",
+      "cause_name": "컬럼 없음",
+      "evidence": [
+        "2026-09-01 07:20:03 ERROR ORA-00904: \"STORE_NM\": invalid identifier",
+        "2026-09-01 07:20:03 ERROR SQL execution failed for SALES.SALES_DAILY column=STORE_NM"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그와 extracted_info에 ORA-00904 에러와 'STORE_NM' 컬럼 관련 오류가 명확히 나타나 있어, 컬럼 존재 여부를 검증해야 합니다. schema, table, column 정보가 모두 있으므로 check_sql_metadata Tool을 선택합니다.",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "STORE_NM"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "STORE_NM",
+        "schema_exists": true,
+        "table_exists": true,
+        "column_exists": false
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "COLUMN_NOT_FOUND",
+  "final_cause_name": "컬럼 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 07:20:03 ERROR ORA-00904: \"STORE_NM\": invalid identifier",
+    "2026-09-01 07:20:03 ERROR SQL execution failed for SALES.SALES_DAILY column=STORE_NM",
+    "check_sql_metadata SUCCESS data: schema_exists=true, table_exists=true, column_exists=false"
+  ],
+  "limitations": [
+    "컬럼이 왜 존재하지 않는지(DDL 변경, 설계 오류 등)까지는 확인되지 않음"
+  ],
+  "recommended_actions": [
+    "SALES.SALES_DAILY 테이블의 컬럼 목록을 확인하여 STORE_NM 컬럼 추가 필요 여부 검토",
+    "배치 잡의 SQL을 테이블 구조에 맞게 수정"
+  ]
+}

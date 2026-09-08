@@ -1,0 +1,64 @@
+{
+  "case_id": "F-06",
+  "summary": "DAILY_GHOST_LOAD 배치 잡 실행 시 /data/in/untracked/ghost_20260901.csv 파일이 존재하지 않아 FileNotFoundError가 발생하였고, 잡이 실패(return_code=12)하였습니다. SUCCESS Tool 결과가 없으므로 근본 원인에 대한 추가 확인은 불가능합니다.",
+  "extracted_info": {
+    "job_name": "DAILY_GHOST_LOAD",
+    "business_date": "20260901",
+    "input_path": "/data/in/untracked/ghost_20260901.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/untracked/ghost_20260901.csv"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 05:50:03 ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 05:50:03 ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "로그와 extracted_info에 FileNotFoundError가 명시적으로 나타나 있으며, 파일 미수신 또는 파일 경로 오류가 주요 가설입니다. 실제로 해당 경로의 파일 존재/수신 여부를 확인해야 하므로 check_file_status Tool이 필요합니다. path 인자(/data/in/untracked/ghost_20260901.csv)는 로그와 extracted_info에 명확히 있습니다.",
+      "arguments": {
+        "path": "/data/in/untracked/ghost_20260901.csv"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "FAILED",
+      "data": null,
+      "error": "카탈로그에 경로가 없습니다: /data/in/untracked/ghost_20260901.csv"
+    }
+  ],
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 05:50:03 ERROR FileNotFoundError: /data/in/untracked/ghost_20260901.csv",
+    "input_path=/data/in/untracked/ghost_20260901.csv",
+    "잡 실패(return_code=12)"
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 파일 경로 오류나 business_date 파라미터 오류 등 다른 원인에 대한 추가 확인이 불가능함",
+    "파일 미수신이 근본 원인인지, 경로 생성 오류 등 다른 원인인지 확정할 수 없음"
+  ],
+  "recommended_actions": [
+    "해당 경로(/data/in/untracked/ghost_20260901.csv)에 입력 파일이 정상적으로 수신되었는지 확인",
+    "business_date 및 input_path 파라미터가 올바르게 설정되었는지 검증",
+    "파일 수신 프로세스 및 경로 생성 로직 점검"
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "case_id": "C-02",
+  "summary": "DAILY_ORDERS_LOAD 배치 잡 실행 시 입력 파일(/data/in/orders/orders_20260831.csv)이 존재하지 않아 FileNotFoundError가 발생하였고, check_file_status Tool 결과 해당 파일이 미수신 상태임이 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_ORDERS_LOAD",
+    "business_date": "20260831",
+    "input_path": "/data/in/orders/orders_20260831.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/orders/orders_20260831.csv"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 08:10:03 ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 08:10:03 ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "로그와 extracted_info에 FileNotFoundError와 파일 경로(/data/in/orders/orders_20260831.csv)가 명확히 나타나 있습니다. 파일 미수신 또는 경로 오류 가설을 검증하려면 해당 경로의 파일 존재/수신 상태를 확인해야 하므로 check_file_status Tool이 필요합니다.",
+      "arguments": {
+        "path": "/data/in/orders/orders_20260831.csv"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "SUCCESS",
+      "data": {
+        "path": "/data/in/orders/orders_20260831.csv",
+        "exists": false,
+        "received": false,
+        "size_bytes": null,
+        "last_modified": null,
+        "filename": "orders_20260831.csv",
+        "same_directory_files": [
+          {
+            "path": "/data/in/orders/orders_20260831.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "orders_20260831.csv"
+          },
+          {
+            "path": "/data/in/orders/orders_20260901.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "orders_20260901.csv"
+          }
+        ]
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 08:10:03 ERROR FileNotFoundError: /data/in/orders/orders_20260831.csv",
+    "check_file_status SUCCESS: path=/data/in/orders/orders_20260831.csv, exists=false, received=false"
+  ],
+  "limitations": [
+    "파일 미수신의 근본 원인(예: upstream 시스템 문제, 전송 실패 등)은 확인되지 않았음",
+    "business_date 파라미터 및 경로 생성 로직의 적합성은 추가 검증 필요"
+  ],
+  "recommended_actions": [
+    "20260831 기준 입력 파일(/data/in/orders/orders_20260831.csv) 수신 여부를 관련 시스템 또는 담당자에게 확인",
+    "파일 수신 프로세스 및 upstream 시스템 상태 점검",
+    "business_date 및 input_path 생성 로직에 이상이 없는지 추가 검토"
+  ]
+}

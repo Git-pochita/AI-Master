@@ -1,0 +1,38 @@
+{
+  "case_id": "P-05",
+  "summary": "배치 잡 실행 중 business_date 파라미터가 기대값과 다르다는 오류가 발생하여 잡이 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_LOAD",
+    "expected_business_date": "20260901",
+    "actual_business_date": "20260831",
+    "error_messages": [
+      "business_date mismatch: expected=20260901 actual=20260831",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "evidence": [
+        "expected_business_date=20260901",
+        "actual_business_date=20260831",
+        "ERROR business_date mismatch: expected=20260901 actual=20260831"
+      ]
+    }
+  ],
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "실제 business_date 파라미터가 잘못 전달되었는지 확인하십시오.",
+    "배치 실행 시 business_date 파라미터 입력 로직을 점검하십시오.",
+    "관련 스케줄러 또는 상위 배치에서 파라미터 전달이 올바른지 검토하십시오."
+  ],
+  "limitations": [
+    "로그에 기록된 정보만으로 원인을 추정하였으며, 실제 파라미터 입력 경로나 외부 시스템 상태는 확인하지 못합니다.",
+    "외부 파일, DB, 스케줄러 등 운영 환경의 실제 상태는 본 분석에서 확인할 수 없습니다."
+  ]
+}

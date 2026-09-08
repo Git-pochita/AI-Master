@@ -1,0 +1,79 @@
+{
+  "case_id": "X-02",
+  "summary": "CHALLENGE_BDATE_LOAD 배치 잡 실행 시 business_date 파라미터 값이 잡 실행일(20260902)과 일치하지 않아 입력 검증 단계에서 실패하였습니다. validate_parameter Tool 결과에 따르면 파라미터 형식은 올바르나, 값이 기대값과 달라 is_valid가 false로 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "CHALLENGE_BDATE_LOAD",
+    "parameter_name": "business_date",
+    "parameter_value": "20260931",
+    "error_message": "Batch input validation failed before processing.",
+    "timestamp": "2026-09-02 02:10:11"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "evidence": [
+        "parameter_name=business_date parameter_value=20260931",
+        "Batch input validation failed before processing."
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "evidence": [
+        "parameter_name=business_date parameter_value=20260931",
+        "Batch input validation failed before processing."
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "현재 가설은 business_date 파라미터 값(20260931)이 유효하지 않거나 형식 오류라는 점에 집중되어 있습니다. 이 값이 mock 규칙에 맞는지 검증하려면 validate_parameter Tool이 필요합니다. job_name, parameter_name, parameter_value가 모두 로그와 extracted_info에 있으므로 인자도 충족합니다.",
+      "arguments": {
+        "job_name": "CHALLENGE_BDATE_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260931"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "CHALLENGE_BDATE_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260931",
+        "required": true,
+        "provided": true,
+        "format_valid": true,
+        "range_valid": null,
+        "expected_value": "20260902",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "CHALLENGE_BDATE_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260902"
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과: parameter_value=20260931, expected_value=20260902, is_valid=false",
+    "로그: Batch input validation failed before processing."
+  ],
+  "limitations": [
+    "business_date 값이 왜 잘못 입력되었는지(예: 수동 입력 오류, 자동화 로직 문제 등)는 추가 정보가 없으므로 알 수 없습니다.",
+    "파일 경로 생성이나 후속 처리 단계의 영향은 확인되지 않았습니다."
+  ],
+  "recommended_actions": [
+    "business_date 파라미터가 잡 실행일과 일치하도록 입력값 검증 및 자동화 로직을 점검하십시오.",
+    "파라미터 입력 프로세스에서 날짜 값이 잘못 설정되는 원인을 추가 조사하십시오."
+  ]
+}

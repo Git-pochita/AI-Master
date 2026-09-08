@@ -1,0 +1,79 @@
+{
+  "case_id": "P-01",
+  "summary": "DAILY_SALES_LOAD 잡 실행 시 business_date 파라미터가 잡 실행일(20260901)과 달라서 파라미터가 거부되었고, 잡이 실패(return_code=12)하였습니다. validate_parameter Tool의 SUCCESS 결과에 따르면 business_date 값(20260831)이 실행일과 일치하지 않아 is_valid=false로 판정되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_LOAD",
+    "business_date": "20260831",
+    "return_code": "12",
+    "error_messages": [
+      "parameter rejected: business_date=20260831",
+      "job failed with return_code=12"
+    ]
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "evidence": [
+        "2026-09-01 06:00:02 ERROR parameter rejected: business_date=20260831"
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "evidence": [
+        "2026-09-01 06:00:02 ERROR parameter rejected: business_date=20260831"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "로그와 extracted_info에서 business_date 파라미터가 거부되어 잡이 실패한 것으로 보입니다. 파라미터 값(20260831)이 유효한지 mock 규칙에 따라 검증할 필요가 있습니다. job_name, parameter_name, parameter_value가 모두 확인되므로 validate_parameter Tool을 선택합니다.",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "required": true,
+        "provided": true,
+        "format_valid": true,
+        "range_valid": null,
+        "expected_value": "20260901",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901"
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과: business_date=20260831, job_run_date=20260901, is_valid=false, expected_value=20260901",
+    "로그: parameter rejected: business_date=20260831",
+    "로그: job failed with return_code=12"
+  ],
+  "limitations": [
+    "실행 대상 파일 경로 생성 등 후속 영향은 확인되지 않았으며, business_date 파라미터 오류만 확인됨"
+  ],
+  "recommended_actions": [
+    "잡 실행 시 business_date 파라미터를 실행일(YYYYMMDD)과 일치하도록 입력하십시오.",
+    "파라미터 검증 로직을 강화하여 사전 입력 오류를 방지하십시오."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "case_id": "D-02",
+  "summary": "배치 잡 실행 시 DB 인증 오류(ORA-01017)가 발생했으나, check_db_status SUCCESS 결과에 따르면 계정(batch_rpt)이 잠겨 있음(account_locked=true)으로 확인되었습니다. credential_status는 VALID로 인증 정보 자체는 올바르나, 계정 잠김 상태로 인해 로그인 실패가 발생한 것으로 판단됩니다.",
+  "extracted_info": {
+    "job_name": "DAILY_REPORT_DB_LOAD",
+    "connection_name": "SALES_DB",
+    "account": "batch_rpt",
+    "error_messages": [
+      "ORA-01017: invalid username/password; logon denied",
+      "DB authentication/login failure for account=batch_rpt connection=SALES_DB"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "DB_CREDENTIAL_MISMATCH",
+      "cause_name": "DB 인증 정보 불일치",
+      "evidence": [
+        "2026-09-01 03:40:03 ERROR ORA-01017: invalid username/password; logon denied",
+        "2026-09-01 03:40:03 ERROR DB authentication/login failure for account=batch_rpt connection=SALES_DB"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_db_status",
+      "reason": "로그와 extracted_info에 connection_name(SALES_DB)과 account(batch_rpt)가 모두 명확히 있으므로, DB 인증 정보 불일치(credential mismatch) 가설을 검증하기 위해 check_db_status Tool을 선택합니다.",
+      "arguments": {
+        "connection_name": "SALES_DB",
+        "account": "batch_rpt"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_db_status",
+      "status": "SUCCESS",
+      "data": {
+        "connection_name": "SALES_DB",
+        "account": "batch_rpt",
+        "account_locked": true,
+        "credential_status": "VALID",
+        "connection_config_valid": true
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "DB_ACCOUNT_LOCKED",
+  "final_cause_name": "DB 계정 잠김",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_db_status SUCCESS 결과: account_locked=true, credential_status=VALID",
+    "로그: ORA-01017: invalid username/password; logon denied",
+    "로그: DB authentication/login failure for account=batch_rpt connection=SALES_DB"
+  ],
+  "limitations": [
+    "계정 잠김의 원인(예: 반복된 인증 실패, 정책 등)은 SUCCESS Tool 결과에 포함되어 있지 않음",
+    "credential_status가 VALID이므로 인증 정보 자체의 오류는 아님을 확인할 수 있으나, 잠김 해제 후 정상 동작 여부는 추가 확인 필요"
+  ],
+  "recommended_actions": [
+    "DB 관리자에게 batch_rpt 계정 잠김 해제 요청",
+    "잠김 해제 후 배치 잡 재실행",
+    "계정 잠김 원인(반복된 인증 실패 등) 확인 및 재발 방지 조치"
+  ]
+}

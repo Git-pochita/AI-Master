@@ -1,0 +1,75 @@
+{
+  "case_id": "S-05",
+  "summary": "SQL 실행 시 SALES.SALES_DAILY 테이블에서 STORE_NM 컬럼을 조회하려 했으나, 해당 컬럼이 존재하지 않아 ORA-00904 오류가 발생하였고 배치 잡이 실패하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_STORE_NAME_AGG",
+    "schema": "SALES",
+    "table": "SALES_DAILY",
+    "column": "STORE_NM",
+    "sql": "SELECT STORE_CD, STORE_NM FROM SALES.SALES_DAILY",
+    "error_messages": [
+      "ORA-00904: \"STORE_NM\": invalid identifier",
+      "SQL execution failed for SALES.SALES_DAILY column=STORE_NM"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "COLUMN_NOT_FOUND",
+      "cause_name": "컬럼 없음",
+      "evidence": [
+        "2026-09-01 07:20:03 ERROR ORA-00904: \"STORE_NM\": invalid identifier",
+        "2026-09-01 07:20:03 ERROR SQL execution failed for SALES.SALES_DAILY column=STORE_NM"
+      ]
+    },
+    {
+      "cause_code": "INVALID_SCHEMA",
+      "cause_name": "스키마 오류",
+      "evidence": [
+        "2026-09-01 07:20:03 ERROR ORA-00904: \"STORE_NM\": invalid identifier"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그와 extracted_info에 따르면 ORA-00904 에러와 'STORE_NM' 컬럼 관련 오류가 발생하여, 컬럼 존재 여부가 불명확합니다. COLUMN_NOT_FOUND 가설을 검증하기 위해 SALES 스키마의 SALES_DAILY 테이블에 STORE_NM 컬럼이 실제로 존재하는지 확인할 필요가 있습니다.",
+      "arguments": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "STORE_NM"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "SUCCESS",
+      "data": {
+        "schema": "SALES",
+        "table": "SALES_DAILY",
+        "column": "STORE_NM",
+        "schema_exists": true,
+        "table_exists": true,
+        "column_exists": false
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "COLUMN_NOT_FOUND",
+  "final_cause_name": "컬럼 없음",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "check_sql_metadata SUCCESS 결과: schema_exists=true, table_exists=true, column_exists=false",
+    "로그: ORA-00904: \"STORE_NM\": invalid identifier",
+    "로그: SQL execution failed for SALES.SALES_DAILY column=STORE_NM"
+  ],
+  "limitations": [
+    "컬럼이 왜 존재하지 않는지(DDL 변경, 데이터 마이그레이션 등)까지는 확인되지 않음"
+  ],
+  "recommended_actions": [
+    "SALES.SALES_DAILY 테이블에 STORE_NM 컬럼이 실제로 필요한지 확인 후, 컬럼 추가 또는 SQL 수정 필요",
+    "테이블 구조 변경 이력 및 관련 배치 잡의 SQL을 점검하여 일관성 확보"
+  ]
+}

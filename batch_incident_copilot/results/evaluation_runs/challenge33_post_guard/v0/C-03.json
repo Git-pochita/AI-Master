@@ -1,0 +1,39 @@
+{
+  "case_id": "C-03",
+  "summary": "배치 잡 DAILY_SALES_FACT_LOAD 실행 중 SALES.SALES_FACT 테이블을 조회하려 했으나, 테이블이 존재하지 않아 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_FACT_LOAD",
+    "connection_name": "SALES_DB",
+    "account": "etl_user",
+    "schema": "SALES",
+    "table": "SALES_FACT",
+    "error_messages": [
+      "ORA-00942: table or view does not exist",
+      "table not found: SALES.SALES_FACT"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 08:20:05 ERROR ORA-00942: table or view does not exist",
+        "2026-09-01 08:20:05 ERROR table not found: SALES.SALES_FACT"
+      ]
+    }
+  ],
+  "final_cause_code": "TABLE_NOT_FOUND",
+  "final_cause_name": "테이블 없음",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "SALES.SALES_FACT 테이블이 실제로 존재하는지 DB에서 확인하십시오.",
+    "테이블명, 스키마명이 올바른지 점검하십시오.",
+    "DB 계정(etl_user)이 해당 테이블에 접근 권한이 있는지 확인하십시오."
+  ],
+  "limitations": [
+    "로그에 나타난 오류 메시지로만 진단하였으며, 실제 DB 상태나 테이블 존재 여부는 확인하지 못했습니다.",
+    "외부 DB, 테이블, 권한 상태 등은 직접 점검이 필요합니다."
+  ]
+}

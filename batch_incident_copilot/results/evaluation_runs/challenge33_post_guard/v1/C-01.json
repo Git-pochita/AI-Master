@@ -1,0 +1,64 @@
+{
+  "case_id": "C-01",
+  "summary": "배치 잡 DAILY_SYNC_DB_LOAD 실행 시 DB 계정(BATCH_SYNC)이 잠겨 있어 접속에 실패하였음. check_db_status SUCCESS 결과에서 account_locked가 true로 확인되어, DB 계정 잠김이 원인임이 확인됨.",
+  "extracted_info": {
+    "job_name": "DAILY_SYNC_DB_LOAD",
+    "connection_name": "SYNC_DB",
+    "account": "BATCH_SYNC",
+    "error_messages": [
+      "ORA-28000: the account is locked",
+      "DB account BATCH_SYNC is locked"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "DB_ACCOUNT_LOCKED",
+      "cause_name": "DB 계정 잠김",
+      "evidence": [
+        "2026-09-01 08:00:03 ERROR ORA-28000: the account is locked",
+        "2026-09-01 08:00:03 ERROR DB account BATCH_SYNC is locked"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_db_status",
+      "reason": "로그와 extracted_info에 connection_name(SYNC_DB)과 account(BATCH_SYNC)가 모두 명확히 있으므로, DB 계정 잠금 상태를 실제로 확인할 필요가 있습니다. 이는 'DB 계정 잠김' 가설을 검증하는 데 직접적으로 필요합니다.",
+      "arguments": {
+        "connection_name": "SYNC_DB",
+        "account": "BATCH_SYNC"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_db_status",
+      "status": "SUCCESS",
+      "data": {
+        "connection_name": "SYNC_DB",
+        "account": "BATCH_SYNC",
+        "account_locked": true,
+        "credential_status": "VALID",
+        "connection_config_valid": true
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "DB_ACCOUNT_LOCKED",
+  "final_cause_name": "DB 계정 잠김",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 08:00:03 ERROR ORA-28000: the account is locked",
+    "2026-09-01 08:00:03 ERROR DB account BATCH_SYNC is locked",
+    "check_db_status SUCCESS data: account_locked=true, credential_status=VALID, connection_config_valid=true"
+  ],
+  "limitations": [
+    "계정 잠금의 원인(예: 비밀번호 오류 반복 등)은 SUCCESS Tool 결과와 로그에서 확인되지 않음"
+  ],
+  "recommended_actions": [
+    "DB 계정(BATCH_SYNC) 잠금 해제 후 배치 잡 재실행",
+    "계정 잠금 원인(비밀번호 오류, 정책 등) 추가 확인 필요"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "case_id": "P-01",
+  "summary": "배치 잡 DAILY_SALES_LOAD 실행 중 business_date 파라미터가 거부되어 잡이 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_LOAD",
+    "business_date": "20260831",
+    "return_code": "12",
+    "error_messages": [
+      "parameter rejected: business_date=20260831",
+      "job failed with return_code=12"
+    ]
+  },
+  "hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "evidence": [
+        "2026-09-01 06:00:02 ERROR parameter rejected: business_date=20260831"
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "evidence": [
+        "2026-09-01 06:00:02 ERROR parameter rejected: business_date=20260831"
+      ]
+    }
+  ],
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "business_date 파라미터 값(20260831)이 유효한지, 시스템에서 허용하는 날짜 범위 및 형식에 맞는지 확인하십시오.",
+    "파라미터 거부 사유에 대한 상세 로그 또는 배치 스크립트의 파라미터 검증 로직을 점검하십시오."
+  ],
+  "limitations": [
+    "로그에 기록된 오류 메시지 외에 business_date 파라미터의 실제 유효성, 시스템 허용 범위, 외부 파일/DB 상태 등은 확인할 수 없습니다.",
+    "파라미터 형식 오류와 값 오류를 로그만으로 명확히 구분할 수 없습니다."
+  ]
+}

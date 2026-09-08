@@ -1,0 +1,3 @@
+2026-09-02 02:10:11 ERROR job=CHALLENGE_BDATE_LOAD
+parameter_name=business_date parameter_value=20260931
+Batch input validation failed before processing.

@@ -1,0 +1,107 @@
+{
+  "case_id": "F-01",
+  "run_status": "success",
+  "elapsed_seconds": 16.085,
+  "actual_cause_code": "FILE_NOT_RECEIVED",
+  "v2": {
+    "case_id": "F-01",
+    "final_diagnosis_correct": true,
+    "predicted_final_cause_code": "FILE_NOT_RECEIVED",
+    "actual_cause_code": "FILE_NOT_RECEIVED",
+    "hypothesis_recall_hit": true,
+    "recalled_hypothesis_codes": [
+      "FILE_NOT_RECEIVED"
+    ],
+    "predicted_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_FILE_PATH"
+    ],
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "diagnosis_level_correct": true,
+    "predicted_diagnosis_level": "확인됨",
+    "expected_diagnosis_level_v1": "확인됨",
+    "owner_correct": true,
+    "predicted_owner": "BATCH_OPERATION",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_necessity": "REQUIRED",
+    "required_tools": [
+      "check_file_status"
+    ],
+    "expected_unnecessary_tools": [
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "selected_tools": [
+      "check_file_status"
+    ],
+    "required_tool_recall": 1.0,
+    "unnecessary_tool_count": 0,
+    "unnecessary_tool_rate": 0.0,
+    "tool_call_count": 1,
+    "tool_failure_count": 0
+  },
+  "v3": {
+    "case_id": "F-01",
+    "final_diagnosis_correct": true,
+    "predicted_final_cause_code": "FILE_NOT_RECEIVED",
+    "actual_cause_code": "FILE_NOT_RECEIVED",
+    "hypothesis_recall_hit": true,
+    "recalled_hypothesis_codes": [
+      "FILE_NOT_RECEIVED"
+    ],
+    "predicted_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_FILE_PATH"
+    ],
+    "expected_hypothesis_codes": [
+      "FILE_NOT_RECEIVED",
+      "INVALID_BUSINESS_DATE",
+      "INVALID_FILE_PATH"
+    ],
+    "diagnosis_level_correct": true,
+    "predicted_diagnosis_level": "확인됨",
+    "expected_diagnosis_level_v1": "확인됨",
+    "owner_correct": true,
+    "predicted_owner": "BATCH_OPERATION",
+    "expected_owner": "BATCH_OPERATION",
+    "tool_necessity": "REQUIRED",
+    "required_tools": [
+      "check_file_status"
+    ],
+    "expected_unnecessary_tools": [
+      "validate_parameter",
+      "check_db_status",
+      "check_sql_metadata"
+    ],
+    "selected_tools": [
+      "check_file_status"
+    ],
+    "required_tool_recall": 1.0,
+    "unnecessary_tool_count": 0,
+    "unnecessary_tool_rate": 0.0,
+    "tool_call_count": 1,
+    "tool_failure_count": 0,
+    "revised": false,
+    "original_v2_cause_code": "FILE_NOT_RECEIVED",
+    "original_v2_diagnosis_level": "확인됨",
+    "original_v2_owner": "BATCH_OPERATION",
+    "critic_verdict": "PASS"
+  },
+  "v2_cause_code": "FILE_NOT_RECEIVED",
+  "v2_diagnosis_level": "확인됨",
+  "critic_verdict": "PASS",
+  "critic_recommended_cause_code": null,
+  "guard_allowed": false,
+  "guard_decision": "NOT_APPLICABLE",
+  "v3_cause_code": "FILE_NOT_RECEIVED",
+  "v3_diagnosis_level": "확인됨",
+  "cause_changed": false,
+  "diagnosis_level_changed": false,
+  "owner_changed": false,
+  "correctness_transition": "correct_to_correct"
+}

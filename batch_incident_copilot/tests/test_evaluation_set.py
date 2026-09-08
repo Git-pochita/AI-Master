@@ -60,14 +60,17 @@ EXPECTED_CASES = [
     "C-04",
     "C-05",
     "C-06",
+    "X-01",
+    "X-02",
+    "X-03",
 ]
 
 
-def test_ground_truth_has_thirty_unique_cases():
+def test_ground_truth_has_thirty_three_unique_cases():
     all_gt = load_ground_truth()
-    assert len(all_gt) == 30
+    assert len(all_gt) == 33
     assert list(all_gt) == EXPECTED_CASES
-    assert len(set(all_gt)) == 30
+    assert len(set(all_gt)) == 33
 
 
 def test_ground_truth_fields_codes_tools_and_logs():
@@ -100,6 +103,7 @@ def test_ground_truth_fields_codes_tools_and_logs():
         "DB": 6,
         "SQL": 6,
         "COMPOSITE": 6,
+        "CHALLENGE": 3,
     }
     assert causes == set(CANONICAL_CAUSE_CODES)
 

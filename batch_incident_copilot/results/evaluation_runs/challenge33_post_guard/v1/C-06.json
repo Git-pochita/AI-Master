@@ -1,0 +1,94 @@
+{
+  "case_id": "C-06",
+  "summary": "DAILY_SALES_LOAD 잡 실행 시 business_date 파라미터가 잡 실행일(20260901)과 달리 20260831로 입력되어, 입력 파일 경로가 잘못 생성되어 해당 파일을 찾지 못한 것으로 확인됩니다.",
+  "extracted_info": {
+    "job_name": "DAILY_SALES_LOAD",
+    "business_date": "20260831",
+    "input_path": "/data/in/missing_catalog/sales_20260831.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 08:50:03 ERROR FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "로그와 extracted_info에 FileNotFoundError와 파일 경로가 명확히 나타나 있어, 파일 미수신 또는 경로 오류 가설을 검증하려면 해당 경로의 파일 존재/수신 상태를 확인해야 합니다. check_file_status는 path 인자만 필요하며, 로그에서 경로가 확인되므로 적합합니다.",
+      "arguments": {
+        "path": "/data/in/missing_catalog/sales_20260831.csv"
+      }
+    },
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "파일 미수신과 파일 경로 오류 모두 가능성이 있으나, check_file_status로 이미 파일 존재 여부는 확인했고(실패), 경로가 잘못 지정된 것일 수 있으므로 파라미터로 전달된 business_date 값이 유효한지 추가로 검증할 필요가 있습니다. extracted_info와 로그에 job_name과 business_date가 모두 있으므로 validate_parameter를 사용할 수 있습니다.",
+      "arguments": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "FAILED",
+      "data": null,
+      "error": "카탈로그에 경로가 없습니다: /data/in/missing_catalog/sales_20260831.csv"
+    },
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_SALES_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260831",
+        "required": true,
+        "provided": true,
+        "format_valid": true,
+        "range_valid": null,
+        "expected_value": "20260901",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "DAILY_SALES_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260901"
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과: business_date 파라미터 값(20260831)이 잡 실행일(20260901)과 달라 is_valid=false",
+    "로그: business_date=20260831, input=/data/in/missing_catalog/sales_20260831.csv",
+    "로그: FileNotFoundError: /data/in/missing_catalog/sales_20260831.csv"
+  ],
+  "limitations": [
+    "입력 파일이 실제로 미수신된 것인지, 경로 오류로 인해 찾지 못한 것인지 추가 확인이 필요함",
+    "business_date 파라미터가 잘못 입력된 원인(사용자 실수, 자동화 오류 등)은 추가 분석 필요"
+  ],
+  "recommended_actions": [
+    "잡 실행일과 일치하는 business_date 파라미터를 입력하도록 검증 로직 강화",
+    "파라미터 입력 프로세스 점검 및 자동화 개선",
+    "실행일자 불일치 발생 시 경고 및 사전 차단 기능 도입"
+  ]
+}

@@ -68,5 +68,19 @@
     "received": true,
     "size_bytes": 81920,
     "last_modified": "2026-09-01T01:45:00"
+  },
+  "/data/in/challenge/sale_20260902.csv": {
+    "path": "/data/in/challenge/sale_20260902.csv",
+    "exists": false,
+    "received": false,
+    "size_bytes": null,
+    "last_modified": null
+  },
+  "/data/in/challenge/sales_20260902.csv": {
+    "path": "/data/in/challenge/sales_20260902.csv",
+    "exists": true,
+    "received": true,
+    "size_bytes": 4096,
+    "last_modified": "2026-09-02T01:50:00"
   }
 }

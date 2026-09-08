@@ -1,0 +1,38 @@
+{
+  "case_id": "D-06",
+  "summary": "배치 잡 DAILY_LEGACY_EXTRACT 실행 중 DB 접속 오류(ORA-12154)로 인해 작업이 실패하였음.",
+  "extracted_info": {
+    "job_name": "DAILY_LEGACY_EXTRACT",
+    "connection_name": "LEGACY_DB",
+    "account": "batch_legacy",
+    "error_messages": [
+      "ORA-12154: TNS:could not resolve the connect identifier specified",
+      "DB connection failed for account=batch_legacy connection=LEGACY_DB",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "DB_CONNECTION_CONFIG_ERROR",
+      "cause_name": "DB 접속 설정 오류",
+      "evidence": [
+        "2026-09-01 04:15:03 ERROR ORA-12154: TNS:could not resolve the connect identifier specified",
+        "2026-09-01 04:15:03 ERROR DB connection failed for account=batch_legacy connection=LEGACY_DB"
+      ]
+    }
+  ],
+  "final_cause_code": "DB_CONNECTION_CONFIG_ERROR",
+  "final_cause_name": "DB 접속 설정 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "DB 접속 정보(호스트, 포트, 서비스명, TNS 설정 등)를 점검하십시오.",
+    "DB 연결 식별자(LEGACY_DB)가 올바르게 설정되어 있는지 확인하십시오.",
+    "DBA 또는 운영팀에 문의하여 네트워크 및 TNS 설정을 추가로 점검하십시오."
+  ],
+  "limitations": [
+    "로그에 기록된 오류 메시지(ORA-12154)만을 근거로 진단하였으며, 실제 DB 설정이나 네트워크 상태 등 외부 환경은 확인할 수 없습니다.",
+    "실제 접속 정보의 정상 여부, DB 서버 상태 등은 추가 점검이 필요합니다."
+  ]
+}

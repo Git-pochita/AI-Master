@@ -1,0 +1,89 @@
+{
+  "case_id": "F-04",
+  "summary": "배치 잡 DAILY_PARTNER_LOAD 실행 시 입력 파일 /data/in/partner/partnr_20260901.csv이 존재하지 않아 FileNotFoundError가 발생하였고, 잡이 실패(return_code=12)하였습니다. check_file_status SUCCESS 결과에 따르면 해당 경로의 파일(partnr_20260901.csv)은 존재하지 않고, 같은 디렉토리에 partner_20260901.csv 파일은 정상적으로 존재 및 수신되었습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_PARTNER_LOAD",
+    "business_date": "20260901",
+    "input_path": "/data/in/partner/partnr_20260901.csv",
+    "error_messages": [
+      "FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_file_status",
+      "reason": "로그와 extracted_info에 FileNotFoundError가 명시되어 있고, 파일 미수신 또는 경로 오류가 원인 후보입니다. 실제로 해당 경로(/data/in/partner/partnr_20260901.csv)에 파일이 존재하는지 mock 파일 카탈로그에서 확인할 필요가 있습니다.",
+      "arguments": {
+        "path": "/data/in/partner/partnr_20260901.csv"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_file_status",
+      "status": "SUCCESS",
+      "data": {
+        "path": "/data/in/partner/partnr_20260901.csv",
+        "exists": false,
+        "received": false,
+        "size_bytes": null,
+        "last_modified": null,
+        "filename": "partnr_20260901.csv",
+        "same_directory_files": [
+          {
+            "path": "/data/in/partner/partner_20260901.csv",
+            "exists": true,
+            "received": true,
+            "size_bytes": 102400,
+            "last_modified": "2026-09-01T01:40:00",
+            "filename": "partner_20260901.csv"
+          },
+          {
+            "path": "/data/in/partner/partnr_20260901.csv",
+            "exists": false,
+            "received": false,
+            "size_bytes": null,
+            "last_modified": null,
+            "filename": "partnr_20260901.csv"
+          }
+        ]
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 05:40:03 ERROR FileNotFoundError: /data/in/partner/partnr_20260901.csv",
+    "check_file_status SUCCESS: path=/data/in/partner/partnr_20260901.csv, exists=false, received=false",
+    "same_directory_files: partner_20260901.csv exists=true, received=true"
+  ],
+  "limitations": [
+    "파일 미수신의 근본 원인(예: 송신 시스템 오류, 파일명 오타 등)은 SUCCESS Tool 결과만으로는 확인할 수 없습니다.",
+    "파일명(partnr_20260901.csv)과 정상 파일명(partner_20260901.csv) 간 오타 가능성은 있으나, Tool이 경로 생성 로직을 직접 확인하지 않아 경로 오류(INVALID_FILE_PATH)로 확정할 수 없습니다."
+  ],
+  "recommended_actions": [
+    "입력 파일(partnr_20260901.csv) 송신 여부 및 파일명 생성 로직을 점검하십시오.",
+    "정상 파일명(partner_20260901.csv)과 비교하여 파일명 오타 가능성을 검토하십시오.",
+    "송신 시스템 또는 파일 생성 프로세스에서 해당 파일이 정상적으로 생성 및 전송되었는지 확인하십시오."
+  ]
+}

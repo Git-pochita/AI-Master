@@ -1,0 +1,168 @@
+{
+  "version": "v2",
+  "case_id": "C-05",
+  "summary": "DAILY_INBOUND_LOAD 배치 잡이 return_code=12와 함께 실패하였으며, 'inbound processing failed'라는 오류 메시지가 기록되었습니다. 그러나 SUCCESS Tool 결과가 전혀 없으므로, 구체적인 원인(파일 미수신, 파일 경로 오류, 필수 파라미터 누락 등)에 대한 확인은 불가능합니다.",
+  "extracted_info": {
+    "job_name": "DAILY_INBOUND_LOAD",
+    "return_code": "12",
+    "error_messages": [
+      "inbound processing failed",
+      "job failed with return_code=12"
+    ],
+    "timestamps": [
+      "2026-09-01 08:40:00",
+      "2026-09-01 08:40:01",
+      "2026-09-01 08:40:02",
+      "2026-09-01 08:40:03"
+    ]
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "evidence": [
+        "inbound processing failed라는 메시지가 기록되어 있으나, 구체적인 파일 관련 오류는 명시되어 있지 않음"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "evidence": [
+        "inbound processing failed라는 메시지가 기록되어 있으나, 경로 오류에 대한 직접적인 언급은 없음"
+      ]
+    },
+    {
+      "cause_code": "MISSING_REQUIRED_PARAMETER",
+      "cause_name": "필수 파라미터 누락",
+      "evidence": [
+        "inbound processing failed라는 메시지가 기록되어 있으나, 파라미터 관련 오류는 명시되어 있지 않음"
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "FILE_NOT_RECEIVED",
+      "cause_name": "파일 미수신",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "inbound processing failed라는 메시지가 기록되어 있으나, 구체적인 파일 관련 오류는 명시되어 있지 않음"
+      ]
+    },
+    {
+      "cause_code": "INVALID_FILE_PATH",
+      "cause_name": "파일 경로 오류",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "inbound processing failed라는 메시지가 기록되어 있으나, 경로 오류에 대한 직접적인 언급은 없음"
+      ]
+    },
+    {
+      "cause_code": "MISSING_REQUIRED_PARAMETER",
+      "cause_name": "필수 파라미터 누락",
+      "origin": "initial",
+      "status": "active",
+      "signals": [
+        "inbound processing failed라는 메시지가 기록되어 있으나, 파라미터 관련 오류는 명시되어 있지 않음"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "inbound processing failed의 원인이 파일 미수신 또는 파일 경로 오류인지 확인하기 위해 파일 상태를 점검한다.",
+      "candidate_tool": "check_file_status",
+      "arguments": {},
+      "argument_status": "MISSING_ARGUMENTS",
+      "related_cause_codes": [
+        "FILE_NOT_RECEIVED",
+        "INVALID_FILE_PATH"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "실패의 직접 원인이 파일 미수신인지, 파일 경로 오류인지, 아니면 파라미터 누락인지 확인되지 않았다.",
+    "파일 경로 정보가 로그나 extracted_info에 없어 파일 상태 점검을 바로 진행할 수 없다."
+  ],
+  "current_round": 1,
+  "stop_reason": "MISSING_REQUIRED_ARGUMENTS",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "inbound processing failed의 원인이 파일 미수신 또는 파일 경로 오류인지 확인하기 위해 파일 상태를 점검한다.",
+      "investigation_plan": [
+        {
+          "goal": "inbound processing failed의 원인이 파일 미수신 또는 파일 경로 오류인지 확인하기 위해 파일 상태를 점검한다.",
+          "candidate_tool": "check_file_status",
+          "arguments": {},
+          "argument_status": "MISSING_ARGUMENTS",
+          "related_cause_codes": [
+            "FILE_NOT_RECEIVED",
+            "INVALID_FILE_PATH"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "FILE_NOT_RECEIVED",
+          "cause_name": "파일 미수신",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "inbound processing failed라는 메시지가 기록되어 있으나, 구체적인 파일 관련 오류는 명시되어 있지 않음"
+          ]
+        },
+        {
+          "cause_code": "INVALID_FILE_PATH",
+          "cause_name": "파일 경로 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "inbound processing failed라는 메시지가 기록되어 있으나, 경로 오류에 대한 직접적인 언급은 없음"
+          ]
+        },
+        {
+          "cause_code": "MISSING_REQUIRED_PARAMETER",
+          "cause_name": "필수 파라미터 누락",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "inbound processing failed라는 메시지가 기록되어 있으나, 파라미터 관련 오류는 명시되어 있지 않음"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "실패의 직접 원인이 파일 미수신인지, 파일 경로 오류인지, 아니면 파라미터 누락인지 확인되지 않았다.",
+        "파일 경로 정보가 로그나 extracted_info에 없어 파일 상태 점검을 바로 진행할 수 없다."
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "파일 관련 원인(미수신/경로 오류) 점검을 위해 check_file_status가 필요하나, 로그와 extracted_info에 파일 경로 정보가 없어 Tool을 실행할 수 없다. 파라미터 이상 신호도 없어 validate_parameter를 고를 수 없다.",
+      "evidence_summary": {},
+      "replanned": false,
+      "stop_reason": "MISSING_REQUIRED_ARGUMENTS",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [],
+  "tool_results": [],
+  "final_cause_code": "FILE_NOT_RECEIVED",
+  "final_cause_name": "파일 미수신",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "로그에 'inbound processing failed' 및 'job failed with return_code=12' 메시지가 기록됨",
+    "SUCCESS Tool 결과가 없음"
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 원인에 대한 직접적인 확인이 불가능함",
+    "로그에 구체적인 파일, 경로, 파라미터 관련 오류가 명시되어 있지 않음"
+  ],
+  "recommended_actions": [
+    "입력 파일 수신 여부, 파일 경로, 파라미터 상태를 SUCCESS Tool로 추가 점검 필요",
+    "실패 원인에 대한 상세 로그 및 Tool 결과 확보 후 재분석 권장"
+  ]
+}

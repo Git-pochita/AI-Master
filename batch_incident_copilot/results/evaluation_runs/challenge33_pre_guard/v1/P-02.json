@@ -1,0 +1,71 @@
+{
+  "case_id": "P-02",
+  "summary": "DAILY_STORE_CLOSE 배치 잡 실행 시 필수 파라미터인 store_id가 제공되지 않아 작업이 실패하였습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_STORE_CLOSE",
+    "error_messages": [
+      "required parameter was not supplied: store_id"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "MISSING_REQUIRED_PARAMETER",
+      "cause_name": "필수 파라미터 누락",
+      "evidence": [
+        "2026-09-01 06:10:02 ERROR required parameter was not supplied: store_id",
+        "2026-09-01 06:10:03 ERROR job failed with return_code=12"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "로그와 extracted_info에 'required parameter was not supplied: store_id'라는 메시지가 있으며, 이는 DAILY_STORE_CLOSE 잡의 store_id 파라미터가 누락되었음을 의미합니다. 실제로 파라미터가 제공되지 않았는지 mock 규칙에 따라 검증하기 위해 validate_parameter Tool이 필요합니다.",
+      "arguments": {
+        "job_name": "DAILY_STORE_CLOSE",
+        "parameter_name": "store_id",
+        "parameter_value": ""
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "DAILY_STORE_CLOSE",
+        "parameter_name": "store_id",
+        "parameter_value": null,
+        "required": true,
+        "provided": false,
+        "format_valid": null,
+        "range_valid": null,
+        "expected_value": "ST001",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "DAILY_STORE_CLOSE의 store_id는 필수이며 ST### 형식이어야 한다.",
+        "job_run_date": null
+      },
+      "error": null
+    }
+  ],
+  "final_cause_code": "MISSING_REQUIRED_PARAMETER",
+  "final_cause_name": "필수 파라미터 누락",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS 결과: store_id 파라미터가 required=true, provided=false, is_valid=false로 확인됨",
+    "로그: 2026-09-01 06:10:02 ERROR required parameter was not supplied: store_id",
+    "로그: 2026-09-01 06:10:03 ERROR job failed with return_code=12"
+  ],
+  "limitations": [
+    "store_id 파라미터가 누락된 원인(스케줄러 설정, 사용자 입력 등)은 추가 확인이 필요함"
+  ],
+  "recommended_actions": [
+    "DAILY_STORE_CLOSE 잡 실행 시 store_id 파라미터가 반드시 제공되도록 스케줄러 또는 호출 시스템 설정을 점검하십시오.",
+    "필수 파라미터 누락 시 사전 검증 로직을 추가하여 실행 전에 오류를 방지하십시오."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "case_id": "S-06",
+  "summary": "DAILY_HR_SYNC 배치 실행 중 'ORA-00942: table or view does not exist'와 'invalid schema: HR_X' 오류가 발생했습니다. SUCCESS Tool 결과가 없으므로 실제 테이블 또는 스키마 존재 여부는 확인되지 않았습니다. 로그상 오류 메시지로 볼 때 스키마 또는 테이블이 존재하지 않을 가능성이 있습니다.",
+  "extracted_info": {
+    "job_name": "DAILY_HR_SYNC",
+    "schema": "HR_X",
+    "table": "EMPLOYEES",
+    "sql": "SELECT EMP_ID FROM HR_X.EMPLOYEES",
+    "error_messages": [
+      "ORA-00942: table or view does not exist",
+      "invalid schema: HR_X"
+    ],
+    "return_code": "12"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "TABLE_NOT_FOUND",
+      "cause_name": "테이블 없음",
+      "evidence": [
+        "2026-09-01 07:30:03 ERROR ORA-00942: table or view does not exist"
+      ]
+    },
+    {
+      "cause_code": "INVALID_SCHEMA",
+      "cause_name": "스키마 오류",
+      "evidence": [
+        "2026-09-01 07:30:03 ERROR invalid schema: HR_X"
+      ]
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "check_sql_metadata",
+      "reason": "로그와 extracted_info에 'ORA-00942: table or view does not exist'와 'invalid schema: HR_X' 에러가 있어, HR_X 스키마와 EMPLOYEES 테이블의 존재 여부를 확인해야 합니다. check_sql_metadata는 schema, table, column 존재 여부를 검증할 수 있으므로 적합합니다.",
+      "arguments": {
+        "schema": "HR_X",
+        "table": "EMPLOYEES",
+        "column": "EMP_ID"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "check_sql_metadata",
+      "status": "FAILED",
+      "data": null,
+      "error": "SQL_METADATA_DATA_NOT_FOUND"
+    }
+  ],
+  "final_cause_code": "INVALID_SCHEMA",
+  "final_cause_name": "스키마 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "2026-09-01 07:30:03 ERROR ORA-00942: table or view does not exist",
+    "2026-09-01 07:30:03 ERROR invalid schema: HR_X"
+  ],
+  "limitations": [
+    "SUCCESS Tool 결과가 없어 실제 스키마 또는 테이블 존재 여부를 확인할 수 없습니다.",
+    "로그 오류 메시지 외에 추가적인 운영 상태 정보가 없습니다."
+  ],
+  "recommended_actions": [
+    "HR_X 스키마와 EMPLOYEES 테이블의 존재 여부를 DB에서 직접 확인하십시오.",
+    "스키마 및 테이블 생성 또는 권한 설정을 점검하십시오."
+  ]
+}

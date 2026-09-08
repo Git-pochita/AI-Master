@@ -1,0 +1,43 @@
+{
+  "case_id": "P-04",
+  "summary": "배치 잡 DAILY_RETRY_BATCH 실행 시 retry_count=99 파라미터가 거부되어 실패함.",
+  "extracted_info": {
+    "job_name": "DAILY_RETRY_BATCH",
+    "retry_count": "99",
+    "error_messages": [
+      "parameter rejected: retry_count=99",
+      "job failed with return_code=12"
+    ],
+    "return_code": "12"
+  },
+  "hypotheses": [
+    {
+      "cause_code": "INVALID_PARAMETER_RANGE",
+      "cause_name": "파라미터 값 범위 오류",
+      "evidence": [
+        "2026-09-01 06:30:02 ERROR parameter rejected: retry_count=99",
+        "retry_count=99로 실행되었으며, 해당 값이 거부됨"
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "evidence": [
+        "2026-09-01 06:30:02 ERROR parameter rejected: retry_count=99"
+      ]
+    }
+  ],
+  "final_cause_code": "INVALID_PARAMETER_RANGE",
+  "final_cause_name": "파라미터 값 범위 오류",
+  "diagnosis_level": "추정",
+  "owner": "BATCH_OPERATION",
+  "recommended_actions": [
+    "retry_count 파라미터의 허용 범위를 확인하십시오.",
+    "실제 허용 가능한 retry_count 값으로 재실행을 시도하십시오.",
+    "파라미터 관련 운영 정책 또는 코드 내 유효성 검증 로직을 점검하십시오."
+  ],
+  "limitations": [
+    "로그에 나타난 오류 메시지 외에 파라미터의 실제 허용 범위나 시스템 정책을 확인할 수 없습니다.",
+    "외부 시스템, 코드, 정책, 파라미터 정의 등은 직접 확인하지 못합니다."
+  ]
+}

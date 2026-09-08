@@ -1,0 +1,275 @@
+{
+  "version": "v3",
+  "case_id": "X-02",
+  "summary": "CHALLENGE_BDATE_LOAD 배치 잡 실행 시 business_date 파라미터 값이 '20260931'로 입력되어, 잡 실행일(20260902)과 일치하지 않아 입력 검증 단계에서 실패하였습니다. validate_parameter Tool 결과에 따르면 파라미터 형식은 맞으나, 값이 실행일과 달라 is_valid=false로 확인되었습니다.",
+  "extracted_info": {
+    "job_name": "CHALLENGE_BDATE_LOAD",
+    "parameter_name": "business_date",
+    "parameter_value": "20260931",
+    "error_message": "Batch input validation failed before processing.",
+    "timestamp": "2026-09-02 02:10:11"
+  },
+  "initial_hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "evidence": [
+        "parameter_name=business_date parameter_value=20260931",
+        "Batch input validation failed before processing."
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "evidence": [
+        "parameter_name=business_date parameter_value=20260931",
+        "Batch input validation failed before processing."
+      ]
+    }
+  ],
+  "working_hypotheses": [
+    {
+      "cause_code": "INVALID_BUSINESS_DATE",
+      "cause_name": "실행일자 파라미터 오류",
+      "origin": "initial",
+      "status": "strengthened",
+      "signals": [
+        "parameter_name=business_date parameter_value=20260931",
+        "Batch input validation failed before processing.",
+        "validate_parameter 결과: format_valid=true, is_valid=false, expected_value=20260902, rule=잡 실행일과 같아야 함"
+      ]
+    },
+    {
+      "cause_code": "INVALID_PARAMETER_FORMAT",
+      "cause_name": "파라미터 형식 오류",
+      "origin": "initial",
+      "status": "eliminated",
+      "signals": [
+        "validate_parameter 결과: format_valid=true"
+      ]
+    }
+  ],
+  "investigation_plan": [
+    {
+      "goal": "business_date 파라미터 값(20260931)이 잡 실행일(20260902)과 달라 발생한 오류가 실행일자 파라미터 오류(INVALID_BUSINESS_DATE)로 확정 가능한지 판단",
+      "candidate_tool": null,
+      "arguments": {},
+      "argument_status": "READY",
+      "related_cause_codes": [
+        "INVALID_BUSINESS_DATE",
+        "INVALID_PARAMETER_FORMAT"
+      ],
+      "status": "pending"
+    }
+  ],
+  "unresolved_questions": [
+    "business_date=20260931 값이 형식 오류인지, 존재하지 않는 날짜(범위 오류)인지 구분할 수 있는가?"
+  ],
+  "current_round": 2,
+  "stop_reason": "EVIDENCE_SUFFICIENT",
+  "planning_trace": [
+    {
+      "round_index": 1,
+      "goal": "business_date 파라미터 값(20260931)이 유효한 날짜인지, 형식 또는 범위 오류가 있는지 확인한다.",
+      "investigation_plan": [
+        {
+          "goal": "business_date 파라미터 값(20260931)이 유효한 날짜인지, 형식 또는 범위 오류가 있는지 확인한다.",
+          "candidate_tool": "validate_parameter",
+          "arguments": {
+            "job_name": "CHALLENGE_BDATE_LOAD",
+            "parameter_name": "business_date",
+            "parameter_value": "20260931"
+          },
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_BUSINESS_DATE",
+            "INVALID_PARAMETER_FORMAT"
+          ],
+          "status": "executed"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_BUSINESS_DATE",
+          "cause_name": "실행일자 파라미터 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "parameter_name=business_date parameter_value=20260931",
+            "Batch input validation failed before processing."
+          ]
+        },
+        {
+          "cause_code": "INVALID_PARAMETER_FORMAT",
+          "cause_name": "파라미터 형식 오류",
+          "origin": "initial",
+          "status": "active",
+          "signals": [
+            "parameter_name=business_date parameter_value=20260931",
+            "Batch input validation failed before processing."
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "business_date=20260931 값이 형식 오류인지, 존재하지 않는 날짜(범위 오류)인지 구분할 수 있는가?"
+      ],
+      "evidence_sufficient": false,
+      "selected_tool": "validate_parameter",
+      "arguments": {
+        "job_name": "CHALLENGE_BDATE_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260931"
+      },
+      "reason": "로그에 파라미터 값(20260931)과 validation 실패 메시지가 있으나, 형식 오류와 날짜 범위 오류(INVALID_BUSINESS_DATE)를 구분할 수 없다. validate_parameter Tool로 구체적 오류 유형을 확인할 수 있다.",
+      "evidence_summary": {
+        "job_name": "CHALLENGE_BDATE_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260931",
+        "expected_value": "20260902",
+        "is_valid": false,
+        "format_valid": true,
+        "range_valid": null,
+        "rule": "CHALLENGE_BDATE_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260902",
+        "status": "SUCCESS"
+      },
+      "replanned": false,
+      "stop_reason": null,
+      "tool_result": {
+        "tool": "validate_parameter",
+        "status": "SUCCESS",
+        "data": {
+          "job_name": "CHALLENGE_BDATE_LOAD",
+          "parameter_name": "business_date",
+          "parameter_value": "20260931",
+          "required": true,
+          "provided": true,
+          "format_valid": true,
+          "range_valid": null,
+          "expected_value": "20260902",
+          "allowed_values": null,
+          "min": null,
+          "max": null,
+          "is_valid": false,
+          "rule": "CHALLENGE_BDATE_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+          "job_run_date": "20260902"
+        },
+        "error": null
+      }
+    },
+    {
+      "round_index": 2,
+      "goal": "business_date 파라미터 값(20260931)이 잡 실행일(20260902)과 달라 발생한 오류가 실행일자 파라미터 오류(INVALID_BUSINESS_DATE)로 확정 가능한지 판단",
+      "investigation_plan": [
+        {
+          "goal": "business_date 파라미터 값(20260931)이 잡 실행일(20260902)과 달라 발생한 오류가 실행일자 파라미터 오류(INVALID_BUSINESS_DATE)로 확정 가능한지 판단",
+          "candidate_tool": null,
+          "arguments": {},
+          "argument_status": "READY",
+          "related_cause_codes": [
+            "INVALID_BUSINESS_DATE",
+            "INVALID_PARAMETER_FORMAT"
+          ],
+          "status": "pending"
+        }
+      ],
+      "hypothesis_states": [
+        {
+          "cause_code": "INVALID_BUSINESS_DATE",
+          "cause_name": "실행일자 파라미터 오류",
+          "origin": "initial",
+          "status": "strengthened",
+          "signals": [
+            "parameter_name=business_date parameter_value=20260931",
+            "Batch input validation failed before processing.",
+            "validate_parameter 결과: format_valid=true, is_valid=false, expected_value=20260902, rule=잡 실행일과 같아야 함"
+          ]
+        },
+        {
+          "cause_code": "INVALID_PARAMETER_FORMAT",
+          "cause_name": "파라미터 형식 오류",
+          "origin": "initial",
+          "status": "eliminated",
+          "signals": [
+            "validate_parameter 결과: format_valid=true"
+          ]
+        }
+      ],
+      "unresolved_questions": [
+        "business_date=20260931 값이 형식 오류인지, 존재하지 않는 날짜(범위 오류)인지 구분할 수 있는가?"
+      ],
+      "evidence_sufficient": true,
+      "selected_tool": null,
+      "arguments": {},
+      "reason": "validate_parameter 결과에서 파라미터 형식은 유효(format_valid=true)하나, 잡 실행일(20260902)과 business_date(20260931)가 달라 is_valid=false로 판정되어 실행일자 파라미터 오류(INVALID_BUSINESS_DATE)로 근본 원인을 확정할 수 있습니다. 추가 조사나 Tool 호출이 필요하지 않습니다.",
+      "evidence_summary": {},
+      "replanned": true,
+      "stop_reason": "EVIDENCE_SUFFICIENT",
+      "tool_result": null
+    }
+  ],
+  "selected_tools": [
+    {
+      "selected_tool": "validate_parameter",
+      "reason": "로그에 파라미터 값(20260931)과 validation 실패 메시지가 있으나, 형식 오류와 날짜 범위 오류(INVALID_BUSINESS_DATE)를 구분할 수 없다. validate_parameter Tool로 구체적 오류 유형을 확인할 수 있다.",
+      "arguments": {
+        "job_name": "CHALLENGE_BDATE_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260931"
+      }
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "validate_parameter",
+      "status": "SUCCESS",
+      "data": {
+        "job_name": "CHALLENGE_BDATE_LOAD",
+        "parameter_name": "business_date",
+        "parameter_value": "20260931",
+        "required": true,
+        "provided": true,
+        "format_valid": true,
+        "range_valid": null,
+        "expected_value": "20260902",
+        "allowed_values": null,
+        "min": null,
+        "max": null,
+        "is_valid": false,
+        "rule": "CHALLENGE_BDATE_LOAD의 business_date는 잡 실행일(YYYYMMDD)과 같아야 한다.",
+        "job_run_date": "20260902"
+      },
+      "error": null
+    }
+  ],
+  "critic_result": {
+    "verdict": "PASS",
+    "evidence_consistent": true,
+    "diagnosis_level_appropriate": true,
+    "owner_consistent": true,
+    "issues": [],
+    "recommended_cause_code": null,
+    "recommended_diagnosis_level": null,
+    "recommended_owner": null,
+    "revision_reason": ""
+  },
+  "revised": false,
+  "original_v2_cause_code": "INVALID_BUSINESS_DATE",
+  "original_v2_diagnosis_level": "확인됨",
+  "original_v2_owner": "BATCH_OPERATION",
+  "final_cause_code": "INVALID_BUSINESS_DATE",
+  "final_cause_name": "실행일자 파라미터 오류",
+  "diagnosis_level": "확인됨",
+  "owner": "BATCH_OPERATION",
+  "evidence": [
+    "validate_parameter SUCCESS data: parameter_name=business_date, parameter_value=20260931, format_valid=true, expected_value=20260902, is_valid=false, rule=잡 실행일과 같아야 함",
+    "로그: Batch input validation failed before processing."
+  ],
+  "limitations": [
+    "실행일자 파라미터 오류 외에 다른 입력 파라미터나 파일, DB 관련 이슈는 SUCCESS Tool 결과에서 확인되지 않음"
+  ],
+  "recommended_actions": [
+    "business_date 파라미터를 잡 실행일(20260902)과 동일하게 입력하여 재실행하십시오.",
+    "파라미터 입력 자동화 또는 검증 로직을 강화하여 유사 오류를 예방하십시오."
+  ]
+}
